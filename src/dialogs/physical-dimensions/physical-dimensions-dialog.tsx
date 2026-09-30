@@ -2,6 +2,7 @@ import { useEffect, useState, type ChangeEvent, type ReactElement } from 'react'
 import { IconForms, IconRulerMeasure } from '@tabler/icons-react';
 import { Input } from '@/shadcn/input';
 import { Button } from '@/shadcn/button';
+import { parseNumber } from '@/store/app-store-utils';
 import type { PhysicalSize } from '@/types';
 import { useMeasurement } from './measurement-context';
 import { 
@@ -18,7 +19,6 @@ import {
   FieldLegend, 
   FieldSet 
 } from '@/shadcn/field';
-import { parseNumber } from '@/store/app-store-utils';
 
 interface PhysicalDimensionsDialogProps {
   
@@ -68,7 +68,7 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
     if (!props.open || !props.physicalSize) {
       setWidthStr('');
       setHeightStr('');
-      setUnit('');
+      setDistStr('');
     } else {
       setWidthStr(props.physicalSize.width.toString());
       setHeightStr(props.physicalSize.height.toString());
@@ -81,11 +81,12 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
     if (mode === 'MEASURE') {
       setWidthStr('');
       setHeightStr('');
+      setDistStr('');
     } else {
       setWidthStr(props.physicalSize?.width.toString() || '');
       setHeightStr(props.physicalSize?.height.toString() || '');
     }
-  }, [mode]);
+  }, [mode, props.physicalSize]);
 
   const onDistanceChanged = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
