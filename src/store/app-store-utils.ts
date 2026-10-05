@@ -127,6 +127,32 @@ export const moveCanvas = (
   return reorder({ list: reconstruction, startIndex, finishIndex });
 }
 
+export const insertCanvasesAtIndex = (
+  reconstruction: ReconstructionCanvas[],
+  canvasIds: string[],
+  index: number
+): ReconstructionCanvas[] => {
+  const ids = new Set(canvasIds);
+  const canvases = canvasIds
+    .map(id => reconstruction.find(canvas => canvas.id === id)!).filter(Boolean);
+
+  const targetIndex = Math.max(0, Math.min(index, reconstruction.length));
+
+  const removedBeforeIndex = reconstruction
+    .slice(0, targetIndex)
+    .filter(canvas => ids.has(canvas.id))
+    .length;
+
+  const remaining = reconstruction.filter(canvas => !ids.has(canvas.id));
+  const insertionIndex = targetIndex - removedBeforeIndex;
+
+  return [
+    ...remaining.slice(0, insertionIndex),
+    ...canvases,
+    ...remaining.slice(insertionIndex)
+  ];
+}
+
 export const mergeInto = (
   toMerge: ReconstructionCanvas[], 
   current: ReconstructionCanvas[],

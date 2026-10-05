@@ -7,7 +7,7 @@ import { useAppStore } from '@/store/app-store';
 import type { OriginalCanvas, ReconstructionCanvas, SourceCanvas } from '@/types';
 
 export type DragPayload =
-  | { kind: 'root'; id: string; index: number; itemType: ReconstructionCanvas['type'] }
+  | { kind: 'root'; canvasIds: string[]; allOriginal: boolean }
   | { kind: 'child'; compositeId: string; canvasId: string; instanceId: string };
 
 export type FallbackDropTarget = { kind: 'list-fallback'; id: string; index: number; edge: 'top' | 'bottom' };
@@ -26,10 +26,11 @@ export const useDragAndDrop = () => {
     payload: DragPayload
   ): [ReconstructionCanvas[], SourceCanvas | undefined] => {
     if (payload.kind === 'root') {
-      const item = list.find(c => c.id === payload.id);
-  
+      if (payload.canvasIds.length !== 1) return [list, undefined];
+
+      const item = list.find(c => c.id === payload.canvasIds[0]);
       return item?.type === 'original'
-        ? [list.filter(c => c.id !== payload.id), item.source]
+        ? [list.filter(c => c.id !== item.id), item.source]
         : [list, undefined];
     } else {
       let child: SourceCanvas | undefined;
@@ -102,7 +103,7 @@ export const useDragAndDrop = () => {
     payload: DragPayload
   ): ReconstructionCanvas[] => {
     // No-ops: dropping onto itself, or a child onto its own composite
-    if (payload.kind === 'root' && payload.id === targetId) return list;
+    if (payload.kind === 'root' && payload.canvasIds.includes(targetId)) return list;
     if (payload.kind === 'child' && payload.compositeId === targetId) return list;
   
     const [without, dragged] = take(list, payload);

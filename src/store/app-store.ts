@@ -4,6 +4,7 @@ import type { CozyCanvas, CozyManifest } from 'cozy-iiif';
 import type { PhysicalSize, ReconstructionCanvas, SourceManifest } from '@/types';
 import {
   appendEmptyCanvas,
+  insertCanvasesAtIndex,
   mergeInto,
   moveCanvas,
   parseCanvas,
@@ -35,6 +36,7 @@ interface AppStore {
   // Actions: reconstruction
   appendEmptyCanvas: (width?: number, height?: number) => void;
   duplicateCanvas: (canvasId: string) => void;
+  insertCanvasesAtIndex: (canvasIds: string[], index: number) => void;
   mergeCanvases: (toMerge: ReconstructionCanvas[]) => void;
   moveCanvas: (canvasId: string, direction: MoveDirection) => void;
   removeCanvasFromReconstruction: (canvasId: string) => void;
@@ -176,6 +178,10 @@ export const useAppStore = create<AppStore>()(
 
       mergeCanvases: toMerge => set(({ baseURI, reconstruction  }) => ({
         reconstruction: mergeInto(toMerge, reconstruction, baseURI)
+      })),
+
+      insertCanvasesAtIndex: (canvasIds, index) => set(({ reconstruction }) => ({
+        reconstruction: insertCanvasesAtIndex(reconstruction, canvasIds, index)
       })),
 
       moveCanvas: (canvasId, direction) => set(({ reconstruction }) => ({

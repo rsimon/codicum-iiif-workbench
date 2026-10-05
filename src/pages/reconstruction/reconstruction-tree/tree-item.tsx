@@ -1,23 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import { IconAlertTriangle, IconGripVertical, IconStack2 } from '@tabler/icons-react';
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
 import { draggable, dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/utils/set-custom-native-drag-preview';
 import { DropIndicator as LineIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import { attachInstruction, extractInstruction } from '@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item';
 import type { Instruction } from '@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item';
-import { cn, withStopPropagation } from '@/shadcn/utils';
 import { LazyThumbnail } from '@/components/lazy-thumbnail';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
+import { cn, withStopPropagation } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas, SourceCanvas } from '@/types';
 import { EditableCanvasLabel } from './editable-canvas-label';
 import { ITEM_GAP, TreeDropIndicator, viewTransitionName } from './use-drag-and-drop';
 import type { DragPayload } from './use-drag-and-drop';
 import { ReconstructionTreeItemActions } from './tree-item-actions';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
 
 interface ReconstructionTreeItemProps {
 
   item: ReconstructionCanvas;
+
+  selectedItems: ReconstructionCanvas[];
 
   index: number;
 
@@ -30,7 +34,7 @@ interface ReconstructionTreeItemProps {
 }
 
 export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
-  const { item, index, isSelected, onSelect, pinnedEdge } = props;
+  const { item, selectedItems, index, isSelected, onSelect, pinnedEdge } = props;
 
   const renameCanvas = useAppStore(state => state.renameCanvas);
 
@@ -50,8 +54,42 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
       draggable({
         element,
         dragHandle: handleRef.current ?? undefined,
-        getInitialData: (): DragPayload =>
-          ({ kind: 'root', id: item.id, index, itemType: item.type }),
+        getInitialData: (): DragPayload => {
+          const draggedItems = isSelected ? selectedItems : [item];
+
+          return {
+            kind: 'root',
+            canvasIds: draggedItems.map(selected => selected.id),
+            allOriginal: draggedItems.every(selected => selected.type === 'original')
+          };
+        },
+        onGenerateDragPreview: ({ nativeSetDragImage }) => {
+          if (!isSelected || selectedItems.length < 2) {
+            const row = element.cloneNode(true) as HTMLLIElement;
+            row.style.width = `${element.getBoundingClientRect().width}px`;
+            row.style.backgroundColor = 'white';
+
+            setCustomNativeDragPreview({
+              nativeSetDragImage,
+              render: ({ container }) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'inline-block p-2';
+                wrapper.append(row);
+                container.append(wrapper);
+              }
+            });
+            return;
+          }
+
+          setCustomNativeDragPreview({
+            nativeSetDragImage,
+            render: ({ container }) => {
+              const root = createRoot(container);
+              root.render(<MultiSelectDragPreview items={selectedItems} />);
+              return () => root.unmount();
+            }
+          });
+        },
         onDragStart: () => setIsDragging(true),
         onDrop: () => setIsDragging(false)
       }),
@@ -62,8 +100,9 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
 
           // Composites may never become children: block the middle zone
           // when a composite is being dragged.
+          const canMerge = payload.kind !== 'root' || payload.allOriginal;
           const block: Instruction['type'][] =
-            payload.kind === 'root' && payload.itemType === 'composite'
+            !canMerge
               ? ['make-child']
               : [];
 
@@ -81,7 +120,7 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
         onDrop: () => setInstruction(null)
       })
     );
-  }, [item.id, index, item.type]);
+  }, [item, index, isSelected, selectedItems]);
 
   return (
     <li
@@ -180,6 +219,19 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
   )
 
 }
+
+const MultiSelectDragPreview = ({ items }: { items: ReconstructionCanvas[] }) => (
+  <div className="grid w-fit p-6">
+    {items.slice(0, 6).map((item, index) => (
+      <div
+        key={item.id}
+        className="col-start-1 row-start-1 w-60 truncate whitespace-nowrap rounded-md border-2 border-primary bg-white px-3 py-2.5 text-sm text-foreground shadow-xs"
+        style={{ transform: `translate(${index * 4}px, ${index * 4}px)` }}>
+        {item.label}
+      </div>
+    ))}
+  </div>
+)
 
 interface CompositeChildItemProps {
 
