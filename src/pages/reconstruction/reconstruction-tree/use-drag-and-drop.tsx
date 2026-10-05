@@ -7,7 +7,14 @@ import { useAppStore } from '@/store/app-store';
 import type { OriginalCanvas, ReconstructionCanvas, SourceCanvas } from '@/types';
 
 export type DragPayload =
-  | { kind: 'root'; id: string; index: number; itemType: ReconstructionCanvas['type'] }
+  | {
+      kind: 'root';
+      id: string;
+      index: number;
+      itemType: ReconstructionCanvas['type'];
+      selectedIds?: string[];
+      selectedAllOriginal?: boolean;
+    }
   | { kind: 'child'; compositeId: string; canvasId: string; instanceId: string };
 
 export type FallbackDropTarget = { kind: 'list-fallback'; id: string; index: number; edge: 'top' | 'bottom' };

@@ -9,6 +9,7 @@ import { unsafeOverflowAutoScrollForElements } from '@atlaskit/pragmatic-drag-an
 import { ScrollArea } from '@/shadcn/scroll-area';
 import { withViewTransition } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
+import type { ReconstructionCanvas } from '@/types';
 import { useReconstructionStore } from '../reconstruction-store';
 import { useDragAndDrop } from './use-drag-and-drop';
 import type { DragPayload, FallbackDropTarget } from './use-drag-and-drop';
@@ -18,6 +19,8 @@ import { ReconstructionTreeToolbar } from './tree-toolbar';
 export const ReconstructionTree = () => {
   const canvases = useAppStore(state => state.reconstruction);
   const onChange = useAppStore(state => state.updateReconstruction);
+  const insertCanvasesAtIndex = useAppStore(state => state.insertCanvasesAtIndex);
+  const mergeCanvases = useAppStore(state => state.mergeCanvases);
   const appendEmpty = useAppStore(state => state.appendEmptyCanvas);
 
   const selection = useReconstructionStore(state => state.selection) ?? [];
@@ -99,18 +102,44 @@ export const ReconstructionTree = () => {
           const targetIndex = target.data.index as number;
 
           if (type === 'make-child') {
-            withViewTransition(() => onChange(mergeInto(canvases, target.data.id as string, payload)));
+            const targetId = target.data.id as string;
+
+            if (payload.kind === 'root' && payload.selectedIds?.length) {
+              if (!payload.selectedAllOriginal) return;
+
+              const selected = payload.selectedIds.map(id => canvases.find(c => c.id === id));
+              if (selected.some(c => c?.type !== 'original')) return;
+
+              const destination = canvases.find(c => c.id === targetId);
+              if (!destination) return;
+
+              const toMerge: ReconstructionCanvas[] = [
+                destination,
+                ...selected.filter((c): c is ReconstructionCanvas => !!c && c.id !== targetId)
+              ];
+              if (toMerge.length < 2) return;
+
+              withViewTransition(() => mergeCanvases(toMerge));
+            } else {
+              withViewTransition(() => onChange(mergeInto(canvases, targetId, payload)));
+            }
           } else if (type === 'reorder-above' || type === 'reorder-below') {
             if (payload.kind === 'root') {
-              const finishIndex = getReorderDestinationIndex({
-                startIndex: payload.index,
-                indexOfTarget: targetIndex,
-                closestEdgeOfTarget: type === 'reorder-above' ? 'top' : 'bottom',
-                axis: 'vertical'
-              });
+              const selectedIds = payload.selectedIds;
+              if (selectedIds && selectedIds.length > 1) {
+                const insertionIndex = targetIndex + (type === 'reorder-below' ? 1 : 0);
+                withViewTransition(() => insertCanvasesAtIndex(selectedIds, insertionIndex));
+              } else {
+                const finishIndex = getReorderDestinationIndex({
+                  startIndex: payload.index,
+                  indexOfTarget: targetIndex,
+                  closestEdgeOfTarget: type === 'reorder-above' ? 'top' : 'bottom',
+                  axis: 'vertical'
+                });
 
-              if (finishIndex !== payload.index)
-                withViewTransition(() => onChange(reorderRoot(canvases, payload.index, finishIndex)));
+                if (finishIndex !== payload.index)
+                  withViewTransition(() => onChange(reorderRoot(canvases, payload.index, finishIndex)));
+              }
             } else {
               const insertIndex = type === 'reorder-above' ? targetIndex : targetIndex + 1;
 
@@ -149,7 +178,7 @@ export const ReconstructionTree = () => {
         onDrop: () => setFallback(null)
       })
     );
-  }, [canvases, onChange, extractChild, mergeInto, reorderRoot]);
+  }, [canvases, onChange, insertCanvasesAtIndex, mergeCanvases, extractChild, mergeInto, reorderRoot]);
 
   return (
     <div className="flex flex-col h-full bg-neutral-100">
@@ -163,6 +192,7 @@ export const ReconstructionTree = () => {
             <ReconstructionTreeItem
               key={item.id}
               item={item}
+              selectedItems={selection}
               index={index}
               isSelected={selection.some(s => s.id === item.id)}
               onSelect={event => onSelect(index, event)}
