@@ -43,17 +43,21 @@ export const ComposerToolbar = () => {
 
   const reconstruction = useAppStore(state => state.reconstruction);
 
-  const isFullSize = selectedImage ? isSelectionFullSize(selectedImage, reconstruction) : false;
+  const isFullSize = selectedImage 
+    ? isSelectionFullSize(selectedImage, reconstruction) 
+    : false;
+
   const images = selectedImage
     ? imagesByCanvasId.get(selectedImage.item.reconstructionCanvasId) ?? []
     : [];
+
   const selectedImageIndex = selectedImage
     ? images.findIndex(image =>
-      getCanvasImageKey(selectedImage.item.reconstructionCanvasId, image) ===
-      getCanvasImageKey(selectedImage.item.reconstructionCanvasId, selectedImage.image))
+        getCanvasImageKey(selectedImage.item.reconstructionCanvasId, image) ===
+        getCanvasImageKey(selectedImage.item.reconstructionCanvasId, selectedImage.image))
     : -1;
 
-  const onMoveImage = (direction: 'up' | 'down') => {
+  const onChangeZOrder = (direction: 'up' | 'down') => {
     if (!selectedImage) return;
     changeImageZOrder(selectedImage.item.reconstructionCanvasId, selectedImage.image, direction);
   };
@@ -85,14 +89,14 @@ export const ComposerToolbar = () => {
         ring-1 ring-black/5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.10)]">
         <ComposerToolbarButton
           disabled={!selectedImage || selectedImageIndex < 0 || selectedImageIndex === images.length - 1}
-          onClick={() => onMoveImage('up')}
+          onClick={() => onChangeZOrder('up')}
           tooltip="Move image up">
           <IconStackPop className="size-4.5" />
         </ComposerToolbarButton>
 
         <ComposerToolbarButton
           disabled={!selectedImage || selectedImageIndex <= 0}
-          onClick={() => onMoveImage('down')}
+          onClick={() => onChangeZOrder('down')}
           tooltip="Move image down">
           <IconStackPush className="size-4.5" />
         </ComposerToolbarButton>
