@@ -1,13 +1,13 @@
 import type { ButtonProps } from '@base-ui/react';
 import { IconArrowBackUp, IconArrowForwardUp, IconCrop, IconMaximize, IconStackPop, IconStackPush } from '@tabler/icons-react';
+import { ToolbarToggle } from '@/components/toolbar-toggle';
 import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
 import { useAppStore } from '@/store/app-store';
+import { getCanvasImageKey } from '../reconstruction-utils';
 import { useComposerStore } from './composer-store';
 import { getFillSize, isSelectionFullSize } from './composer-utils';
-import { ToolbarToggle } from '@/components/toolbar-toggle';
-import { getCanvasImageKey } from '../reconstruction-utils';
 
 const ComposerToolbarButton = (props: ButtonProps & { tooltip: string }) => {
   const { children, ...rest } = props;
