@@ -214,13 +214,19 @@ export const applyEdits = (
     .map(r => {
       // Images in the composer (with user edits)
       const composerImages = imagesByCanvasId.get(r.id)!;
+
       const seenSources = new Set<string>();
-      const sources = composerImages.flatMap(image => {
-        if (seenSources.has(image.sourceCanvasInstanceId)) return [];
-        seenSources.add(image.sourceCanvasInstanceId);
+      const sources: SourceCanvas[] = [];
+      
+      for (const image of composerImages) {
+        if (seenSources.has(image.sourceCanvasInstanceId)) continue;
+
         const source = sourceCanvasInstances.get(image.sourceCanvasInstanceId);
-        return source ? [source] : [];
-      });
+        if (!source) continue;
+
+        seenSources.add(image.sourceCanvasInstanceId);
+        sources.push(source);
+      }
 
       const applySourceEdits = (source: SourceCanvas) => applyEditsToSource(
         r,
