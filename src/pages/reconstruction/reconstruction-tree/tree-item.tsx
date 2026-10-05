@@ -56,15 +56,11 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
         dragHandle: handleRef.current ?? undefined,
         getInitialData: (): DragPayload => {
           const draggedItems = isSelected ? selectedItems : [item];
-          const selectedIds = draggedItems.map(selected => selected.id);
 
           return {
             kind: 'root',
-            id: item.id,
-            index,
-            itemType: item.type,
-            ...(selectedIds.length > 1 ? { selectedIds } : {}),
-            selectedAllOriginal: draggedItems.every(selected => selected.type === 'original')
+            canvasIds: draggedItems.map(selected => selected.id),
+            allOriginal: draggedItems.every(selected => selected.type === 'original')
           };
         },
         onGenerateDragPreview: ({ nativeSetDragImage }) => {
@@ -104,9 +100,7 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
 
           // Composites may never become children: block the middle zone
           // when a composite is being dragged.
-          const canMerge =
-            payload.kind !== 'root' ||
-            (payload.selectedAllOriginal ?? payload.itemType === 'original');
+          const canMerge = payload.kind !== 'root' || payload.allOriginal;
           const block: Instruction['type'][] =
             !canMerge
               ? ['make-child']

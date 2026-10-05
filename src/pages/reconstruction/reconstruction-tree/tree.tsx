@@ -104,10 +104,10 @@ export const ReconstructionTree = () => {
           if (type === 'make-child') {
             const targetId = target.data.id as string;
 
-            if (payload.kind === 'root' && payload.selectedIds?.length) {
-              if (!payload.selectedAllOriginal) return;
+            if (payload.kind === 'root' && payload.canvasIds.length > 1) {
+              if (!payload.allOriginal) return;
 
-              const selected = payload.selectedIds.map(id => canvases.find(c => c.id === id));
+              const selected = payload.canvasIds.map(id => canvases.find(c => c.id === id));
               if (selected.some(c => c?.type !== 'original')) return;
 
               const destination = canvases.find(c => c.id === targetId);
@@ -125,20 +125,22 @@ export const ReconstructionTree = () => {
             }
           } else if (type === 'reorder-above' || type === 'reorder-below') {
             if (payload.kind === 'root') {
-              const selectedIds = payload.selectedIds;
-              if (selectedIds && selectedIds.length > 1) {
+              if (payload.canvasIds.length > 1) {
                 const insertionIndex = targetIndex + (type === 'reorder-below' ? 1 : 0);
-                withViewTransition(() => insertCanvasesAtIndex(selectedIds, insertionIndex));
+                withViewTransition(() => insertCanvasesAtIndex(payload.canvasIds, insertionIndex));
               } else {
+                const startIndex = canvases.findIndex(canvas => canvas.id === payload.canvasIds[0]);
+                if (startIndex === -1) return;
+
                 const finishIndex = getReorderDestinationIndex({
-                  startIndex: payload.index,
+                  startIndex,
                   indexOfTarget: targetIndex,
                   closestEdgeOfTarget: type === 'reorder-above' ? 'top' : 'bottom',
                   axis: 'vertical'
                 });
 
-                if (finishIndex !== payload.index)
-                  withViewTransition(() => onChange(reorderRoot(canvases, payload.index, finishIndex)));
+                if (finishIndex !== startIndex)
+                  withViewTransition(() => onChange(reorderRoot(canvases, startIndex, finishIndex)));
               }
             } else {
               const insertIndex = type === 'reorder-above' ? targetIndex : targetIndex + 1;
