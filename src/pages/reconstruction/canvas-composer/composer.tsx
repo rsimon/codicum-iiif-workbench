@@ -204,6 +204,29 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
     // Any tiledImages not in the 'toKeep' list
     const toRemove = [...tiledImages.entries()].filter(([key, _]) => !toKeep.has(key));
 
+    const syncTiledImageOrder = () => {
+      const orderedImages = placements.flatMap(({ key }) => {
+        const tiledImage = tiledImages.get(key);
+        return tiledImage ? [tiledImage] : [];
+      });
+
+      if (selectedImage && editMode === 'CROP') {
+        const selectedKey = getCanvasImageKey(selectedImage.item.reconstructionCanvasId, selectedImage.image);
+        const backgroundKey = `${selectedKey}${CROP_BACKGROUND_SUFFIX}`;
+        
+        const foreground = tiledImages.get(selectedKey);
+        const background = tiledImages.get(backgroundKey);
+
+        if (background && foreground) {
+          const cropImages = new Set([background, foreground]);
+          const imagesWithoutCrop = orderedImages.filter(image => !cropImages.has(image));
+          orderedImages.splice(0, orderedImages.length, ...imagesWithoutCrop, background, foreground);
+        }
+      }
+
+      orderedImages.forEach((image, index) => viewer.world.setItemIndex(image, index));
+    };
+
     const previousSelectionKey = previousSelection ? 
       getCanvasImageKey(previousSelection.item.reconstructionCanvasId, previousSelection.image) : undefined;
 
@@ -231,6 +254,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
     if (isSelectionKeyChange()) {
       tiledImages.set(selectedKey!, tiledImages.get(previousSelectionKey!)!);
       tiledImages.delete(previousSelectionKey!);
+      syncTiledImageOrder();
       return;
     }
 
@@ -253,21 +277,6 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
       }
     });
 
-    const moveCropToFront = () => {
-      if (!selectedImage || editMode !== 'CROP') return;
-      
-      const maxIdx = viewer.world.getItemCount() - 1;
-      const selectedKey = getCanvasImageKey(selectedImage.item.reconstructionCanvasId, selectedImage.image);
-
-      const foreground = tiledImages.get(selectedKey);
-      const background = tiledImages.get(`${selectedKey}${CROP_BACKGROUND_SUFFIX}`);
-
-      if (background && foreground) {
-        viewer.world.setItemIndex(background, maxIdx);
-        viewer.world.setItemIndex(foreground, maxIdx);
-      } 
-    }
-
     // 3. Add images that don't exist yet and AREN'T IN THE PROCESS OF BEING ADDED!
     // In the initial phase, an image can be loading, but not yet in `tiledImages`:
     // Once `useVisibleCanvases` picks up the initial viewport change, this effect
@@ -283,10 +292,12 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
           const { item: tiledImage } = evt as unknown as { item: TiledImage };
           pendingTiledImageKeys.delete(key);
           tiledImages.set(key, tiledImage);
-          moveCropToFront();
+          syncTiledImageOrder();
         }
       });
     });
+
+    syncTiledImageOrder();
   }, [viewer, layout, images, visibleIds, reconstructionById, selectedImage, editMode]);
 
   return (

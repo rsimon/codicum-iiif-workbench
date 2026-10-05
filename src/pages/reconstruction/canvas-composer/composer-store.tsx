@@ -45,6 +45,8 @@ export interface ComposerState {
 
   updateImage(canvasId: string, updated: DraggableImage): void;
 
+  changeImageZOrder(canvasId: string, image: DraggableImage, direction: 'up' | 'down'): void;
+
   moveImageToCanvas(fromReconstructionCanvasId: string, toReconstructionCanvasId: string, image: DraggableImage): boolean;
 
 }
@@ -104,6 +106,28 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
       imagesByCanvasId: updatedImagesByCanvasId,
       ...(updatedSelectedImage ? { selectedImage: updatedSelectedImage } : {})
     };
+  }),
+
+  changeImageZOrder: (canvasId, image, direction) => set(({ imagesByCanvasId }) => {
+    const images = imagesByCanvasId.get(canvasId);
+    if (!images) return {};
+
+    const key = getCanvasImageKey(canvasId, image);
+    const index = images.findIndex(current => getCanvasImageKey(canvasId, current) === key);
+
+    const nextIndex = index + (direction === 'up' ? 1 : -1);
+    if (index < 0 || nextIndex < 0 || nextIndex >= images.length) return {};
+
+    // z-Index is simply the array order - swap position
+    const nextImages = [...images];
+    [nextImages[index], nextImages[nextIndex]] = [nextImages[nextIndex], nextImages[index]];
+
+    const updatedImagesByCanvasId = new Map(imagesByCanvasId);
+    updatedImagesByCanvasId.set(canvasId, nextImages);
+
+    scheduleAppStoreSync();
+    
+    return { imagesByCanvasId: updatedImagesByCanvasId };
   }),
 
   moveImageToCanvas: (fromId, toId, image) => {
@@ -212,22 +236,36 @@ useAppStore.subscribe((state, prevState) => {
 
   if (prevSelectedImage && (layoutChanged || imagesChanged)) {
     const key = getImageKey(prevSelectedImage.image);
-    const prevCanvasId = prevSelectedImage.item.reconstructionCanvasId;
 
-    // Did association between selected image and canvas change
-    // because the canvas was modified (original -> composite)?
-    const associationUnchanged = imagesByCanvasId.get(prevCanvasId)
-      ?.some(img => getImageKey(img) === key);
+    const sameSource = (image: DraggableImage) =>
+      image.sourceCanvasInstanceId === prevSelectedImage.image.sourceCanvasInstanceId &&
+      image.resource.source.id === prevSelectedImage.image.resource.source.id;
 
-    const nextCanvasId = associationUnchanged
-      ? prevCanvasId
-      : [...imagesByCanvasId.entries()]
-        .find(([_, images]) => images.some(img => getImageKey(img) === key))?.[0];
+    const samePlacement = (image: DraggableImage) =>
+      image.x === prevSelectedImage.image.x &&
+      image.y === prevSelectedImage.image.y &&
+      image.width === prevSelectedImage.image.width &&
+      JSON.stringify(image.crop) === JSON.stringify(prevSelectedImage.image.crop);
 
-    const item = nextCanvasId ? layout.items.find(i => i.reconstructionCanvasId === nextCanvasId) : undefined;
+    let selection: { canvasId: string; image: DraggableImage } | undefined;
 
-    selectedImage = item
-      ? (item === prevSelectedImage.item ? prevSelectedImage : { ...prevSelectedImage, item })
+    for (const [canvasId, images] of imagesByCanvasId) {
+      const image = images.find(image => sameSource(image) && samePlacement(image)) ??
+        images.find(sameSource) ??
+        images.find(image => getImageKey(image) === key);
+        
+      if (!image) continue;
+
+      selection = { canvasId, image };
+      break;
+    }
+
+    const item = selection
+      ? layout.items.find(i => i.reconstructionCanvasId === selection.canvasId)
+      : undefined;
+
+    selectedImage = item && selection
+      ? { ...prevSelectedImage, item, image: selection.image }
       : undefined;
   }
 
