@@ -45,7 +45,7 @@ export interface ComposerState {
 
   updateImage(canvasId: string, updated: DraggableImage): void;
 
-  moveImageInCanvas(canvasId: string, image: DraggableImage, direction: 'up' | 'down'): void;
+  changeImageZOrder(canvasId: string, image: DraggableImage, direction: 'up' | 'down'): void;
 
   moveImageToCanvas(fromReconstructionCanvasId: string, toReconstructionCanvasId: string, image: DraggableImage): boolean;
 
@@ -108,15 +108,17 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
     };
   }),
 
-  moveImageInCanvas: (canvasId, image, direction) => set(({ imagesByCanvasId }) => {
+  changeImageZOrder: (canvasId, image, direction) => set(({ imagesByCanvasId }) => {
     const images = imagesByCanvasId.get(canvasId);
     if (!images) return {};
 
     const key = getCanvasImageKey(canvasId, image);
     const index = images.findIndex(current => getCanvasImageKey(canvasId, current) === key);
+
     const nextIndex = index + (direction === 'up' ? 1 : -1);
     if (index < 0 || nextIndex < 0 || nextIndex >= images.length) return {};
 
+    // z-Index is simply the array order - swap position
     const nextImages = [...images];
     [nextImages[index], nextImages[nextIndex]] = [nextImages[nextIndex], nextImages[index]];
 
@@ -124,6 +126,7 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
     updatedImagesByCanvasId.set(canvasId, nextImages);
 
     scheduleAppStoreSync();
+    
     return { imagesByCanvasId: updatedImagesByCanvasId };
   }),
 
