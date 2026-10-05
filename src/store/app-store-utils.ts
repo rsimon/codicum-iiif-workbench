@@ -133,23 +133,22 @@ export const insertCanvasesAtIndex = (
   index: number
 ): ReconstructionCanvas[] => {
   const ids = new Set(canvasIds);
-  if (ids.size !== canvasIds.length) return reconstruction;
-
-  const canvases = canvasIds.map(id => reconstruction.find(canvas => canvas.id === id));
-  const selected = canvases.filter((canvas): canvas is ReconstructionCanvas => !!canvas);
-  if (selected.length !== canvasIds.length) return reconstruction;
+  const canvases = canvasIds
+    .map(id => reconstruction.find(canvas => canvas.id === id)!).filter(Boolean);
 
   const targetIndex = Math.max(0, Math.min(index, reconstruction.length));
+
   const removedBeforeIndex = reconstruction
     .slice(0, targetIndex)
     .filter(canvas => ids.has(canvas.id))
     .length;
+
   const remaining = reconstruction.filter(canvas => !ids.has(canvas.id));
   const insertionIndex = targetIndex - removedBeforeIndex;
 
   return [
     ...remaining.slice(0, insertionIndex),
-    ...selected,
+    ...canvases,
     ...remaining.slice(insertionIndex)
   ];
 }
