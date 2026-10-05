@@ -35,7 +35,7 @@ export const ComposerToolbar = () => {
   const imagesByCanvasId = useComposerStore(state => state.imagesByCanvasId);
 
   const updateImage = useComposerStore(state => state.updateImage);
-  const moveImageInCanvas = useComposerStore(state => state.moveImageInCanvas);
+  const changeImageZOrder = useComposerStore(state => state.changeImageZOrder);
   const setIsUserEdit = useComposerStore(state => state.setIsUserEdit);
 
   const editMode = useComposerStore(state => state.editMode);
@@ -55,7 +55,7 @@ export const ComposerToolbar = () => {
 
   const onMoveImage = (direction: 'up' | 'down') => {
     if (!selectedImage) return;
-    moveImageInCanvas(selectedImage.item.reconstructionCanvasId, selectedImage.image, direction);
+    changeImageZOrder(selectedImage.item.reconstructionCanvasId, selectedImage.image, direction);
   };
 
   const onFillCanvas = () => {
