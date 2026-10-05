@@ -213,6 +213,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
       if (selectedImage && editMode === 'CROP') {
         const selectedKey = getCanvasImageKey(selectedImage.item.reconstructionCanvasId, selectedImage.image);
         const backgroundKey = `${selectedKey}${CROP_BACKGROUND_SUFFIX}`;
+        
         const foreground = tiledImages.get(selectedKey);
         const background = tiledImages.get(backgroundKey);
 
