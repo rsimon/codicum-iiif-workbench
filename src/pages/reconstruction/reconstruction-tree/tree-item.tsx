@@ -7,15 +7,15 @@ import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/ut
 import { DropIndicator as LineIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import { attachInstruction, extractInstruction } from '@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item';
 import type { Instruction } from '@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item';
-import { cn, withStopPropagation } from '@/shadcn/utils';
 import { LazyThumbnail } from '@/components/lazy-thumbnail';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
+import { cn, withStopPropagation } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas, SourceCanvas } from '@/types';
 import { EditableCanvasLabel } from './editable-canvas-label';
 import { ITEM_GAP, TreeDropIndicator, viewTransitionName } from './use-drag-and-drop';
 import type { DragPayload } from './use-drag-and-drop';
 import { ReconstructionTreeItemActions } from './tree-item-actions';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
 
 interface ReconstructionTreeItemProps {
 
@@ -85,7 +85,7 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
             nativeSetDragImage,
             render: ({ container }) => {
               const root = createRoot(container);
-              root.render(<CanvasDragPreview items={selectedItems} />);
+              root.render(<MultiSelectDragPreview items={selectedItems} />);
               return () => root.unmount();
             }
           });
@@ -220,7 +220,7 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
 
 }
 
-const CanvasDragPreview = ({ items }: { items: ReconstructionCanvas[] }) => (
+const MultiSelectDragPreview = ({ items }: { items: ReconstructionCanvas[] }) => (
   <div className="grid w-fit p-6">
     {items.slice(0, 6).map((item, index) => (
       <div
