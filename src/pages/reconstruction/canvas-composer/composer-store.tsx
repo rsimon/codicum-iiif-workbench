@@ -45,6 +45,8 @@ export interface ComposerState {
 
   updateImage(canvasId: string, updated: DraggableImage): void;
 
+  moveImageInCanvas(canvasId: string, image: DraggableImage, direction: 'up' | 'down'): void;
+
   moveImageToCanvas(fromReconstructionCanvasId: string, toReconstructionCanvasId: string, image: DraggableImage): boolean;
 
 }
@@ -104,6 +106,25 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
       imagesByCanvasId: updatedImagesByCanvasId,
       ...(updatedSelectedImage ? { selectedImage: updatedSelectedImage } : {})
     };
+  }),
+
+  moveImageInCanvas: (canvasId, image, direction) => set(({ imagesByCanvasId }) => {
+    const images = imagesByCanvasId.get(canvasId);
+    if (!images) return {};
+
+    const key = getCanvasImageKey(canvasId, image);
+    const index = images.findIndex(current => getCanvasImageKey(canvasId, current) === key);
+    const nextIndex = index + (direction === 'up' ? 1 : -1);
+    if (index < 0 || nextIndex < 0 || nextIndex >= images.length) return {};
+
+    const nextImages = [...images];
+    [nextImages[index], nextImages[nextIndex]] = [nextImages[nextIndex], nextImages[index]];
+
+    const updatedImagesByCanvasId = new Map(imagesByCanvasId);
+    updatedImagesByCanvasId.set(canvasId, nextImages);
+
+    scheduleAppStoreSync();
+    return { imagesByCanvasId: updatedImagesByCanvasId };
   }),
 
   moveImageToCanvas: (fromId, toId, image) => {
@@ -212,22 +233,26 @@ useAppStore.subscribe((state, prevState) => {
 
   if (prevSelectedImage && (layoutChanged || imagesChanged)) {
     const key = getImageKey(prevSelectedImage.image);
-    const prevCanvasId = prevSelectedImage.item.reconstructionCanvasId;
+    const selection = [...imagesByCanvasId.entries()].flatMap(([canvasId, images]) => {
+      const sameSource = (img: DraggableImage) =>
+        img.sourceCanvasInstanceId === prevSelectedImage.image.sourceCanvasInstanceId &&
+        img.resource.source.id === prevSelectedImage.image.resource.source.id;
+      const image = images.find(img => sameSource(img) &&
+        img.x === prevSelectedImage.image.x &&
+        img.y === prevSelectedImage.image.y &&
+        img.width === prevSelectedImage.image.width &&
+        JSON.stringify(img.crop) === JSON.stringify(prevSelectedImage.image.crop)) ??
+        images.find(sameSource) ??
+        images.find(img => getImageKey(img) === key);
+      return image ? [{ canvasId, image }] : [];
+    })[0];
 
-    // Did association between selected image and canvas change
-    // because the canvas was modified (original -> composite)?
-    const associationUnchanged = imagesByCanvasId.get(prevCanvasId)
-      ?.some(img => getImageKey(img) === key);
+    const item = selection
+      ? layout.items.find(i => i.reconstructionCanvasId === selection.canvasId)
+      : undefined;
 
-    const nextCanvasId = associationUnchanged
-      ? prevCanvasId
-      : [...imagesByCanvasId.entries()]
-        .find(([_, images]) => images.some(img => getImageKey(img) === key))?.[0];
-
-    const item = nextCanvasId ? layout.items.find(i => i.reconstructionCanvasId === nextCanvasId) : undefined;
-
-    selectedImage = item
-      ? (item === prevSelectedImage.item ? prevSelectedImage : { ...prevSelectedImage, item })
+    selectedImage = item && selection
+      ? { ...prevSelectedImage, item, image: selection.image }
       : undefined;
   }
 

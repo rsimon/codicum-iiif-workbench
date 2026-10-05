@@ -214,8 +214,13 @@ export const applyEdits = (
     .map(r => {
       // Images in the composer (with user edits)
       const composerImages = imagesByCanvasId.get(r.id)!;
-      const sources = composerImages.flatMap(i => 
-        sourceCanvasInstances.get(i.sourceCanvasInstanceId)).filter(s => !!s);
+      const seenSources = new Set<string>();
+      const sources = composerImages.flatMap(image => {
+        if (seenSources.has(image.sourceCanvasInstanceId)) return [];
+        seenSources.add(image.sourceCanvasInstanceId);
+        const source = sourceCanvasInstances.get(image.sourceCanvasInstanceId);
+        return source ? [source] : [];
+      });
 
       const applySourceEdits = (source: SourceCanvas) => applyEditsToSource(
         r,
@@ -319,10 +324,6 @@ const applyEditsToSource = (
   composerImages: DraggableImage[], 
   currentImages: DraggableImage[]
 ): SourceCanvas => {
-  const composerImagesByKey = new Map(composerImages
-    .filter(img => img.sourceCanvasInstanceId === source.instanceId)
-    .map(img => [getCanvasImageKey(canvas.id, img), img] as const));
-
   const currentImagesByKey = new Map(currentImages
     .filter(img => img.sourceCanvasInstanceId === source.instanceId)
     .map(img => [getCanvasImageKey(canvas.id, img), img] as const));
@@ -334,46 +335,24 @@ const applyEditsToSource = (
 
   let touched = false;
 
-  const seenKeys = new Set<string>();
+  const sourceImages = composerImages.filter(img => img.sourceCanvasInstanceId === source.instanceId);
+  const existingImages = currentImages.filter(img => img.sourceCanvasInstanceId === source.instanceId);
 
-  // Existing images: keep unchanged, patch the target, or drop
-  const keptPaintAnnotations = source.canvas.images.flatMap((resource, index) => {
-    const key = getCanvasImageKey(canvas.id, { sourceCanvasId: source.canvas.id, sourceCanvasInstanceId: source.instanceId, index } as DraggableImage);
-    seenKeys.add(key);
-
-    const draggable = composerImagesByKey.get(key);
-    if (!draggable) {
-      touched = true;
-      return [];
-    }
-
-    const current = currentImagesByKey.get(key);
-
-    const unchanged = !!current && current.x === draggable.x && current.y === draggable.y && current.width === draggable.width &&
-      JSON.stringify(current.crop) === JSON.stringify(draggable.crop);
-    if (unchanged) return [canvasSourcePaintAnnotations[index]];
-
+  if (sourceImages.length !== existingImages.length ||
+    sourceImages.some((image, index) => image.index !== existingImages[index]?.index)) {
     touched = true;
+  }
 
-    const bounds = draggable.crop ?? getImageBounds(resource);
-    const h = draggable.width * bounds.h / bounds.w;
+  const orderedAnnotations = sourceImages.map(draggable => {
+    const key = getCanvasImageKey(canvas.id, draggable);
+    const current = currentImagesByKey.get(key);
+    const currentIndex = current?.index;
 
-    return [{
-      ...canvasSourcePaintAnnotations[index],
-      body: toAnnotationBodyItem(draggable),
-      target: toFragmentTarget(source.canvas, { x: draggable.x, y: draggable.y, w: draggable.width, h })
-    }];
-  });
-
-  // Composer entries with no matching existing image: added in composer.
-  const addedAnnotations = [...composerImagesByKey.entries()]
-    .filter(([key]) => !seenKeys.has(key))
-    .map(([, draggable]) => {
+    if (!current || currentIndex === undefined) {
       touched = true;
 
       const bounds = draggable.crop ?? getImageBounds(draggable.resource);
       const h = draggable.width * bounds.h / bounds.w;
-
       return {
         id: `${source.canvas.id}/annotation/${crypto.randomUUID()}`,
         type: 'Annotation',
@@ -381,7 +360,23 @@ const applyEditsToSource = (
         body: toAnnotationBodyItem(draggable),
         target: toFragmentTarget(source.canvas, { x: draggable.x, y: draggable.y, w: draggable.width, h })
       };
-    });
+    }
+
+    const unchanged = current.x === draggable.x && current.y === draggable.y && current.width === draggable.width &&
+      JSON.stringify(current.crop) === JSON.stringify(draggable.crop);
+
+    if (unchanged) return canvasSourcePaintAnnotations[currentIndex];
+
+    touched = true;
+
+    const bounds = draggable.crop ?? getImageBounds(draggable.resource);
+    const h = draggable.width * bounds.h / bounds.w;
+    return {
+      ...canvasSourcePaintAnnotations[currentIndex],
+      body: toAnnotationBodyItem(draggable),
+      target: toFragmentTarget(source.canvas, { x: draggable.x, y: draggable.y, w: draggable.width, h })
+    };
+  });
 
   if (!touched) return source;
 
@@ -390,17 +385,11 @@ const applyEditsToSource = (
     items: [
       canvasSourcePage ? { 
         ...canvasSourcePage, 
-        items: [
-          ...keptPaintAnnotations, 
-          ...addedAnnotations
-        ] 
+        items: orderedAnnotations
       } : { 
         id: `${source.canvas.id}/page/${crypto.randomUUID()}`, 
         type: 'AnnotationPage', 
-        items: [
-          ...keptPaintAnnotations, 
-          ...addedAnnotations
-        ]
+        items: orderedAnnotations
       }
     ]
   };
