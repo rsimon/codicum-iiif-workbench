@@ -225,15 +225,8 @@ const MultiSelectDragPreview = ({ items }: { items: ReconstructionCanvas[] }) =>
     {items.slice(0, 6).map((item, index) => (
       <div
         key={item.id}
-        className={cn(
-          'col-start-1 row-start-1 w-60 truncate whitespace-nowrap rounded-md border-2 border-primary bg-white px-3 py-2.5 text-sm text-foreground shadow-xs',
-          'translate-x-0 translate-y-0',
-          index === 1 && 'translate-x-1 translate-y-1',
-          index === 2 && 'translate-x-2 translate-y-2',
-          index === 3 && 'translate-x-3 translate-y-3',
-          index === 4 && 'translate-x-4 translate-y-4',
-          index === 5 && 'translate-x-5 translate-y-5'
-        )}>
+        className="col-start-1 row-start-1 w-60 truncate whitespace-nowrap rounded-md border-2 border-primary bg-white px-3 py-2.5 text-sm text-foreground shadow-xs"
+        style={{ transform: `translate(${index * 4}px, ${index * 4}px)` }}>
         {item.label}
       </div>
     ))}
