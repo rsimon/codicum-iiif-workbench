@@ -236,19 +236,29 @@ useAppStore.subscribe((state, prevState) => {
 
   if (prevSelectedImage && (layoutChanged || imagesChanged)) {
     const key = getImageKey(prevSelectedImage.image);
-    const selection = [...imagesByCanvasId.entries()].flatMap(([canvasId, images]) => {
-      const sameSource = (img: DraggableImage) =>
-        img.sourceCanvasInstanceId === prevSelectedImage.image.sourceCanvasInstanceId &&
-        img.resource.source.id === prevSelectedImage.image.resource.source.id;
-      const image = images.find(img => sameSource(img) &&
-        img.x === prevSelectedImage.image.x &&
-        img.y === prevSelectedImage.image.y &&
-        img.width === prevSelectedImage.image.width &&
-        JSON.stringify(img.crop) === JSON.stringify(prevSelectedImage.image.crop)) ??
+
+    const sameSource = (image: DraggableImage) =>
+      image.sourceCanvasInstanceId === prevSelectedImage.image.sourceCanvasInstanceId &&
+      image.resource.source.id === prevSelectedImage.image.resource.source.id;
+
+    const samePlacement = (image: DraggableImage) =>
+      image.x === prevSelectedImage.image.x &&
+      image.y === prevSelectedImage.image.y &&
+      image.width === prevSelectedImage.image.width &&
+      JSON.stringify(image.crop) === JSON.stringify(prevSelectedImage.image.crop);
+
+    let selection: { canvasId: string; image: DraggableImage } | undefined;
+
+    for (const [canvasId, images] of imagesByCanvasId) {
+      const image = images.find(image => sameSource(image) && samePlacement(image)) ??
         images.find(sameSource) ??
-        images.find(img => getImageKey(img) === key);
-      return image ? [{ canvasId, image }] : [];
-    })[0];
+        images.find(image => getImageKey(image) === key);
+        
+      if (!image) continue;
+
+      selection = { canvasId, image };
+      break;
+    }
 
     const item = selection
       ? layout.items.find(i => i.reconstructionCanvasId === selection.canvasId)
