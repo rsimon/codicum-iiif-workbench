@@ -6,10 +6,7 @@ import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
 import { getImageKey, getCanvasImageKey } from '../reconstruction-utils';
 import type { ComposerLayout, DraggableImage, DraggableImageSelection } from '../reconstruction-types';
-import {
-  registerComposerSyncFlusher,
-  runTrackedReconstructionEdit
-} from '../reconstruction-history';
+import { registerComposerSyncFlusher, withHistory } from '../reconstruction-history';
 import { applyEdits, findSourceCanvasById, toDraggableImages } from './composer-utils';
 import { TwoColumnLayout } from './layout';
 
@@ -211,7 +208,7 @@ const commitAppStoreSync = () => {
 
     isCommittingComposerSync = true;
     try {
-      runTrackedReconstructionEdit(() => updateReconstruction(next), { flushComposerSync: false });
+      withHistory(() => updateReconstruction(next), { flushComposerSync: false });
     } finally {
       isCommittingComposerSync = false;
     }

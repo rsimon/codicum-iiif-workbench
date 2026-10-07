@@ -10,10 +10,7 @@ import { ScrollArea } from '@/shadcn/scroll-area';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
 import { useReconstructionStore } from '../reconstruction-store';
-import {
-  runTrackedReconstructionEdit,
-  runTrackedReconstructionTransition
-} from '../reconstruction-history';
+import { withHistory, runTrackedReconstructionTransition } from '../reconstruction-history';
 import { useDragAndDrop } from './use-drag-and-drop';
 import type { DragPayload, FallbackDropTarget } from './use-drag-and-drop';
 import { ReconstructionTreeItem } from './tree-item';
@@ -209,7 +206,7 @@ export const ReconstructionTree = () => {
               className="mt-0.5 flex gap-2 text-muted-foreground/60 text-sm items-center w-full
                 cursor-pointer rounded-md justify-center p-4 border border-neutral-400/50
                 border-dashed hover:bg-neutral-200/50 hover:text-muted-foreground hover:border-neutral-400/80"
-              onClick={() => runTrackedReconstructionEdit(() => appendEmpty())}>
+              onClick={() => withHistory(() => appendEmpty())}>
               <IconPlus className="size-4" /> Add empty canvas
             </button>
           </li>

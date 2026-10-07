@@ -1,10 +1,7 @@
 import { cn, withStopPropagation } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
-import {
-  runTrackedReconstructionEdit,
-  runTrackedReconstructionTransition
-} from '../reconstruction-history';
+import { withHistory, runTrackedReconstructionTransition } from '../reconstruction-history';
 import {
   IconArrowBarToDown,
   IconArrowBarToUp,
@@ -66,7 +63,7 @@ export const ReconstructionTreeItemActions = (props: ReconstructionTreeItemProps
         </DropdownMenuItem>
 
         <DropdownMenuItem
-          onClick={() => runTrackedReconstructionEdit(() => duplicateCanvas(props.item.id))}>
+          onClick={() => withHistory(() => duplicateCanvas(props.item.id))}>
           <IconCopyPlus /> Duplicate canvas
         </DropdownMenuItem>
 
@@ -100,7 +97,7 @@ export const ReconstructionTreeItemActions = (props: ReconstructionTreeItemProps
 
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => runTrackedReconstructionEdit(() => removeCanvas(props.item.id))}>
+          onClick={() => withHistory(() => removeCanvas(props.item.id))}>
           <IconCircleMinus /> Remove
         </DropdownMenuItem>
       </DropdownMenuContent>

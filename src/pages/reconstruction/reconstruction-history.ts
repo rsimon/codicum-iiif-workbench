@@ -38,7 +38,7 @@ export const registerComposerSyncFlusher = (flush: () => void) => {
   flushPendingComposerSync = flush;
 }
 
-export const runTrackedReconstructionEdit = <T>(
+export const withHistory = <T>(
   edit: () => T,
   options: { flushComposerSync?: boolean } = {}
 ): T => {
@@ -72,7 +72,7 @@ export const runTrackedReconstructionEdit = <T>(
 
 export const runTrackedReconstructionTransition = (edit: () => void) => {
   flushPendingComposerSync();
-  withViewTransition(() => runTrackedReconstructionEdit(edit, { flushComposerSync: false }));
+  withViewTransition(() => withHistory(edit, { flushComposerSync: false }));
 }
 
 const restoreReconstruction = (reconstruction: ReconstructionCanvas[]) => {

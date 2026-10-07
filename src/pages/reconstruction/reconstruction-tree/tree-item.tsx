@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
 import { cn, withStopPropagation } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas, SourceCanvas } from '@/types';
-import { runTrackedReconstructionEdit } from '../reconstruction-history';
+import { withHistory } from '../reconstruction-history';
 import { EditableCanvasLabel } from './editable-canvas-label';
 import { ITEM_GAP, TreeDropIndicator, viewTransitionName } from './use-drag-and-drop';
 import type { DragPayload } from './use-drag-and-drop';
@@ -156,7 +156,7 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
                 label={item.label} 
                 isEditing={isEditingLabel} 
                 onIsEditingChange={setIsEditingLabel} 
-                onCommmitEdit={label => runTrackedReconstructionEdit(() => renameCanvas(item.id, label))} />
+                onCommmitEdit={label => withHistory(() => renameCanvas(item.id, label))} />
               
               <ReconstructionTreeItemActions 
                 className="mt-1.5" 
@@ -173,7 +173,7 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
                     value={item.label}
                     isEditing={isEditingLabel}
                     onIsEditingChange={setIsEditingLabel}
-                    onCommit={label => runTrackedReconstructionEdit(() => renameCanvas(item.id, label))} />
+                    onCommit={label => withHistory(() => renameCanvas(item.id, label))} />
 
                   <span className="shrink min-w-12 whitespace-nowrap text-xs text-muted-foreground ml-0.5 flex gap-1.5 items-cente pr-0.5">
                     <span className="min-w-12 truncate">{item.sources.length} canvases</span>
