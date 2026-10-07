@@ -180,12 +180,16 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
 let appStoreSyncTimeout: ReturnType<typeof setTimeout> | undefined;
 let isCommittingComposerSync = false;
-let pendingStructuralCommit: (() => void) | undefined;
+
+// Animated commits cause view transitions! They happen only for changes
+// that affect top-level canvas structure of the Reconstruction. Image-level
+// changes (resize, move, crop) don't trigger view transitions.
+let pendingAnimatedCommit: (() => void) | undefined;
 
 // Debounced upwards sync to root app state
 const commitAppStoreSync = (suppressViewTransition = false) => {
   appStoreSyncTimeout = undefined;
-  pendingStructuralCommit = undefined;
+  pendingAnimatedCommit = undefined;
 
   const { reconstruction, updateReconstruction } = useAppStore.getState();
   const { imagesByCanvasId } = useComposerStore.getState();
@@ -203,8 +207,8 @@ const commitAppStoreSync = (suppressViewTransition = false) => {
     next.some((r, i) => r.id !== reconstruction[i].id || r.type !== reconstruction[i].type);
 
   const commit = () => {
-    if (isStructuralChange && pendingStructuralCommit !== commit) return;
-    pendingStructuralCommit = undefined;
+    if (isStructuralChange && pendingAnimatedCommit !== commit) return;
+    pendingAnimatedCommit = undefined;
 
     isCommittingComposerSync = true;
     try {
@@ -216,7 +220,7 @@ const commitAppStoreSync = (suppressViewTransition = false) => {
   };
 
   if (isStructuralChange && !suppressViewTransition) {
-    pendingStructuralCommit = commit;
+    pendingAnimatedCommit = commit;
     withViewTransition(commit);
   } else {
     commit();
@@ -234,9 +238,9 @@ const flushAppStoreSync = (options?: { suppressViewTransition?: boolean }) => {
   if (appStoreSyncTimeout !== undefined) {
     clearTimeout(appStoreSyncTimeout);
     commitAppStoreSync(options?.suppressViewTransition);
-    pendingStructuralCommit?.();
+    pendingAnimatedCommit?.();
   } else {
-    pendingStructuralCommit?.();
+    pendingAnimatedCommit?.();
   }
 };
 
@@ -248,7 +252,7 @@ useAppStore.subscribe((state, prevState) => {
     if (appStoreSyncTimeout !== undefined)
       clearTimeout(appStoreSyncTimeout);
     appStoreSyncTimeout = undefined;
-    pendingStructuralCommit = undefined;
+    pendingAnimatedCommit = undefined;
   }
 
   // Layout only needs recomputing if structural props changed by value.
