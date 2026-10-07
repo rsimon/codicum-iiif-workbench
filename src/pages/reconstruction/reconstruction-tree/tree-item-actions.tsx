@@ -1,6 +1,7 @@
-import { cn, withStopPropagation, withViewTransition } from '@/shadcn/utils';
+import { cn, withStopPropagation } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
+import { withHistory, withHistoryViewTransition } from '../reconstruction-history';
 import {
   IconArrowBarToDown,
   IconArrowBarToUp,
@@ -41,7 +42,7 @@ export const ReconstructionTreeItemActions = (props: ReconstructionTreeItemProps
   const isLast = index === total - 1;
 
   const onMove = (direction: 'up' | 'down' | 'top' | 'bottom') =>
-    withViewTransition(() => moveCanvas(props.item.id, direction));
+    withHistoryViewTransition(() => moveCanvas(props.item.id, direction));
 
   return (
     <DropdownMenu>
@@ -62,7 +63,7 @@ export const ReconstructionTreeItemActions = (props: ReconstructionTreeItemProps
         </DropdownMenuItem>
 
         <DropdownMenuItem
-          onClick={() => duplicateCanvas(props.item.id)}>
+          onClick={() => withHistory(() => duplicateCanvas(props.item.id))}>
           <IconCopyPlus /> Duplicate canvas
         </DropdownMenuItem>
 
@@ -96,7 +97,7 @@ export const ReconstructionTreeItemActions = (props: ReconstructionTreeItemProps
 
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => removeCanvas(props.item.id)}>
+          onClick={() => withHistory(() => removeCanvas(props.item.id))}>
           <IconCircleMinus /> Remove
         </DropdownMenuItem>
       </DropdownMenuContent>

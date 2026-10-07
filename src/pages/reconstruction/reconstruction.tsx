@@ -1,12 +1,39 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Panel, Separator } from 'react-resizable-panels';
 import { CanvasComposer } from './canvas-composer';
 import { ReconstructionTree } from './reconstruction-tree/tree';
 import { AnimatedPanel, AnimatedPanelGroup } from '@/components/animated-panel';
 import { ReconstructionSidebar } from './reconstruction-sidebar';
+import { redo, undo } from './reconstruction-history';
 
 export const Reconstruction = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable || target.closest('input, textarea, select, [contenteditable="true"]'))
+      ) return;
+
+      const key = event.key.toLowerCase();
+
+      const handled = key === 'z'
+        ? event.shiftKey ? redo() : undo()
+        : key === 'y' && event.ctrlKey ? redo() : false;
+
+      if (handled) event.preventDefault();
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    }
+  }, []);
 
   return (
     <main className="grow min-h-0">

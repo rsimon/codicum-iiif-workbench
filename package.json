@@ -38,7 +38,6 @@
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^1.52.0",
     "openseadragon": "^5.0.1",
-    "p-debounce": "^5.1.1",
     "p-limit": "^7.3.3",
     "p-throttle": "^8.1.1",
     "react": "^19.3.0",

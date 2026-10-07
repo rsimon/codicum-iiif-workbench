@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
 import { cn, withStopPropagation } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas, SourceCanvas } from '@/types';
+import { withHistory } from '../reconstruction-history';
 import { EditableCanvasLabel } from './editable-canvas-label';
 import { ITEM_GAP, TreeDropIndicator, viewTransitionName } from './use-drag-and-drop';
 import type { DragPayload } from './use-drag-and-drop';
@@ -131,7 +132,11 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
         isSelected ? 'border-primary ring-1 ring-primary bg-primary/5' : undefined,
         isDragging ? 'opacity-40' : undefined
       )}
-      style={{ viewTransitionName: viewTransitionName(item.id) }}>
+      style={{
+        viewTransitionName: viewTransitionName(
+          item.type === 'original' ? item.source.instanceId : item.id
+        )
+      }}>
       <div
         className="group"
         onClick={onSelect}>
@@ -155,7 +160,7 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
                 label={item.label} 
                 isEditing={isEditingLabel} 
                 onIsEditingChange={setIsEditingLabel} 
-                onCommmitEdit={label => renameCanvas(item.id, label)} />
+                onCommmitEdit={label => withHistory(() => renameCanvas(item.id, label))} />
               
               <ReconstructionTreeItemActions 
                 className="mt-1.5" 
@@ -172,7 +177,7 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
                     value={item.label}
                     isEditing={isEditingLabel}
                     onIsEditingChange={setIsEditingLabel}
-                    onCommit={label => renameCanvas(item.id, label)} />
+                    onCommit={label => withHistory(() => renameCanvas(item.id, label))} />
 
                   <span className="shrink min-w-12 whitespace-nowrap text-xs text-muted-foreground ml-0.5 flex gap-1.5 items-cente pr-0.5">
                     <span className="min-w-12 truncate">{item.sources.length} canvases</span>

@@ -8,34 +8,45 @@ const IDLE_DELAY_MS = 350;
 const FETCH_TIMEOUT_MS = 30000;
 
 const limit = pLimit(5);
+const thumbnailLoads = new Map<string, Promise<void>>();
+const loadedThumbnails = new Set<string>();
 
-const preload = (src: string, signal: AbortSignal) => new Promise<void>((resolve, reject) => {
+const preload = (src: string) => new Promise<void>((resolve, reject) => {
   const img = new Image();
 
   const cleanup = () => {
     clearTimeout(timer);
-    signal.removeEventListener('abort', onAbort);
     img.onload = null;
     img.onerror = null;
   };
 
-  const cancel = (reason: string) => {
+  const fail = (reason: string) => {
     cleanup();
-    img.removeAttribute('src');
     reject(new Error(reason));
   };
 
-  const onAbort = () => cancel('Aborted');
-
-  signal.addEventListener('abort', onAbort, { once: true });
-
-  const timer = setTimeout(() => cancel('Timeout'), FETCH_TIMEOUT_MS);
+  const timer = setTimeout(() => fail('Timeout'), FETCH_TIMEOUT_MS);
 
   img.onload = () => { cleanup(); resolve(); };
   img.onerror = () => { cleanup(); reject(new Error(`Failed to load: ${src}`)); };
 
   img.src = src;
 });
+
+const loadThumbnail = (src: string) => {
+  const existing = thumbnailLoads.get(src);
+  if (existing) return existing;
+
+  const load = limit(() => preload(src));
+  thumbnailLoads.set(src, load);
+
+  void load.then(
+    () => loadedThumbnails.add(src),
+    () => thumbnailLoads.delete(src)
+  );
+
+  return load;
+};
 
 type LazyThumbnailState = 'pending' | 'loaded' | 'failed';
 
@@ -52,7 +63,12 @@ interface LazyThumbnailProps {
 export const LazyThumbnail = (props: LazyThumbnailProps) => {
   const { src, alt, className } = props;
 
-  const [state, setState] = useState<LazyThumbnailState>('pending');
+  const [savedState, setSavedState] = useState<{ src: string; state: LazyThumbnailState }>(
+    () => ({ src, state: loadedThumbnails.has(src) ? 'loaded' : 'pending' })
+  );
+  const state = savedState.src === src
+    ? savedState.state
+    : loadedThumbnails.has(src) ? 'loaded' : 'pending';
 
   const { ref, inView } = useInView({
     rootMargin: '200px 0px',
@@ -62,21 +78,15 @@ export const LazyThumbnail = (props: LazyThumbnailProps) => {
   useEffect(() => {
     if (!inView || state !== 'pending') return;
 
-    const controller = new AbortController();
-
     const timer = setTimeout(() => {
-      void limit(async () => {
-        if (controller.signal.aborted) return;
-        await preload(src, controller.signal).then(
-          () => { if (!controller.signal.aborted) setState('loaded'); },
-          () => { if (!controller.signal.aborted) setState('failed'); },
-        );
-      });
+      void loadThumbnail(src).then(
+        () => setSavedState({ src, state: 'loaded' }),
+        () => setSavedState({ src, state: 'failed' })
+      );
     }, IDLE_DELAY_MS);
 
     return () => {
       clearTimeout(timer);
-      controller.abort();
     };
   }, [inView, state, src]);
 

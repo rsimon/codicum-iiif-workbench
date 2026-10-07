@@ -7,10 +7,10 @@ import { getReorderDestinationIndex } from '@atlaskit/pragmatic-drag-and-drop-hi
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element';
 import { unsafeOverflowAutoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/unsafe-overflow/element';
 import { ScrollArea } from '@/shadcn/scroll-area';
-import { withViewTransition } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
 import { useReconstructionStore } from '../reconstruction-store';
+import { withHistory, withHistoryViewTransition } from '../reconstruction-history';
 import { useDragAndDrop } from './use-drag-and-drop';
 import type { DragPayload, FallbackDropTarget } from './use-drag-and-drop';
 import { ReconstructionTreeItem } from './tree-item';
@@ -119,15 +119,15 @@ export const ReconstructionTree = () => {
               ];
               if (toMerge.length < 2) return;
 
-              withViewTransition(() => mergeCanvases(toMerge));
+              withHistoryViewTransition(() => mergeCanvases(toMerge));
             } else {
-              withViewTransition(() => onChange(mergeInto(canvases, targetId, payload)));
+              withHistoryViewTransition(() => onChange(mergeInto(canvases, targetId, payload)));
             }
           } else if (type === 'reorder-above' || type === 'reorder-below') {
             if (payload.kind === 'root') {
               if (payload.canvasIds.length > 1) {
                 const insertionIndex = targetIndex + (type === 'reorder-below' ? 1 : 0);
-                withViewTransition(() => insertCanvasesAtIndex(payload.canvasIds, insertionIndex));
+                withHistoryViewTransition(() => insertCanvasesAtIndex(payload.canvasIds, insertionIndex));
               } else {
                 const startIndex = canvases.findIndex(canvas => canvas.id === payload.canvasIds[0]);
                 if (startIndex === -1) return;
@@ -140,12 +140,12 @@ export const ReconstructionTree = () => {
                 });
 
                 if (finishIndex !== startIndex)
-                  withViewTransition(() => onChange(reorderRoot(canvases, startIndex, finishIndex)));
+                  withHistoryViewTransition(() => onChange(reorderRoot(canvases, startIndex, finishIndex)));
               }
             } else {
               const insertIndex = type === 'reorder-above' ? targetIndex : targetIndex + 1;
 
-              withViewTransition(() => onChange(extractChild(canvases, payload, insertIndex)));
+              withHistoryViewTransition(() => onChange(extractChild(canvases, payload, insertIndex)));
             }
           }
           // composite onto composite, or blocked instructions: no-op
@@ -206,7 +206,7 @@ export const ReconstructionTree = () => {
               className="mt-0.5 flex gap-2 text-muted-foreground/60 text-sm items-center w-full
                 cursor-pointer rounded-md justify-center p-4 border border-neutral-400/50
                 border-dashed hover:bg-neutral-200/50 hover:text-muted-foreground hover:border-neutral-400/80"
-              onClick={() => appendEmpty()}>
+              onClick={() => withHistory(() => appendEmpty())}>
               <IconPlus className="size-4" /> Add empty canvas
             </button>
           </li>
