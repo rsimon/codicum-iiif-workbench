@@ -5,6 +5,7 @@ import { useAppStore } from '@/store/app-store';
 import type { PhysicalSize, ReconstructionCanvas } from '@/types';
 import type { DraggableImageSelection } from '../../reconstruction-types';
 import { useComposerStore } from '../../canvas-composer/composer-store';
+import { runTrackedReconstructionEdit } from '../../reconstruction-history';
 import { EditablePixelSize } from './editable-pixel-size';
 import { EditablePhysicalSize } from './editable-physical-size';
 import { EditableImagePosition } from './editable-image-position';
@@ -36,11 +37,11 @@ export const SingleSelection = (props: SingleSelectionProps) => {
 
   const onResizeCanvasPx = (newWidth: number, newHeight: number) => {
     if (newWidth === Math.round(width) && newHeight === Math.round(height)) return;
-    resizeCanvas(canvas.id, newWidth, newHeight);
+    runTrackedReconstructionEdit(() => resizeCanvas(canvas.id, newWidth, newHeight));
   }
 
   const onResizeCanvasPhys = (size: PhysicalSize) =>
-    setPhysicalSize(canvas.id, size);
+    runTrackedReconstructionEdit(() => setPhysicalSize(canvas.id, size));
 
   const onChangeImagePosition = (x: number, y: number, width: number) => {
     if (!selectedImage) return;

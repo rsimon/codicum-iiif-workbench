@@ -1,6 +1,7 @@
 import { IconArrowMerge } from '@tabler/icons-react';
 import { PanelActionButton } from '@/components/panel-action-button';
 import { useAppStore } from '@/store/app-store';
+import { runTrackedReconstructionEdit } from '../reconstruction-history';
 import { useReconstructionStore } from '../reconstruction-store';
 
 export const ReconstructionTreeToolbar = () => {
@@ -13,7 +14,7 @@ export const ReconstructionTreeToolbar = () => {
         <PanelActionButton
           disabled={selected.length < 2}
           tooltip="Merge selected canvases"
-          onClick={() => merge(selected)}>
+          onClick={() => runTrackedReconstructionEdit(() => merge(selected))}>
           <IconArrowMerge className="size-4" />
         </PanelActionButton>
       </div>

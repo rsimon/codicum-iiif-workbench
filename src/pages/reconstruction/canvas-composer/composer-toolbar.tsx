@@ -5,6 +5,11 @@ import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
 import { useAppStore } from '@/store/app-store';
+import {
+  redoReconstruction,
+  undoReconstruction,
+  useReconstructionHistory
+} from '../reconstruction-history';
 import { getCanvasImageKey } from '../reconstruction-utils';
 import { useComposerStore } from './composer-store';
 import { getFillSize, isSelectionFullSize } from './composer-utils';
@@ -33,6 +38,9 @@ const ComposerToolbarButton = (props: ButtonProps & { tooltip: string }) => {
 export const ComposerToolbar = () => {
   const selectedImage = useComposerStore(state => state.selectedImage);
   const imagesByCanvasId = useComposerStore(state => state.imagesByCanvasId);
+  const hasPendingSync = useComposerStore(state => state.hasPendingSync);
+  const canUndo = useReconstructionHistory(state => state.canUndo);
+  const canRedo = useReconstructionHistory(state => state.canRedo);
 
   const updateImage = useComposerStore(state => state.updateImage);
   const changeImageZOrder = useComposerStore(state => state.changeImageZOrder);
@@ -119,13 +127,15 @@ export const ComposerToolbar = () => {
         <Separator orientation="vertical" />
 
         <ComposerToolbarButton
-          disabled
+          disabled={!canUndo && !hasPendingSync}
+          onClick={undoReconstruction}
           tooltip="Undo">
           <IconArrowBackUp className="size-4.5" />
         </ComposerToolbarButton>
 
         <ComposerToolbarButton
-          disabled
+          disabled={!canRedo || hasPendingSync}
+          onClick={redoReconstruction}
           tooltip="Redo">
           <IconArrowForwardUp className="size-4.5" />
         </ComposerToolbarButton>

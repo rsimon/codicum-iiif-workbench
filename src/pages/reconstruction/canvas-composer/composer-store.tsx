@@ -1,12 +1,15 @@
 import { create } from 'zustand';
 import { Viewer, TiledImage } from 'openseadragon';
 import { dequal } from 'dequal/lite';
-import pDebounce from 'p-debounce';
 import { withViewTransition } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
 import { getImageKey, getCanvasImageKey } from '../reconstruction-utils';
 import type { ComposerLayout, DraggableImage, DraggableImageSelection } from '../reconstruction-types';
+import {
+  registerComposerSyncFlusher,
+  runTrackedReconstructionEdit
+} from '../reconstruction-history';
 import { applyEdits, findSourceCanvasById, toDraggableImages } from './composer-utils';
 import { TwoColumnLayout } from './layout';
 
@@ -20,6 +23,8 @@ export interface ComposerState {
 
   // Images by reconstruction canvas ID
   imagesByCanvasId: Map<string, DraggableImage[]>,
+
+  hasPendingSync: boolean;
 
   // OSD images - non-reactive & mutable by convention, use without re-render
   tiledImages: Map<string, TiledImage>;
@@ -58,6 +63,8 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
   layout: TwoColumnLayout(useAppStore.getState().reconstruction),
 
   imagesByCanvasId: new Map(useAppStore.getState().reconstruction.map(r => [r.id, toDraggableImages(r)])),
+
+  hasPendingSync: false,
 
   tiledImages: new Map(),
 
@@ -104,6 +111,7 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
     return {
       imagesByCanvasId: updatedImagesByCanvasId,
+      hasPendingSync: true,
       ...(updatedSelectedImage ? { selectedImage: updatedSelectedImage } : {})
     };
   }),
@@ -127,7 +135,7 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
     scheduleAppStoreSync();
     
-    return { imagesByCanvasId: updatedImagesByCanvasId };
+    return { imagesByCanvasId: updatedImagesByCanvasId, hasPendingSync: true };
   }),
 
   moveImageToCanvas: (fromId, toId, image) => {
@@ -165,6 +173,7 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
     set({
       imagesByCanvasId: updatedImagesByCanvasId,
+      hasPendingSync: true,
       ...(updatedSelectedImage ? { selectedImage: updatedSelectedImage } : {})
     });
 
@@ -172,28 +181,79 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
   }
 }));
 
+let appStoreSyncTimeout: ReturnType<typeof setTimeout> | undefined;
+let isCommittingComposerSync = false;
+let pendingStructuralCommit: (() => void) | undefined;
+
 // Debounced upwards sync to root app state
-const scheduleAppStoreSync = pDebounce(() => {
+const commitAppStoreSync = () => {
+  appStoreSyncTimeout = undefined;
+  pendingStructuralCommit = undefined;
+
   const { reconstruction, updateReconstruction } = useAppStore.getState();
   const { imagesByCanvasId } = useComposerStore.getState();
 
   const next = applyEdits(reconstruction, imagesByCanvasId);
 
   const changed = next.length !== reconstruction.length || next.some((r, i) => r !== reconstruction[i]);
-  if (!changed) return;
+  if (!changed) {
+    useComposerStore.setState({ hasPendingSync: false });
+    return;
+  }
 
   // View transitions block events - so we prevent if it's not needed
   const isStructuralChange = next.length !== reconstruction.length ||
     next.some((r, i) => r.id !== reconstruction[i].id || r.type !== reconstruction[i].type);
 
-  if (isStructuralChange) 
-    withViewTransition(() => updateReconstruction(next));
-  else 
-    updateReconstruction(next);
-}, 250);
+  const commit = () => {
+    if (isStructuralChange && pendingStructuralCommit !== commit) return;
+    pendingStructuralCommit = undefined;
+
+    isCommittingComposerSync = true;
+    try {
+      runTrackedReconstructionEdit(() => updateReconstruction(next), { flushComposerSync: false });
+    } finally {
+      isCommittingComposerSync = false;
+    }
+    useComposerStore.setState({ hasPendingSync: false });
+  };
+
+  if (isStructuralChange) {
+    pendingStructuralCommit = commit;
+    withViewTransition(commit);
+  } else {
+    commit();
+  }
+};
+
+const scheduleAppStoreSync = () => {
+  if (appStoreSyncTimeout !== undefined)
+    clearTimeout(appStoreSyncTimeout);
+
+  appStoreSyncTimeout = setTimeout(commitAppStoreSync, 250);
+};
+
+const flushAppStoreSync = () => {
+  if (appStoreSyncTimeout !== undefined) {
+    clearTimeout(appStoreSyncTimeout);
+    commitAppStoreSync();
+    pendingStructuralCommit?.();
+  } else {
+    pendingStructuralCommit?.();
+  }
+};
+
+registerComposerSyncFlusher(flushAppStoreSync);
 
 // Downwards sync from app store to local state
 useAppStore.subscribe((state, prevState) => {
+  if (!isCommittingComposerSync && state.reconstruction !== prevState.reconstruction) {
+    if (appStoreSyncTimeout !== undefined)
+      clearTimeout(appStoreSyncTimeout);
+    appStoreSyncTimeout = undefined;
+    pendingStructuralCommit = undefined;
+  }
+
   // Layout only needs recomputing if structural props changed by value.
   const stripIrrelevant = (r: ReconstructionCanvas) => {
     const { id, width, height } = r;
@@ -210,6 +270,7 @@ useAppStore.subscribe((state, prevState) => {
 
   const { 
     imagesByCanvasId: prevImages,
+    hasPendingSync: prevHasPendingSync,
     layout: prevLayout,
     selectedImage: prevSelectedImage 
   } = useComposerStore.getState();
@@ -231,6 +292,7 @@ useAppStore.subscribe((state, prevState) => {
       [...imagesByCanvasId].some(([id, images]) => prevImages.get(id) !== images);
 
   const layout = layoutChanged ? TwoColumnLayout(state.reconstruction) : prevLayout;
+  const hasPendingSync = isCommittingComposerSync ? prevHasPendingSync : false;
 
   let selectedImage = prevSelectedImage;
 
@@ -269,9 +331,15 @@ useAppStore.subscribe((state, prevState) => {
       : undefined;
   }
 
-  if (!layoutChanged && !imagesChanged && selectedImage === prevSelectedImage) return;
+  if (
+    !layoutChanged &&
+    !imagesChanged &&
+    selectedImage === prevSelectedImage &&
+    hasPendingSync === prevHasPendingSync
+  ) return;
 
   useComposerStore.setState({
+    hasPendingSync,
     ...(layoutChanged ? { layout } : {}),
     ...(imagesChanged ? { imagesByCanvasId } : {}),
     ...(selectedImage !== prevSelectedImage ? { selectedImage } : {})
