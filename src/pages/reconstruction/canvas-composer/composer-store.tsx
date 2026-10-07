@@ -203,11 +203,11 @@ const commitAppStoreSync = (suppressViewTransition = false) => {
   }
 
   // View transitions block events - so we prevent if it's not needed
-  const isStructuralChange = next.length !== reconstruction.length ||
+  const isAnimatedChange = next.length !== reconstruction.length ||
     next.some((r, i) => r.id !== reconstruction[i].id || r.type !== reconstruction[i].type);
 
   const commit = () => {
-    if (isStructuralChange && pendingAnimatedCommit !== commit) return;
+    if (isAnimatedChange && pendingAnimatedCommit !== commit) return;
     pendingAnimatedCommit = undefined;
 
     isCommittingComposerSync = true;
@@ -219,7 +219,7 @@ const commitAppStoreSync = (suppressViewTransition = false) => {
     useComposerStore.setState({ hasPendingSync: false });
   };
 
-  if (isStructuralChange && !suppressViewTransition) {
+  if (isAnimatedChange && !suppressViewTransition) {
     pendingAnimatedCommit = commit;
     withViewTransition(commit);
   } else {
