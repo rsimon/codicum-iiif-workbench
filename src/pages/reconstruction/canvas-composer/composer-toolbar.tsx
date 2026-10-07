@@ -5,11 +5,7 @@ import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
 import { useAppStore } from '@/store/app-store';
-import {
-  redoReconstruction,
-  undoReconstruction,
-  useReconstructionHistory
-} from '../reconstruction-history';
+import { redo, undo, useReconstructionHistory } from '../reconstruction-history';
 import { getCanvasImageKey } from '../reconstruction-utils';
 import { useComposerStore } from './composer-store';
 import { getFillSize, isSelectionFullSize } from './composer-utils';
@@ -128,14 +124,14 @@ export const ComposerToolbar = () => {
 
         <ComposerToolbarButton
           disabled={!canUndo && !hasPendingSync}
-          onClick={undoReconstruction}
+          onClick={undo}
           tooltip="Undo">
           <IconArrowBackUp className="size-4.5" />
         </ComposerToolbarButton>
 
         <ComposerToolbarButton
           disabled={!canRedo || hasPendingSync}
-          onClick={redoReconstruction}
+          onClick={redo}
           tooltip="Redo">
           <IconArrowForwardUp className="size-4.5" />
         </ComposerToolbarButton>

@@ -4,7 +4,7 @@ import { CanvasComposer } from './canvas-composer';
 import { ReconstructionTree } from './reconstruction-tree/tree';
 import { AnimatedPanel, AnimatedPanelGroup } from '@/components/animated-panel';
 import { ReconstructionSidebar } from './reconstruction-sidebar';
-import { redoReconstruction, undoReconstruction } from './reconstruction-history';
+import { redo, undo } from './reconstruction-history';
 
 export const Reconstruction = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -20,15 +20,19 @@ export const Reconstruction = () => {
       ) return;
 
       const key = event.key.toLowerCase();
+
       const handled = key === 'z'
-        ? event.shiftKey ? redoReconstruction() : undoReconstruction()
-        : key === 'y' && event.ctrlKey ? redoReconstruction() : false;
+        ? event.shiftKey ? redo() : undo()
+        : key === 'y' && event.ctrlKey ? redo() : false;
 
       if (handled) event.preventDefault();
     };
 
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    }
   }, []);
 
   return (

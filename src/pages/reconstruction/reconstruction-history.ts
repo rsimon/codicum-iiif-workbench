@@ -7,17 +7,27 @@ import type { ReconstructionCanvas } from '@/types';
 const MAX_HISTORY_ENTRIES = 100;
 
 interface ReconstructionHistoryState {
+
   past: ReconstructionCanvas[][];
+
   future: ReconstructionCanvas[][];
+
   canUndo: boolean;
+
   canRedo: boolean;
+
 }
 
 export const useReconstructionHistory = create<ReconstructionHistoryState>(() => ({
+
   past: [],
+
   future: [],
+
   canUndo: false,
+
   canRedo: false
+
 }));
 
 let isTrackedMutation = false;
@@ -26,9 +36,9 @@ let flushPendingComposerSync = () => {};
 
 export const registerComposerSyncFlusher = (flush: () => void) => {
   flushPendingComposerSync = flush;
-};
+}
 
-export const runTrackedReconstructionEdit = <T,>(
+export const runTrackedReconstructionEdit = <T>(
   edit: () => T,
   options: { flushComposerSync?: boolean } = {}
 ): T => {
@@ -41,12 +51,14 @@ export const runTrackedReconstructionEdit = <T,>(
   let result!: T;
 
   isTrackedMutation = true;
+
   try {
     result = edit();
   } finally {
     isTrackedMutation = false;
 
     const next = useAppStore.getState().reconstruction;
+
     if (!dequal(previous, next)) {
       useReconstructionHistory.setState(state => {
         const past = [...state.past, previous].slice(-MAX_HISTORY_ENTRIES);
@@ -56,23 +68,24 @@ export const runTrackedReconstructionEdit = <T,>(
   }
 
   return result;
-};
+}
 
 export const runTrackedReconstructionTransition = (edit: () => void) => {
   flushPendingComposerSync();
   withViewTransition(() => runTrackedReconstructionEdit(edit, { flushComposerSync: false }));
-};
+}
 
 const restoreReconstruction = (reconstruction: ReconstructionCanvas[]) => {
   isRestoringHistory = true;
+
   try {
     useAppStore.setState({ reconstruction });
   } finally {
     isRestoringHistory = false;
   }
-};
+}
 
-export const undoReconstruction = () => {
+export const undo = () => {
   flushPendingComposerSync();
 
   const { past, future } = useReconstructionHistory.getState();
@@ -84,16 +97,18 @@ export const undoReconstruction = () => {
 
   const nextPast = past.slice(0, -1);
   const nextFuture = [...future, current];
+
   useReconstructionHistory.setState({
     past: nextPast,
     future: nextFuture,
     canUndo: nextPast.length > 0,
     canRedo: true
   });
-  return true;
-};
 
-export const redoReconstruction = () => {
+  return true;
+}
+
+export const redo = () => {
   flushPendingComposerSync();
 
   const { past, future } = useReconstructionHistory.getState();
@@ -105,14 +120,16 @@ export const redoReconstruction = () => {
 
   const nextPast = [...past, current].slice(-MAX_HISTORY_ENTRIES);
   const nextFuture = future.slice(0, -1);
+
   useReconstructionHistory.setState({
     past: nextPast,
     future: nextFuture,
     canUndo: nextPast.length > 0,
     canRedo: nextFuture.length > 0
   });
+
   return true;
-};
+}
 
 useAppStore.subscribe((state, previous) => {
   if (state.reconstruction === previous.reconstruction || isTrackedMutation || isRestoringHistory)
