@@ -225,14 +225,14 @@ const commitAppStoreSync = (suppressViewTransition = false) => {
   } else {
     commit();
   }
-};
+}
 
 const scheduleAppStoreSync = () => {
   if (appStoreSyncTimeout !== undefined)
     clearTimeout(appStoreSyncTimeout);
 
   appStoreSyncTimeout = setTimeout(commitAppStoreSync, 250);
-};
+}
 
 const flushAppStoreSync = (options?: { suppressViewTransition?: boolean }) => {
   if (appStoreSyncTimeout !== undefined) {
@@ -242,7 +242,7 @@ const flushAppStoreSync = (options?: { suppressViewTransition?: boolean }) => {
   } else {
     pendingAnimatedCommit?.();
   }
-};
+}
 
 registerComposerSyncFlusher(flushAppStoreSync);
 
