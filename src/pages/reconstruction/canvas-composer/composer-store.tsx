@@ -207,7 +207,7 @@ const commitAppStoreSync = (suppressViewTransition = false) => {
     next.some((r, i) => r.id !== reconstruction[i].id || r.type !== reconstruction[i].type);
 
   const commit = () => {
-    if (isAnimatedChange && pendingAnimatedCommit !== commit) return;
+    if (isAnimatedChange && !suppressViewTransition && pendingAnimatedCommit !== commit) return;
     pendingAnimatedCommit = undefined;
 
     isCommittingComposerSync = true;
@@ -234,14 +234,13 @@ const scheduleAppStoreSync = () => {
   appStoreSyncTimeout = setTimeout(commitAppStoreSync, 250);
 }
 
-const flushAppStoreSync = (options?: { suppressViewTransition?: boolean }) => {
+const flushAppStoreSync = () => {
   if (appStoreSyncTimeout !== undefined) {
     clearTimeout(appStoreSyncTimeout);
-    commitAppStoreSync(options?.suppressViewTransition);
-    pendingAnimatedCommit?.();
-  } else {
-    pendingAnimatedCommit?.();
+    commitAppStoreSync(true);
   }
+
+  pendingAnimatedCommit?.();
 }
 
 registerComposerSyncFlusher(flushAppStoreSync);
