@@ -132,7 +132,11 @@ export const ReconstructionTreeItem = (props: ReconstructionTreeItemProps) => {
         isSelected ? 'border-primary ring-1 ring-primary bg-primary/5' : undefined,
         isDragging ? 'opacity-40' : undefined
       )}
-      style={{ viewTransitionName: viewTransitionName(item.id) }}>
+      style={{
+        viewTransitionName: viewTransitionName(
+          item.type === 'original' ? item.source.instanceId : item.id
+        )
+      }}>
       <div
         className="group"
         onClick={onSelect}>

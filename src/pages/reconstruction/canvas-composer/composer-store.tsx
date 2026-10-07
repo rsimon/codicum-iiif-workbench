@@ -183,7 +183,7 @@ let isCommittingComposerSync = false;
 let pendingStructuralCommit: (() => void) | undefined;
 
 // Debounced upwards sync to root app state
-const commitAppStoreSync = () => {
+const commitAppStoreSync = (suppressViewTransition = false) => {
   appStoreSyncTimeout = undefined;
   pendingStructuralCommit = undefined;
 
@@ -215,7 +215,7 @@ const commitAppStoreSync = () => {
     useComposerStore.setState({ hasPendingSync: false });
   };
 
-  if (isStructuralChange) {
+  if (isStructuralChange && !suppressViewTransition) {
     pendingStructuralCommit = commit;
     withViewTransition(commit);
   } else {
@@ -230,10 +230,10 @@ const scheduleAppStoreSync = () => {
   appStoreSyncTimeout = setTimeout(commitAppStoreSync, 250);
 };
 
-const flushAppStoreSync = () => {
+const flushAppStoreSync = (options?: { suppressViewTransition?: boolean }) => {
   if (appStoreSyncTimeout !== undefined) {
     clearTimeout(appStoreSyncTimeout);
-    commitAppStoreSync();
+    commitAppStoreSync(options?.suppressViewTransition);
     pendingStructuralCommit?.();
   } else {
     pendingStructuralCommit?.();

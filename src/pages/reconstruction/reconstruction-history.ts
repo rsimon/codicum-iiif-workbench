@@ -32,9 +32,11 @@ export const useReconstructionHistory = create<ReconstructionHistoryState>(() =>
 
 let isTrackedMutation = false;
 let isRestoringHistory = false;
-let flushPendingComposerSync = () => {};
+let flushPendingComposerSync = (_options?: { suppressViewTransition?: boolean }) => {};
 
-export const registerComposerSyncFlusher = (flush: () => void) => {
+export const registerComposerSyncFlusher = (
+  flush: (options?: { suppressViewTransition?: boolean }) => void
+) => {
   flushPendingComposerSync = flush;
 }
 
@@ -71,8 +73,10 @@ export const withHistory = <T>(
 }
 
 export const withHistoryViewTransition = (edit: () => void) => {
-  flushPendingComposerSync();
-  withViewTransition(() => withHistory(edit, { flushComposerSync: false }));
+  withViewTransition(() => {
+    flushPendingComposerSync({ suppressViewTransition: true });
+    withHistory(edit, { flushComposerSync: false });
+  });
 }
 
 const restoreReconstruction = (reconstruction: ReconstructionCanvas[]) => {
