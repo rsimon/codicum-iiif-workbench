@@ -1,7 +1,7 @@
 import { cn, withStopPropagation } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
-import { withHistory, runTrackedReconstructionTransition } from '../reconstruction-history';
+import { withHistory, withHistoryViewTransition } from '../reconstruction-history';
 import {
   IconArrowBarToDown,
   IconArrowBarToUp,
@@ -42,7 +42,7 @@ export const ReconstructionTreeItemActions = (props: ReconstructionTreeItemProps
   const isLast = index === total - 1;
 
   const onMove = (direction: 'up' | 'down' | 'top' | 'bottom') =>
-    runTrackedReconstructionTransition(() => moveCanvas(props.item.id, direction));
+    withHistoryViewTransition(() => moveCanvas(props.item.id, direction));
 
   return (
     <DropdownMenu>

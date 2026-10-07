@@ -70,7 +70,7 @@ export const withHistory = <T>(
   return result;
 }
 
-export const runTrackedReconstructionTransition = (edit: () => void) => {
+export const withHistoryViewTransition = (edit: () => void) => {
   flushPendingComposerSync();
   withViewTransition(() => withHistory(edit, { flushComposerSync: false }));
 }

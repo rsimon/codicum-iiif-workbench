@@ -10,7 +10,7 @@ import { ScrollArea } from '@/shadcn/scroll-area';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
 import { useReconstructionStore } from '../reconstruction-store';
-import { withHistory, runTrackedReconstructionTransition } from '../reconstruction-history';
+import { withHistory, withHistoryViewTransition } from '../reconstruction-history';
 import { useDragAndDrop } from './use-drag-and-drop';
 import type { DragPayload, FallbackDropTarget } from './use-drag-and-drop';
 import { ReconstructionTreeItem } from './tree-item';
@@ -119,15 +119,15 @@ export const ReconstructionTree = () => {
               ];
               if (toMerge.length < 2) return;
 
-              runTrackedReconstructionTransition(() => mergeCanvases(toMerge));
+              withHistoryViewTransition(() => mergeCanvases(toMerge));
             } else {
-              runTrackedReconstructionTransition(() => onChange(mergeInto(canvases, targetId, payload)));
+              withHistoryViewTransition(() => onChange(mergeInto(canvases, targetId, payload)));
             }
           } else if (type === 'reorder-above' || type === 'reorder-below') {
             if (payload.kind === 'root') {
               if (payload.canvasIds.length > 1) {
                 const insertionIndex = targetIndex + (type === 'reorder-below' ? 1 : 0);
-                runTrackedReconstructionTransition(() => insertCanvasesAtIndex(payload.canvasIds, insertionIndex));
+                withHistoryViewTransition(() => insertCanvasesAtIndex(payload.canvasIds, insertionIndex));
               } else {
                 const startIndex = canvases.findIndex(canvas => canvas.id === payload.canvasIds[0]);
                 if (startIndex === -1) return;
@@ -140,12 +140,12 @@ export const ReconstructionTree = () => {
                 });
 
                 if (finishIndex !== startIndex)
-                  runTrackedReconstructionTransition(() => onChange(reorderRoot(canvases, startIndex, finishIndex)));
+                  withHistoryViewTransition(() => onChange(reorderRoot(canvases, startIndex, finishIndex)));
               }
             } else {
               const insertIndex = type === 'reorder-above' ? targetIndex : targetIndex + 1;
 
-              runTrackedReconstructionTransition(() => onChange(extractChild(canvases, payload, insertIndex)));
+              withHistoryViewTransition(() => onChange(extractChild(canvases, payload, insertIndex)));
             }
           }
           // composite onto composite, or blocked instructions: no-op
