@@ -258,7 +258,7 @@ useAppStore.subscribe((state, prevState) => {
   const stripIrrelevant = (r: ReconstructionCanvas) => {
     const { id, width, height } = r;
     return { id, width, height };
-  };
+  }
 
   const before = prevState.reconstruction.map(stripIrrelevant);
   const after = state.reconstruction.map(stripIrrelevant);
