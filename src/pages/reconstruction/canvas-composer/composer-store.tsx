@@ -248,8 +248,9 @@ registerComposerSyncFlusher(flushAppStoreSync);
 // Downwards sync from app store to local state
 useAppStore.subscribe((state, prevState) => {
   if (!isCommittingComposerSync && state.reconstruction !== prevState.reconstruction) {
-    if (appStoreSyncTimeout !== undefined)
+    if (appStoreSyncTimeout !== undefined) 
       clearTimeout(appStoreSyncTimeout);
+    
     appStoreSyncTimeout = undefined;
     pendingAnimatedCommit = undefined;
   }
