@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import type { ButtonProps } from '@base-ui/react';
-import { IconArrowBackUp, IconArrowForwardUp, IconCrop, IconMaximize, IconRulerMeasure, IconStackPop, IconStackPush, IconTextSize } from '@tabler/icons-react';
-import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { ToolbarToggle } from '@/components/toolbar-toggle';
+import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
@@ -11,6 +10,16 @@ import { redo, undo, useReconstructionHistory } from '../reconstruction-history'
 import { getCanvasImageKey } from '../reconstruction-utils';
 import { useComposerStore } from './composer-store';
 import { getFillSize, isSelectionFullSize } from './composer-utils';
+import { 
+  IconArrowBackUp, 
+  IconArrowForwardUp, 
+  IconCrop, 
+  IconMaximize, 
+  IconRulerMeasure, 
+  IconStackPop, 
+  IconStackPush, 
+  IconTextSize 
+} from '@tabler/icons-react';
 
 const ComposerToolbarButton = (props: ButtonProps & { tooltip: string }) => {
   const { children, ...rest } = props;
@@ -49,6 +58,7 @@ export const ComposerToolbar = () => {
 
   const editMode = useComposerStore(state => state.editMode);
   const setEditMode = useComposerStore(state => state.setEditMode);
+
   const { isTapeMeasureEnabled, setEnableTapeMeasure } = useMeasurement();
 
   const reconstruction = useAppStore(state => state.reconstruction);
