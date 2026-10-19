@@ -91,6 +91,7 @@ export const useAppStore = create<AppStore>()(
               label: canvas.getLabel(),
               width: canvas.width,
               height: canvas.height,
+              physicalSize: sizes.get(canvas.id),
               source: {
                 instanceId: crypto.randomUUID(),
                 sourceManifestId: sourceId,
@@ -115,6 +116,7 @@ export const useAppStore = create<AppStore>()(
               label: s.canvas.getLabel(),
               width: s.canvas.width,
               height: s.canvas.height,
+              physicalSize: sizes.get(s.canvas.id),
               source: {
                 instanceId: crypto.randomUUID(),
                 sourceManifestId: s.sourceId,

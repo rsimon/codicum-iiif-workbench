@@ -168,13 +168,14 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
         );
 
         const scale = image.width / bounds.w;
+        const canvasScale = item.width / canvas.width;
 
         const placement = {
           key: getCanvasImageKey(canvas.id, image),
           tileSource: image.tileSource,
-          x: item.x + (image.x - bounds.x * scale) / canvas.width,
-          y: item.y + (image.y - bounds.y * scale) / canvas.width,
-          width: image.resource.width * scale / canvas.width,
+          x: item.x + (image.x - bounds.x * scale) * canvasScale,
+          y: item.y + (image.y - bounds.y * scale) * canvasScale,
+          width: image.resource.width * scale * canvasScale,
           clip: isCropped ? new OpenSeadragon.Rect(bounds.x, bounds.y, bounds.w, bounds.h) : undefined,
           opacity: 1
         };

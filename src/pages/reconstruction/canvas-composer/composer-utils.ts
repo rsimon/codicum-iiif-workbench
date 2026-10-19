@@ -131,15 +131,16 @@ export const getImageAt = (
   if (!rc) return;
 
   const images = imagesByCanvasId.get(item.reconstructionCanvasId) ?? [];
+  const canvasScale = item.width / rc.width;
 
   const hit = images.filter(image => {
     // Image size is in pixel!
     const bounds = image.crop ?? getImageBounds(image.resource);
     const aspect = bounds.h / bounds.w;
 
-    const viewportX = item.x + image.x / rc.width;
-    const viewportY = item.y + image.y / rc.width;
-    const viewportW = image.width / rc.width;
+    const viewportX = item.x + image.x * canvasScale;
+    const viewportY = item.y + image.y * canvasScale;
+    const viewportW = image.width * canvasScale;
 
     const viewportR = viewportX + viewportW;
     const viewportB = viewportY + viewportW * aspect;
