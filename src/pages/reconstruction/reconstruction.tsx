@@ -5,6 +5,7 @@ import { ReconstructionTree } from './reconstruction-tree/tree';
 import { AnimatedPanel, AnimatedPanelGroup } from '@/components/animated-panel';
 import { ReconstructionSidebar } from './reconstruction-sidebar';
 import { redo, undo } from './reconstruction-history';
+import { MeasurementProvider } from '@/dialogs/physical-dimensions';
 
 export const Reconstruction = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -49,9 +50,11 @@ export const Reconstruction = () => {
           className="focus-visible:outline-2 focus-visible:outline-primary" />
 
         <Panel>
-          <CanvasComposer 
-            isSidebarOpen={isSidebarOpen} 
-            onChangeSidebarOpen={setSidebarOpen} />
+          <MeasurementProvider>
+            <CanvasComposer
+              isSidebarOpen={isSidebarOpen}
+              onChangeSidebarOpen={setSidebarOpen} />
+          </MeasurementProvider>
         </Panel>
 
         <Separator 

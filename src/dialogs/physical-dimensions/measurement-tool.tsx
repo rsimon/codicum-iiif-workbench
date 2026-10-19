@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Point } from 'openseadragon';
 import type { CanvasClickEvent, Viewer } from 'openseadragon';
+import type { PhysicalScale } from '@/types';
 import { useMeasurement } from './measurement-context';
 import { getDistance } from './measurement-utils';
 import { MeasurementLabel } from './measurement-label';
@@ -8,6 +9,8 @@ import { MeasurementLabel } from './measurement-label';
 interface MeasurementToolProps {
 
   viewer?: Viewer | null;
+
+  physicalScale?: PhysicalScale;
 
 }
 
@@ -24,6 +27,13 @@ export const MeasurementTool = (props: MeasurementToolProps) => {
   const label = useMemo(() => {
     if (!tapeMeasureOpts.showLabel || tapeMeasureState.phase === 'idle') return;
 
+    if (props.physicalScale) {
+      const { start, end } = tapeMeasureState;
+      const distance = Math.hypot(end.x - start.x, end.y - start.y) *
+        props.physicalScale.physicalUnitsPerOSDUnit;
+      return `${Math.round(100 * distance) / 100} ${props.physicalScale.unit}`;
+    }
+
     if (tapeMeasureOpts.canvasSize) {
       const { width, unit } = tapeMeasureOpts.canvasSize;
       
@@ -35,7 +45,7 @@ export const MeasurementTool = (props: MeasurementToolProps) => {
     } else {
       return `${tapeMeasureState.distancePx} px`;
     }
-  }, [tapeMeasureOpts, tapeMeasureState]); 
+  }, [props.physicalScale, tapeMeasureOpts, tapeMeasureState]);
 
   useEffect(() => {
     if (!viewer || !isTapeMeasureEnabled) return;
@@ -65,7 +75,7 @@ export const MeasurementTool = (props: MeasurementToolProps) => {
       setTapeMeasureState(m => m.phase === 'dragging' ? { 
         ...m, 
         end: pt, 
-        distancePx: getDistance(m.start, pt, viewer)
+        distancePx: props.physicalScale ? 0 : getDistance(m.start, pt, viewer)
       } : m);
     }
 

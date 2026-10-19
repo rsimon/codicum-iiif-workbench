@@ -13,6 +13,7 @@ import { useComposerSelection } from './use-composer-selection';
 import { computeVisibleIds, useVisibleCanvases } from './use-visible-canvases';
 import { CanvasIndicatorLayer } from './canvas-indicator-layer';
 import { usePrevious } from './use-previous';
+import { MeasurementTool, useMeasurement } from '@/dialogs/physical-dimensions';
 
 export const OSD_SPRING_STIFFNESS = 10;
 export const OSD_ANIMATION_TIME = 0.5;
@@ -57,10 +58,11 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
   const selectedImage = useComposerStore(state => state.selectedImage);
   const editMode = useComposerStore(state => state.editMode);
   const setViewer = useComposerStore(state => state.setViewer);
+  const { isTapeMeasureEnabled } = useMeasurement();
 
   const previousSelection = usePrevious(selectedImage);
 
-  useComposerSelection(viewer, layout);
+  useComposerSelection(viewer, layout, isTapeMeasureEnabled);
 
   const visibleIds = useVisibleCanvases(viewer, layout);
 
@@ -315,8 +317,14 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
             <ViewerSvgOverlay
               viewer={viewer}
               topLayer={(
-                <ImageBoundsEditor
-                  viewer={viewer}/>
+                <>
+                  {!isTapeMeasureEnabled && (
+                    <ImageBoundsEditor viewer={viewer}/>
+                  )}
+                  <MeasurementTool
+                    viewer={viewer}
+                    physicalScale={layout.physicalScale}/>
+                </>
               )}/>
           </>
         )}

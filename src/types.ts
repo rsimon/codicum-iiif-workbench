@@ -32,6 +32,14 @@ export interface PhysicalSize {
 
 }
 
+export interface PhysicalScale {
+
+  unit: string;
+
+  physicalUnitsPerOSDUnit: number;
+
+}
+
 /** Reconstruction **/
 
 export interface OriginalCanvas {
