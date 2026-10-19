@@ -284,12 +284,13 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
       // Translate image into the new canvas's local coordinate system
       const { width: targetWidth } = target;
       const targetScale = targetItem.width / targetWidth;
+      const sourceScale = initialItem.width / source.width;
 
       const targetImage = {
         ...initialImg,
         x: (viewportX - destination.x) / targetScale,
         y: (viewportY - destination.y) / targetScale,
-        width: initialImg.width
+        width: initialImg.width * sourceScale / targetScale
       };
 
       const success = moveImageToCanvas(
