@@ -1,6 +1,5 @@
 import type { ReconstructionCanvas } from '@/types';
 import type { ComposerLayout, ComposerLayoutItem } from '../reconstruction-types';
-import { Reconstruction } from '../reconstruction';
 
 export const ROW_GAP = 0.25;
 
@@ -26,7 +25,7 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
     usePhysicalSize && canvas.physicalSize
       ? canvas.physicalSize
       : { width: canvas.width, height: canvas.height });
-      
+
   const maxWidth = Math.max(0, ...dimensions.map(size => size.width));
   const scale = maxWidth > 0 ? 1 / maxWidth : 1;
   const scaledDimensions = dimensions.map(size => ({
