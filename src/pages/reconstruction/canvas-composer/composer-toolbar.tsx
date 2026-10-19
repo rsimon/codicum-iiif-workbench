@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { ButtonProps } from '@base-ui/react';
-import { IconArrowBackUp, IconArrowForwardUp, IconCrop, IconMaximize, IconRulerMeasure, IconStackPop, IconStackPush } from '@tabler/icons-react';
+import { IconArrowBackUp, IconArrowForwardUp, IconCrop, IconMaximize, IconRulerMeasure, IconStackPop, IconStackPush, IconTextSize } from '@tabler/icons-react';
 import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { ToolbarToggle } from '@/components/toolbar-toggle';
 import { Button } from '@/shadcn/button';
@@ -44,6 +44,8 @@ export const ComposerToolbar = () => {
   const updateImage = useComposerStore(state => state.updateImage);
   const changeImageZOrder = useComposerStore(state => state.changeImageZOrder);
   const setIsUserEdit = useComposerStore(state => state.setIsUserEdit);
+  const setSelectedImage = useComposerStore(state => state.setSelectedImage);
+  const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
 
   const editMode = useComposerStore(state => state.editMode);
   const setEditMode = useComposerStore(state => state.setEditMode);
@@ -108,6 +110,16 @@ export const ComposerToolbar = () => {
     setEditMode(editMode === 'CROP' ? 'RESIZE' : 'CROP');
   };
 
+  const onToggleText = () => {
+    if (editMode === 'TEXT') {
+      setEditMode('RESIZE');
+    } else {
+      setSelectedImage();
+      setSelectedTextAnnotation();
+      setEditMode('TEXT');
+    }
+  };
+
   return (
     <div className="absolute bottom-8 w-full flex justify-center z-50 pointer-events-none">
       <div className="bg-white flex items-center gap-1 min-w-20 rounded-full p-1 pointer-events-auto
@@ -132,6 +144,13 @@ export const ComposerToolbar = () => {
           onClick={onToggleCrop}
           aria-pressed={editMode === 'CROP'}>
           <IconCrop className="size-5" strokeWidth={1.75} />
+        </ToolbarToggle>
+
+        <ToolbarToggle
+          tooltip="Add text annotation"
+          onClick={onToggleText}
+          aria-pressed={editMode === 'TEXT'}>
+          <IconTextSize className="size-5" strokeWidth={1.75} />
         </ToolbarToggle>
 
         <ComposerToolbarButton

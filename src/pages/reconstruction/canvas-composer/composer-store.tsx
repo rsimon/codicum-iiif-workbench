@@ -10,7 +10,15 @@ import { registerComposerSyncFlusher, withHistory } from '../reconstruction-hist
 import { applyEdits, findSourceCanvasById, toDraggableImages } from './composer-utils';
 import { TwoColumnLayout } from './layout';
 
-export type EditMode = 'RESIZE' | 'CROP';
+export type EditMode = 'RESIZE' | 'CROP' | 'TEXT';
+
+export interface SelectedTextAnnotation {
+
+  canvasId: string;
+
+  annotationId: string;
+
+}
 
 export interface ComposerState {
 
@@ -31,6 +39,8 @@ export interface ComposerState {
 
   selectedImage?: DraggableImageSelection;
 
+  selectedTextAnnotation?: SelectedTextAnnotation;
+
   editMode: EditMode;
 
   isUserEdit: boolean;
@@ -40,6 +50,8 @@ export interface ComposerState {
   setLayout(layout: ComposerLayout): void;
 
   setSelectedImage(selectedImage?: DraggableImageSelection): void;
+
+  setSelectedTextAnnotation(selectedTextAnnotation?: SelectedTextAnnotation): void;
 
   setEditMode(mode: EditMode): void;
 
@@ -69,6 +81,8 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
   selectedImage: undefined,
 
+  selectedTextAnnotation: undefined,
+
   editMode: 'RESIZE',
 
   isUserEdit: false,
@@ -77,7 +91,12 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
   setLayout: layout => set({ layout }),
 
-  setSelectedImage: selectedImage => set({ selectedImage, editMode: 'RESIZE' }),
+  setSelectedImage: selectedImage => set({
+    selectedImage,
+    ...(selectedImage ? { editMode: 'RESIZE' } : {})
+  }),
+
+  setSelectedTextAnnotation: selectedTextAnnotation => set({ selectedTextAnnotation }),
 
   setEditMode: editMode => set({ editMode }),
 

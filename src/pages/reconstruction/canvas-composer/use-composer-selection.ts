@@ -14,6 +14,9 @@ export const useComposerSelection = (
   const selection = useReconstructionStore(state => state.selection);
   const setSelectedItems = useReconstructionStore(state => state.setSelection);
   const setSelectedImage = useComposerStore(state => state.setSelectedImage);
+  const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
+  const selectedTextAnnotation = useComposerStore(state => state.selectedTextAnnotation);
+  const editMode = useComposerStore(state => state.editMode);
 
   // Clear selected image if canvas selection changes from outside (tree view)
   useEffect(() => {
@@ -25,6 +28,15 @@ export const useComposerSelection = (
 
     if (!stillSelected) setSelectedImage();
   }, [selection, setSelectedImage]);
+
+  useEffect(() => {
+    if (!selectedTextAnnotation) return;
+
+    const stillSelected =
+      selection.length === 1 && selection[0].id === selectedTextAnnotation.canvasId;
+
+    if (!stillSelected) setSelectedTextAnnotation();
+  }, [selection, selectedTextAnnotation, setSelectedTextAnnotation]);
 
   // Bring a selected canvas into view if it isn't already visible
   useEffect(() => {
@@ -51,6 +63,7 @@ export const useComposerSelection = (
 
     const onCanvasClick = (evt: CanvasClickEvent) => {
       if (isTapeMeasureEnabled) return;
+      if (editMode === 'TEXT') return;
       if (!evt.quick) return;
       
       const { metaKey } = evt.originalEvent as PointerEvent;
@@ -64,6 +77,31 @@ export const useComposerSelection = (
         
         const canvas = reconstruction.find(r => r.id === item.reconstructionCanvasId);
         if (!canvas) return;
+
+        if (!metaKey) {
+          const scale = item.width / canvas.width;
+          const x = (point.x - item.x) / scale;
+          const y = (point.y - item.y) / scale;
+          const annotation = (canvas.annotations ?? []).find(annotation =>
+            annotation.text.length > 0 &&
+            x >= annotation.x &&
+            x <= annotation.x + annotation.width &&
+            y >= annotation.y &&
+            y <= annotation.y + annotation.height
+          );
+
+          if (annotation) {
+            setSelectedImage();
+            setSelectedTextAnnotation({
+              canvasId: canvas.id,
+              annotationId: annotation.id
+            });
+            setSelectedItems([canvas]);
+            return;
+          }
+        }
+
+        setSelectedTextAnnotation();
 
         if (metaKey) {
           setSelectedImage();
@@ -82,6 +120,7 @@ export const useComposerSelection = (
           });
         }
       } else if (!metaKey) {
+        setSelectedTextAnnotation();
         setSelectedImage();
         setSelectedItems([]);
       }
@@ -92,6 +131,6 @@ export const useComposerSelection = (
     return () => {
       viewer?.removeHandler('canvas-click', onCanvasClick);
     }
-  }, [viewer, layout, setSelectedItems, setSelectedImage, isTapeMeasureEnabled]);
+  }, [viewer, layout, setSelectedItems, setSelectedImage, setSelectedTextAnnotation, isTapeMeasureEnabled, editMode]);
 
 }

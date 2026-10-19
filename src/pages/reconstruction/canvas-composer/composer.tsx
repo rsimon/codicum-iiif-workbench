@@ -14,6 +14,7 @@ import { useComposerSelection } from './use-composer-selection';
 import { computeVisibleIds, useVisibleCanvases } from './use-visible-canvases';
 import { CanvasIndicatorLayer } from './canvas-indicator-layer';
 import { usePrevious } from './use-previous';
+import { TextAnnotationLayer } from './text-annotation-layer';
 
 export const OSD_SPRING_STIFFNESS = 10;
 export const OSD_ANIMATION_TIME = 0.5;
@@ -319,7 +320,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
               viewer={viewer}
               topLayer={(
                 <>
-                  {!isTapeMeasureEnabled && (
+                  {!isTapeMeasureEnabled && editMode !== 'TEXT' && (
                     <ImageBoundsEditor viewer={viewer}/>
                   )}
                   <MeasurementTool
@@ -327,6 +328,10 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
                     physicalScale={layout.physicalScale}/>
                 </>
               )}/>
+            <TextAnnotationLayer
+              viewer={viewer}
+              layout={layout}
+              visibleIds={visibleIds} />
           </>
         )}
       </div>

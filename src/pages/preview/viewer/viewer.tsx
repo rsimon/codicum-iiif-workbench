@@ -16,7 +16,7 @@ interface ViewerProps {
 
 }
 
-export type CanvasBounds = { x: number, y: number, width: number, height: number };
+export type CanvasBounds = { canvasId: string, x: number, y: number, width: number, height: number };
 
 // Horizontal gap between pages
 const PAGE_GAP = 0;
@@ -84,6 +84,7 @@ export const Viewer = (props: ViewerProps) => {
     const totalWidth = (leftHeight && rightHeight) ? 2 + PAGE_GAP : 1;
 
     const leftBounds = leftHeight ? { 
+      canvasId: left!.id,
       x: 0, 
       y: (totalHeight - leftHeight) / 2,
       width: 1,
@@ -91,6 +92,7 @@ export const Viewer = (props: ViewerProps) => {
     } : undefined;
 
     const rightBounds = rightHeight ? {
+      canvasId: right!.id,
       x: 1 + PAGE_GAP, 
       y: (totalHeight - rightHeight) / 2,
       width: 1,
@@ -124,7 +126,8 @@ export const Viewer = (props: ViewerProps) => {
         {viewer && (
           <CanvasIndicator 
             viewer={viewer} 
-            bounds={canvasBounds} />
+            bounds={canvasBounds}
+            pages={[left, right]} />
         )}
       </div>
 
