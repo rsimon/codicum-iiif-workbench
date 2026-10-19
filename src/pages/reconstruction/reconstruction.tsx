@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Panel, Separator } from 'react-resizable-panels';
+import { AnimatedPanel, AnimatedPanelGroup } from '@/components/animated-panel';
+import { MeasurementProvider } from '@/dialogs/physical-dimensions';
 import { CanvasComposer } from './canvas-composer';
 import { ReconstructionTree } from './reconstruction-tree/tree';
-import { AnimatedPanel, AnimatedPanelGroup } from '@/components/animated-panel';
 import { ReconstructionSidebar } from './reconstruction-sidebar';
 import { redo, undo } from './reconstruction-history';
-import { MeasurementProvider } from '@/dialogs/physical-dimensions';
 
 export const Reconstruction = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
