@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import OpenSeadragon, { TiledImage } from 'openseadragon';
 import { useShallow } from 'zustand/react/shallow';
 import { ViewerSvgOverlay } from '@/components/viewer-svg-overlay';
+import { MeasurementTool, useMeasurement } from '@/dialogs/physical-dimensions';
 import { cn } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import { getCanvasImageKey } from '../reconstruction-utils';
@@ -13,7 +14,6 @@ import { useComposerSelection } from './use-composer-selection';
 import { computeVisibleIds, useVisibleCanvases } from './use-visible-canvases';
 import { CanvasIndicatorLayer } from './canvas-indicator-layer';
 import { usePrevious } from './use-previous';
-import { MeasurementTool, useMeasurement } from '@/dialogs/physical-dimensions';
 
 export const OSD_SPRING_STIFFNESS = 10;
 export const OSD_ANIMATION_TIME = 0.5;
@@ -58,6 +58,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
   const selectedImage = useComposerStore(state => state.selectedImage);
   const editMode = useComposerStore(state => state.editMode);
   const setViewer = useComposerStore(state => state.setViewer);
+  
   const { isTapeMeasureEnabled } = useMeasurement();
 
   const previousSelection = usePrevious(selectedImage);
