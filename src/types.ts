@@ -32,6 +32,15 @@ export interface PhysicalSize {
 
 }
 
+export interface PhysicalScale {
+
+  unit: string;
+
+  physicalUnitsPerOSDUnit: number;
+
+}
+
+
 export interface TextAnnotation {
 
   id: string;
@@ -45,14 +54,6 @@ export interface TextAnnotation {
   width: number;
 
   height: number;
-
-}
-
-export interface PhysicalScale {
-
-  unit: string;
-
-  physicalUnitsPerOSDUnit: number;
 
 }
 
