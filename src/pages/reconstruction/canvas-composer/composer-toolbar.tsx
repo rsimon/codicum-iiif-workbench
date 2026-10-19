@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import type { ButtonProps } from '@base-ui/react';
-import { IconArrowBackUp, IconArrowForwardUp, IconCrop, IconMaximize, IconStackPop, IconStackPush } from '@tabler/icons-react';
+import { IconArrowBackUp, IconArrowForwardUp, IconCrop, IconMaximize, IconRulerMeasure, IconStackPop, IconStackPush } from '@tabler/icons-react';
+import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { ToolbarToggle } from '@/components/toolbar-toggle';
 import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
@@ -32,6 +34,7 @@ const ComposerToolbarButton = (props: ButtonProps & { tooltip: string }) => {
 }
 
 export const ComposerToolbar = () => {
+  const layout = useComposerStore(state => state.layout);
   const selectedImage = useComposerStore(state => state.selectedImage);
   const imagesByCanvasId = useComposerStore(state => state.imagesByCanvasId);
   const hasPendingSync = useComposerStore(state => state.hasPendingSync);
@@ -44,8 +47,26 @@ export const ComposerToolbar = () => {
 
   const editMode = useComposerStore(state => state.editMode);
   const setEditMode = useComposerStore(state => state.setEditMode);
+  const { isTapeMeasureEnabled, setEnableTapeMeasure } = useMeasurement();
 
   const reconstruction = useAppStore(state => state.reconstruction);
+
+  useEffect(() => {
+    if (!isTapeMeasureEnabled) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape')
+        setEnableTapeMeasure(false);
+    }
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isTapeMeasureEnabled, setEnableTapeMeasure]);
+
+  useEffect(() => {
+    if (!layout.physicalScale && isTapeMeasureEnabled)
+      setEnableTapeMeasure(false);
+  }, [layout.physicalScale, isTapeMeasureEnabled, setEnableTapeMeasure]);
 
   const isFullSize = selectedImage 
     ? isSelectionFullSize(selectedImage, reconstruction) 
@@ -119,6 +140,14 @@ export const ComposerToolbar = () => {
           onClick={onFillCanvas}>
           <IconMaximize className="size-4.5" />
         </ComposerToolbarButton>
+
+        <ToolbarToggle
+          disabled={!layout.physicalScale}
+          tooltip="Measure physical distance"
+          pressed={isTapeMeasureEnabled}
+          onPressedChange={pressed => setEnableTapeMeasure(pressed, { showLabel: true })}>
+          <IconRulerMeasure className="size-4.5" />
+        </ToolbarToggle>
 
         <Separator orientation="vertical" />
 

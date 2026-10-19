@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { Point } from 'openseadragon';
 import type { CanvasClickEvent, Viewer } from 'openseadragon';
+import type { PhysicalScale } from '@/types';
 import { useMeasurement } from './measurement-context';
 import { getDistance } from './measurement-utils';
 import { MeasurementLabel } from './measurement-label';
@@ -8,6 +9,8 @@ import { MeasurementLabel } from './measurement-label';
 interface MeasurementToolProps {
 
   viewer?: Viewer | null;
+
+  physicalScale?: PhysicalScale;
 
 }
 
@@ -21,21 +24,33 @@ export const MeasurementTool = (props: MeasurementToolProps) => {
     setTapeMeasureState 
   } = useMeasurement();
 
+  const physicalUnit = props.physicalScale?.unit ?? tapeMeasureOpts.canvasSize?.unit;
+
+  const physicalUnitsPerOSDUnit =
+    props.physicalScale?.physicalUnitsPerOSDUnit ?? tapeMeasureOpts.canvasSize?.width;
+  
+  const hasPhysicalScale = physicalUnit !== undefined && physicalUnitsPerOSDUnit !== undefined;
+
   const label = useMemo(() => {
     if (!tapeMeasureOpts.showLabel || tapeMeasureState.phase === 'idle') return;
 
-    if (tapeMeasureOpts.canvasSize) {
-      const { width, unit } = tapeMeasureOpts.canvasSize;
-      
-      const dx = width * (tapeMeasureState.end.x - tapeMeasureState.start.x);
-      const dy = width * (tapeMeasureState.end.y - tapeMeasureState.start.y);
+    if (hasPhysicalScale) {
+      const distance = Math.hypot(
+        tapeMeasureState.end.x - tapeMeasureState.start.x,
+        tapeMeasureState.end.y - tapeMeasureState.start.y
+      ) * physicalUnitsPerOSDUnit;
 
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      return `${Math.round(100 * dist) / 100} ${unit}`;
-    } else {
-      return `${tapeMeasureState.distancePx} px`;
+      return `${Math.round(100 * distance) / 100} ${physicalUnit}`;
     }
-  }, [tapeMeasureOpts, tapeMeasureState]); 
+
+    return `${tapeMeasureState.distancePx} px`;
+  }, [
+    hasPhysicalScale,
+    physicalUnit,
+    physicalUnitsPerOSDUnit,
+    tapeMeasureOpts.showLabel,
+    tapeMeasureState
+  ]);
 
   useEffect(() => {
     if (!viewer || !isTapeMeasureEnabled) return;
@@ -65,7 +80,7 @@ export const MeasurementTool = (props: MeasurementToolProps) => {
       setTapeMeasureState(m => m.phase === 'dragging' ? { 
         ...m, 
         end: pt, 
-        distancePx: getDistance(m.start, pt, viewer)
+        distancePx: hasPhysicalScale ? 0 : getDistance(m.start, pt, viewer)
       } : m);
     }
 
@@ -84,7 +99,7 @@ export const MeasurementTool = (props: MeasurementToolProps) => {
 
       setTapeMeasureState({ phase: 'idle' });
     };
-  }, [viewer, isTapeMeasureEnabled]);
+  }, [viewer, isTapeMeasureEnabled, hasPhysicalScale]);
 
   return (viewer && isTapeMeasureEnabled && tapeMeasureState.phase !== 'idle') ? (
     <g pointerEvents="none">

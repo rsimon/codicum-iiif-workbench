@@ -6,7 +6,11 @@ import { getImageAt, getItemAt } from './composer-utils';
 import { useComposerStore } from './composer-store';
 import { useAppStore } from '@/store/app-store';
 
-export const useComposerSelection = (viewer: Viewer | undefined, layout: ComposerLayout) => {
+export const useComposerSelection = (
+  viewer: Viewer | undefined,
+  layout: ComposerLayout,
+  isTapeMeasureEnabled: boolean
+) => {
   const selection = useReconstructionStore(state => state.selection);
   const setSelectedItems = useReconstructionStore(state => state.setSelection);
   const setSelectedImage = useComposerStore(state => state.setSelectedImage);
@@ -46,6 +50,7 @@ export const useComposerSelection = (viewer: Viewer | undefined, layout: Compose
     if (!viewer) return;
 
     const onCanvasClick = (evt: CanvasClickEvent) => {
+      if (isTapeMeasureEnabled) return;
       if (!evt.quick) return;
       
       const { metaKey } = evt.originalEvent as PointerEvent;
@@ -87,6 +92,6 @@ export const useComposerSelection = (viewer: Viewer | undefined, layout: Compose
     return () => {
       viewer?.removeHandler('canvas-click', onCanvasClick);
     }
-  }, [viewer, layout, setSelectedItems, setSelectedImage]);
+  }, [viewer, layout, setSelectedItems, setSelectedImage, isTapeMeasureEnabled]);
 
 }

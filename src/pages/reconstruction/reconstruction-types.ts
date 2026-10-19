@@ -1,8 +1,11 @@
 import type { Bounds, CozyImageResource } from 'cozy-iiif';
+import type { PhysicalScale } from '@/types';
 
 export interface ComposerLayout {
 
   items: ComposerLayoutItem[];
+
+  physicalScale?: PhysicalScale;
 
   layoutWidth: number;
 

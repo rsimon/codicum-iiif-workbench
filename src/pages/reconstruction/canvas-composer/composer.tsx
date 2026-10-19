@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import OpenSeadragon, { TiledImage } from 'openseadragon';
 import { useShallow } from 'zustand/react/shallow';
 import { ViewerSvgOverlay } from '@/components/viewer-svg-overlay';
+import { MeasurementTool, useMeasurement } from '@/dialogs/physical-dimensions';
 import { cn } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import { getCanvasImageKey } from '../reconstruction-utils';
@@ -57,10 +58,12 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
   const selectedImage = useComposerStore(state => state.selectedImage);
   const editMode = useComposerStore(state => state.editMode);
   const setViewer = useComposerStore(state => state.setViewer);
+  
+  const { isTapeMeasureEnabled } = useMeasurement();
 
   const previousSelection = usePrevious(selectedImage);
 
-  useComposerSelection(viewer, layout);
+  useComposerSelection(viewer, layout, isTapeMeasureEnabled);
 
   const visibleIds = useVisibleCanvases(viewer, layout);
 
@@ -315,8 +318,14 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
             <ViewerSvgOverlay
               viewer={viewer}
               topLayer={(
-                <ImageBoundsEditor
-                  viewer={viewer}/>
+                <>
+                  {!isTapeMeasureEnabled && (
+                    <ImageBoundsEditor viewer={viewer}/>
+                  )}
+                  <MeasurementTool
+                    viewer={viewer}
+                    physicalScale={layout.physicalScale}/>
+                </>
               )}/>
           </>
         )}
