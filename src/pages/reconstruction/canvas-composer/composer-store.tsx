@@ -4,20 +4,18 @@ import { dequal } from 'dequal/lite';
 import { withViewTransition } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
+import { registerComposerSyncFlusher, withHistory } from '../reconstruction-history';
 import { getImageKey, getCanvasImageKey } from '../reconstruction-utils';
+import { applyEdits, findSourceCanvasById, toDraggableImages } from './composer-utils';
+import { TwoColumnLayout } from './layout';
 import type {
   ComposerLayout,
   DraggableImage,
   DraggableImageSelection,
   TextAnnotationSelection
 } from '../reconstruction-types';
-import { registerComposerSyncFlusher, withHistory } from '../reconstruction-history';
-import { applyEdits, findSourceCanvasById, toDraggableImages } from './composer-utils';
-import { TwoColumnLayout } from './layout';
 
 export type EditMode = 'RESIZE' | 'CROP' | 'TEXT';
-
-
 
 export interface ComposerState {
 
@@ -90,12 +88,9 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
   setLayout: layout => set({ layout }),
 
-  setSelectedImage: selectedImage => set({
-    selectedImage,
-    ...(selectedImage ? { editMode: 'RESIZE' } : {})
-  }),
+  setSelectedImage: selectedImage => set({ selectedImage, editMode: 'RESIZE', selectedTextAnnotation: undefined }),
 
-  setSelectedTextAnnotation: selectedTextAnnotation => set({ selectedTextAnnotation }),
+  setSelectedTextAnnotation: selectedTextAnnotation => set({ selectedTextAnnotation, selectedImage: undefined }),
 
   setEditMode: editMode => set({ editMode }),
 

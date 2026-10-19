@@ -50,7 +50,7 @@ export const CanvasIndicator = (props: CanvasIndicatorProps) => {
           </g>
         } />
 
-      <div className="absolute inset-0 z-[60] pointer-events-none">
+      <div className="absolute inset-0 z-60 pointer-events-none">
         {props.items.flatMap(({ canvas, x, y, width }) => {
           const scale = width / canvas.width;
           return (canvas.annotations ?? []).filter(annotation => annotation.text.trim().length > 0).map(annotation => (
