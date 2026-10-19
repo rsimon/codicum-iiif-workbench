@@ -69,6 +69,7 @@ export const getImageCorners = (selected: DraggableImageSelection, canvasWidth: 
 
   const aspect = crop.w / crop.h;
   const canvasScale = item.width / canvasWidth;
+  
   const x = item.x + (ox ?? image.x) * canvasScale;
   const y = item.y + (oy ?? image.y) * canvasScale;
   const w = (ow ?? image.width) * canvasScale;
