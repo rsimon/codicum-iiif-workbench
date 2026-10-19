@@ -135,15 +135,13 @@ export const TextAnnotationLayer = (props: TextAnnotationLayerProps) => {
           return (
             <TextAnnotationOverlay
               key={`${canvas.id}:${annotation.id}`}
-              placement={{
-                annotation,
-                x: item.x + annotation.x * scale,
-                y: item.y + annotation.y * scale,
-                width: annotation.width * scale,
-                height: annotation.height * scale,
+              annotation={annotation}
+              canvasPlacement={{
+                x: item.x,
+                y: item.y,
                 scale,
-                canvasWidth: canvas.width,
-                canvasHeight: canvas.height
+                width: canvas.width,
+                height: canvas.height
               }}
               viewer={props.viewer}
               interactive={interactive}

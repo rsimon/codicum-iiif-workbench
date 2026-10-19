@@ -5,20 +5,19 @@ import { withViewTransition } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
 import { getImageKey, getCanvasImageKey } from '../reconstruction-utils';
-import type { ComposerLayout, DraggableImage, DraggableImageSelection } from '../reconstruction-types';
+import type {
+  ComposerLayout,
+  DraggableImage,
+  DraggableImageSelection,
+  TextAnnotationSelection
+} from '../reconstruction-types';
 import { registerComposerSyncFlusher, withHistory } from '../reconstruction-history';
 import { applyEdits, findSourceCanvasById, toDraggableImages } from './composer-utils';
 import { TwoColumnLayout } from './layout';
 
 export type EditMode = 'RESIZE' | 'CROP' | 'TEXT';
 
-export interface SelectedTextAnnotation {
 
-  canvasId: string;
-
-  annotationId: string;
-
-}
 
 export interface ComposerState {
 
@@ -39,7 +38,7 @@ export interface ComposerState {
 
   selectedImage?: DraggableImageSelection;
 
-  selectedTextAnnotation?: SelectedTextAnnotation;
+  selectedTextAnnotation?: TextAnnotationSelection;
 
   editMode: EditMode;
 
@@ -51,7 +50,7 @@ export interface ComposerState {
 
   setSelectedImage(selectedImage?: DraggableImageSelection): void;
 
-  setSelectedTextAnnotation(selectedTextAnnotation?: SelectedTextAnnotation): void;
+  setSelectedTextAnnotation(selectedTextAnnotation?: TextAnnotationSelection): void;
 
   setEditMode(mode: EditMode): void;
 

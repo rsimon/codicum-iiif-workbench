@@ -49,15 +49,13 @@ export const CanvasIndicator = (props: CanvasIndicatorProps) => {
             <TextAnnotationOverlay
               key={`${canvas.id}:${annotation.id}`}
               viewer={props.viewer}
-              placement={{
-                annotation,
-                x: bounds.x + annotation.x * scale,
-                y: bounds.y + annotation.y * scale,
-                width: annotation.width * scale,
-                height: annotation.height * scale,
+              annotation={annotation}
+              canvasPlacement={{
+                x: bounds.x,
+                y: bounds.y,
                 scale,
-                canvasWidth: canvas.width,
-                canvasHeight: canvas.height
+                width: canvas.width,
+                height: canvas.height
               }} />
           ));
         })}

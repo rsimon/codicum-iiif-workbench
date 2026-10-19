@@ -2,29 +2,25 @@ import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 
 import { Point, type Viewer } from 'openseadragon';
 import type { TextAnnotation } from '@/types';
 
-export interface TextAnnotationPlacement {
-
-  annotation: TextAnnotation;
+interface CanvasPlacement {
 
   x: number;
 
   y: number;
 
+  scale: number;
+
   width: number;
 
   height: number;
-
-  scale: number;
-
-  canvasWidth: number;
-
-  canvasHeight: number;
 
 }
 
 interface TextAnnotationOverlayProps {
 
-  placement: TextAnnotationPlacement;
+  annotation: TextAnnotation;
+
+  canvasPlacement: CanvasPlacement;
 
   viewer?: Viewer;
 
@@ -56,8 +52,7 @@ const sameBounds = (a: TextAnnotation, b: TextAnnotation) =>
   a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 
 export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
-  const { placement } = props;
-  const annotation = placement.annotation;
+  const { annotation, canvasPlacement } = props;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const gestureRef = useRef<Gesture | undefined>(undefined);
   const textRef = useRef(annotation.text);
@@ -97,16 +92,16 @@ export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
     ? viewer.viewport.pixelFromPoint(new Point(x, y), true)
     : new Point(x, y);
 
-  const worldX = placement.x + (draft.x - annotation.x) * placement.scale;
-  const worldY = placement.y + (draft.y - annotation.y) * placement.scale;
+  const worldX = canvasPlacement.x + draft.x * canvasPlacement.scale;
+  const worldY = canvasPlacement.y + draft.y * canvasPlacement.scale;
   const topLeft = screenPosition(worldX, worldY);
   const bottomRight = screenPosition(
-    worldX + draft.width * placement.scale,
-    worldY + draft.height * placement.scale
+    worldX + draft.width * canvasPlacement.scale,
+    worldY + draft.height * canvasPlacement.scale
   );
   const width = Math.max(1, bottomRight.x - topLeft.x);
   const height = Math.max(1, bottomRight.y - topLeft.y);
-  const fontSize = Math.max(1, 64 * placement.scale * (
+  const fontSize = Math.max(1, 64 * canvasPlacement.scale * (
     viewer ? viewer.viewport.pixelFromPoint(new Point(1, 0), true).x -
       viewer.viewport.pixelFromPoint(new Point(0, 0), true).x : 1
   ));
@@ -146,19 +141,19 @@ export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
     const pointer = getPointer(event);
     if (!pointer) return;
 
-    const dx = (pointer.x - gesture.pointer.x) / placement.scale;
-    const dy = (pointer.y - gesture.pointer.y) / placement.scale;
+    const dx = (pointer.x - gesture.pointer.x) / canvasPlacement.scale;
+    const dy = (pointer.y - gesture.pointer.y) / canvasPlacement.scale;
     const initial = gesture.annotation;
 
     if (gesture.type === 'move') {
       setDraft({
         ...initial,
-        x: Math.min(Math.max(0, initial.x + dx), placement.canvasWidth - initial.width),
-        y: Math.min(Math.max(0, initial.y + dy), placement.canvasHeight - initial.height)
+        x: Math.min(Math.max(0, initial.x + dx), canvasPlacement.width - initial.width),
+        y: Math.min(Math.max(0, initial.y + dy), canvasPlacement.height - initial.height)
       });
     } else {
-      const availableWidth = Math.max(0, placement.canvasWidth - initial.x);
-      const availableHeight = Math.max(0, placement.canvasHeight - initial.y);
+      const availableWidth = Math.max(0, canvasPlacement.width - initial.x);
+      const availableHeight = Math.max(0, canvasPlacement.height - initial.y);
       setDraft({
         ...initial,
         width: Math.min(availableWidth, Math.max(Math.min(80, availableWidth), initial.width + dx)),
