@@ -26,6 +26,7 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
       : { width: canvas.width, height: canvas.height });
 
   const maxWidth = Math.max(0, ...dimensions.map(size => size.width));
+  
   const scale = maxWidth > 0 ? 1 / maxWidth : 1;
   const scaledDimensions = dimensions.map(size => ({
     width: size.width * scale,
@@ -33,6 +34,7 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
   }));
 
   const leftColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 0).map(size => size.width));
+  
   const rightColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 1).map(size => size.width));
   const rightColumnX = leftColumnWidth + COLUMN_GAP;
 
@@ -41,8 +43,10 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
   for (let i = 0; i < reconstruction.length; i += 2) {
     const left = reconstruction[i];
     const right = reconstruction[i + 1];
+
     const leftSize = scaledDimensions[i];
     const rightSize = right ? scaledDimensions[i + 1] : undefined;
+    
     const rowHeight = Math.max(leftSize.height, rightSize?.height ?? 0);
 
     rows.push({
