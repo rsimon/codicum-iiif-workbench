@@ -86,11 +86,11 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
     currentY += row.rowHeight + ROW_GAP;
   }
 
+  const physicalScale = unit && maxWidth > 0 ? { unit, physicalUnitsPerOSDUnit: maxWidth }: undefined;
+
   return {
     items,
-    physicalScale: unit && maxWidth > 0
-      ? { unit, physicalUnitsPerOSDUnit: maxWidth }
-      : undefined,
+    physicalScale,
     layoutWidth: Math.max(1, leftColumnWidth + (rightColumnWidth > 0 ? COLUMN_GAP + rightColumnWidth : 0)),
     layoutHeight: Math.max(0, currentY - ROW_GAP)
   };
