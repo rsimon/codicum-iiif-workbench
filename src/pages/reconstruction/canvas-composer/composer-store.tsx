@@ -255,10 +255,10 @@ useAppStore.subscribe((state, prevState) => {
     pendingAnimatedCommit = undefined;
   }
 
-  // Layout only needs recomputing if structural props changed by value.
+  // Layout depends on canvas pixel and physical dimensions.
   const stripIrrelevant = (r: ReconstructionCanvas) => {
-    const { id, width, height } = r;
-    return { id, width, height };
+    const { id, width, height, physicalSize } = r;
+    return { id, width, height, physicalSize };
   }
 
   const before = prevState.reconstruction.map(stripIrrelevant);

@@ -152,15 +152,16 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
     if (!canvas) return;
 
     const { width: canvasWidth } = canvas;
+    const canvasScale = item.width / canvasWidth;
 
     origin.current = getPoint(evt, props.viewer);
 
     initialShape.current = {
       image, item, canvas,
       initialViewportPos: {
-        x: item.x + image.x / canvasWidth,
-        y: item.y + image.y / canvasWidth,
-        width: image.width / canvasWidth
+        x: item.x + image.x * canvasScale,
+        y: item.y + image.y * canvasScale,
+        width: image.width * canvasScale
       }
     };
 
@@ -282,11 +283,12 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
 
       // Translate image into the new canvas's local coordinate system
       const { width: targetWidth } = target;
+      const targetScale = targetItem.width / targetWidth;
 
       const targetImage = {
         ...initialImg,
-        x: (viewportX - destination.x) * targetWidth,
-        y: (viewportY - destination.y) * targetWidth,
+        x: (viewportX - destination.x) / targetScale,
+        y: (viewportY - destination.y) / targetScale,
         width: initialImg.width
       };
 
@@ -306,11 +308,12 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
       }
     } else {
       const { width: canvasWidth } = initialShape.current.canvas;
+      const canvasScale = initialItem.width / canvasWidth;
 
       const updatedImage: DraggableImage = {
         ...initialImg, 
-        x: (viewportX - initialItem.x) * canvasWidth,
-        y: (viewportY - initialItem.y) * canvasWidth
+        x: (viewportX - initialItem.x) / canvasScale,
+        y: (viewportY - initialItem.y) / canvasScale
       }
 
       updateImage(initialItem.reconstructionCanvasId, updatedImage);
@@ -329,8 +332,8 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
     };
 
     const imageScale = initialImage.width / initialCrop.w;
-
-    const viewportPerSourcePixel = imageScale / initialShape.current.canvas.width;
+    const canvasScale = initialShape.current.item.width / initialShape.current.canvas.width;
+    const viewportPerSourcePixel = imageScale * canvasScale;
 
     const fullImageX = initialImage.x - initialCrop.x * imageScale;
     const fullImageY = initialImage.y - initialCrop.y * imageScale;
@@ -365,8 +368,8 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
     };
 
     const imageScale = initialImage.width / initialCrop.w;
-
-    const viewportPerSourcePixel = imageScale / initialShape.current.canvas.width;
+    const canvasScale = initialShape.current.item.width / initialShape.current.canvas.width;
+    const viewportPerSourcePixel = imageScale * canvasScale;
 
     const dx = delta[0] / viewportPerSourcePixel;
     const dy = delta[1] / viewportPerSourcePixel;
@@ -406,9 +409,10 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
     if (!selectedImage || !initialShape.current) return;
 
     const { width: canvasWidth } = initialShape.current.canvas;
+    const canvasScale = initialShape.current.item.width / canvasWidth;
 
-    const dx = delta[0] * canvasWidth;
-    const dy = delta[1] * canvasWidth;
+    const dx = delta[0] / canvasScale;
+    const dy = delta[1] / canvasScale;
 
     const { h, v } = RESIZE_SIGNS[handle];
 

@@ -5,8 +5,6 @@ export const ROW_GAP = 0.25;
 
 export const COLUMN_GAP = 0.25;
 
-export const COLUMN_WIDTH = 1;
-
 // Helper
 export interface LayoutRow {
 
@@ -17,33 +15,49 @@ export interface LayoutRow {
 }
 
 export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): ComposerLayout => {
+  const usePhysicalSize = reconstruction.length > 0 &&
+    reconstruction.every(canvas => canvas.physicalSize);
+  const dimensions = reconstruction.map(canvas =>
+    usePhysicalSize && canvas.physicalSize
+      ? canvas.physicalSize
+      : { width: canvas.width, height: canvas.height }
+  );
+  const maxWidth = Math.max(0, ...dimensions.map(size => size.width));
+  const scale = maxWidth > 0 ? 1 / maxWidth : 1;
+  const scaledDimensions = dimensions.map(size => ({
+    width: size.width * scale,
+    height: size.height * scale
+  }));
+
+  const leftColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 0).map(size => size.width));
+  const rightColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 1).map(size => size.width));
+  const rightColumnX = leftColumnWidth + COLUMN_GAP;
+
   const rows: LayoutRow[] = [];
 
   for (let i = 0; i < reconstruction.length; i += 2) {
     const left = reconstruction[i];
-    const right = reconstruction[i + 1]
-
-    const leftAspect = left.height / left.width;
-    const rightAspect = right ? right.height / right.width : 0;
-
-    const rowHeight = Math.max(leftAspect, rightAspect);
+    const right = reconstruction[i + 1];
+    const leftSize = scaledDimensions[i];
+    const rightSize = right ? scaledDimensions[i + 1] : undefined;
+    const rowHeight = Math.max(leftSize.height, rightSize?.height ?? 0);
 
     rows.push({
       items: [
-        { 
+        {
           reconstructionCanvasId: left.id,
-          x: 0, 
-          y: 0, 
-          width: COLUMN_WIDTH, 
-          height: leftAspect
+          x: (leftColumnWidth - leftSize.width) / 2,
+          y: 0,
+          width: leftSize.width,
+          height: leftSize.height
         },
-        ...(right ? [{ 
-          reconstructionCanvasId: right.id, 
-          x: COLUMN_WIDTH + COLUMN_GAP, 
-          y: 0, 
-          width: COLUMN_WIDTH, 
-          height: rightAspect
-        }] : []) 
+        ...(right && rightSize ? [{
+          reconstructionCanvasId: right.id,
+          x: rightColumnX + (rightColumnWidth - rightSize.width) / 2,
+          y: 0,
+          width: rightSize.width,
+          height: rightSize.height
+        }] : [])
       ],
       rowHeight
     });
@@ -65,7 +79,7 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
 
   return {
     items,
-    layoutWidth: COLUMN_WIDTH * 2 + COLUMN_GAP,
+    layoutWidth: Math.max(1, leftColumnWidth + (rightColumnWidth > 0 ? COLUMN_GAP + rightColumnWidth : 0)),
     layoutHeight: Math.max(0, currentY - ROW_GAP)
   };
 }
