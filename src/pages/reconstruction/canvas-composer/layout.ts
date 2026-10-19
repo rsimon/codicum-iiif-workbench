@@ -17,8 +17,7 @@ export interface LayoutRow {
 export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): ComposerLayout => {
   const physicalUnits = new Set(reconstruction.map(canvas => canvas.physicalSize?.unit!).filter(Boolean));
 
-  const usePhysicalSize = reconstruction.length > 0 &&
-    physicalUnits.size === 1 && // require same unit on all canvases!
+  const usePhysicalSize = physicalUnits.size === 1 && // require same unit on all canvases!
     reconstruction.every(canvas => canvas.physicalSize);
 
   const dimensions = reconstruction.map(canvas =>
