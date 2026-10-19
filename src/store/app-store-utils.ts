@@ -90,7 +90,7 @@ export const appendEmptyCanvas = (
   fallbackWidth = 1000, 
   fallbackHeight = 1000
 ): ReconstructionCanvas[] => {
-  const { width, height } = reconstruction.length > 0
+  const { width, height, physicalSize } = reconstruction.length > 0
     ? reconstruction[reconstruction.length - 1]
     : { width: fallbackWidth, height: fallbackHeight };
 
@@ -102,7 +102,8 @@ export const appendEmptyCanvas = (
       label: getEmptyCanvasLabel(reconstruction),
       sources: [],
       width, 
-      height
+      height,
+      physicalSize
     }
   ]
 }
