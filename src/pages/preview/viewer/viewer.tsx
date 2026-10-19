@@ -3,7 +3,7 @@ import OpenSeadragon from 'openseadragon';
 import type { Viewer as OpenSeadragonViewer } from 'openseadragon';
 import { cn } from '@/shadcn/utils';
 import { usePreviewStore } from '../preview-store';
-import { CanvasIndicator } from './canvas-indicator';
+import { CanvasIndicator, type CanvasIndicatorItem } from './canvas-indicator';
 import { ViewerControls } from './viewer-controls';
 import { ViewerToolbar } from './viewer-toolbar';
 import { addPage, getCanvasHeight } from '../preview-utils';
@@ -16,8 +16,6 @@ interface ViewerProps {
 
 }
 
-export type CanvasBounds = { canvasId: string, x: number, y: number, width: number, height: number };
-
 // Horizontal gap between pages
 const PAGE_GAP = 0;
 
@@ -28,7 +26,7 @@ export const Viewer = (props: ViewerProps) => {
   const elementRef = useRef<HTMLDivElement>(null);
 
   const [viewer, setViewer] = useState<OpenSeadragonViewer | null>(null);
-  const [canvasBounds, setCanvasBounds] = useState<CanvasBounds[]>([]);
+  const [canvasItems, setCanvasItems] = useState<CanvasIndicatorItem[]>([]);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -83,16 +81,16 @@ export const Viewer = (props: ViewerProps) => {
 
     const totalWidth = (leftHeight && rightHeight) ? 2 + PAGE_GAP : 1;
 
-    const leftBounds = leftHeight ? { 
-      canvasId: left!.id,
+    const leftBounds = left && leftHeight ? {
+      canvas: left,
       x: 0, 
       y: (totalHeight - leftHeight) / 2,
       width: 1,
       height: leftHeight
     } : undefined;
 
-    const rightBounds = rightHeight ? {
-      canvasId: right!.id,
+    const rightBounds = right && rightHeight ? {
+      canvas: right,
       x: 1 + PAGE_GAP, 
       y: (totalHeight - rightHeight) / 2,
       width: 1,
@@ -110,13 +108,13 @@ export const Viewer = (props: ViewerProps) => {
       viewer.viewport.fitBounds(viewRect, true);
       setIsReady(true);
     }).then(() => {
-      setCanvasBounds([leftBounds, rightBounds].filter(b => b !== undefined));
+      setCanvasItems([leftBounds, rightBounds].filter((item): item is CanvasIndicatorItem => item !== undefined));
     });
 
     return () => {
       cancelled = true;
       viewer.world.removeAll();
-      setCanvasBounds([]);
+      setCanvasItems([]);
     }
   }, [viewer, left, right]);
 
@@ -126,8 +124,7 @@ export const Viewer = (props: ViewerProps) => {
         {viewer && (
           <CanvasIndicator 
             viewer={viewer} 
-            bounds={canvasBounds}
-            pages={[left, right]} />
+            items={canvasItems} />
         )}
       </div>
 

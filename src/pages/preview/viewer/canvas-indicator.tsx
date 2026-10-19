@@ -2,33 +2,44 @@ import type { Viewer } from 'openseadragon';
 import { TextAnnotationOverlay } from '@/components/text-annotation-overlay';
 import type { ReconstructionCanvas } from '@/types';
 import { ViewerSvgOverlay } from '@/components/viewer-svg-overlay';
-import type { CanvasBounds } from './viewer';
+
+export interface CanvasIndicatorItem {
+
+  canvas: ReconstructionCanvas;
+
+  x: number;
+
+  y: number;
+
+  width: number;
+
+  height: number;
+
+}
 
 interface CanvasIndicatorProps {
 
-  bounds: CanvasBounds[];
+  items: CanvasIndicatorItem[];
 
   viewer: Viewer;
-
-  pages: (ReconstructionCanvas | undefined)[];
 
 }
 
 export const CanvasIndicator = (props: CanvasIndicatorProps) => {
 
-  return props.bounds.length > 0 ? (
+  return props.items.length > 0 ? (
     <>
       <ViewerSvgOverlay
         viewer={props.viewer}
         bottomLayer={
           <g>
-            {props.bounds.map((b, idx) => (
+            {props.items.map(item => (
               <rect
-                key={idx}
-                x={b.x}
-                y={b.y}
-                width={b.width}
-                height={b.height}
+                key={item.canvas.id}
+                x={item.x}
+                y={item.y}
+                width={item.width}
+                height={item.height}
                 fill="oklch(98.5% 0 none)"
                 stroke="oklch(87% 0 none)"
                 strokeWidth={1}
@@ -40,19 +51,16 @@ export const CanvasIndicator = (props: CanvasIndicatorProps) => {
         } />
 
       <div className="absolute inset-0 z-[60] pointer-events-none">
-        {props.bounds.flatMap(bounds => {
-          const canvas = props.pages.find(page => page?.id === bounds.canvasId);
-          if (!canvas) return [];
-
-          const scale = bounds.width / canvas.width;
+        {props.items.flatMap(({ canvas, x, y, width }) => {
+          const scale = width / canvas.width;
           return (canvas.annotations ?? []).filter(annotation => annotation.text.trim().length > 0).map(annotation => (
             <TextAnnotationOverlay
               key={`${canvas.id}:${annotation.id}`}
               viewer={props.viewer}
               annotation={annotation}
               canvasPlacement={{
-                x: bounds.x,
-                y: bounds.y,
+                x,
+                y,
                 scale,
                 width: canvas.width,
                 height: canvas.height
