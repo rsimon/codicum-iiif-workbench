@@ -166,6 +166,7 @@ export const mergeInto = (
   const sourcesToMerge = toMerge.reduce<SourceCanvas[]>((all, r) =>
     r.type === 'original' ? [...all, r.source] : [...all, ...r.sources]
   , []);
+  
   const annotationsToMerge = toMerge.flatMap(r => r.annotations ?? []);
     
   return removeCanvasFromReconstruction(current, others.map(r => r.id))
