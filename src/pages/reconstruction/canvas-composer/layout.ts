@@ -1,5 +1,6 @@
 import type { ReconstructionCanvas } from '@/types';
 import type { ComposerLayout, ComposerLayoutItem } from '../reconstruction-types';
+import { Reconstruction } from '../reconstruction';
 
 export const ROW_GAP = 0.25;
 
@@ -15,13 +16,17 @@ export interface LayoutRow {
 }
 
 export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): ComposerLayout => {
+  const physicalUnits = new Set(reconstruction.map(canvas => canvas.physicalSize?.unit!).filter(Boolean));
+
   const usePhysicalSize = reconstruction.length > 0 &&
+    physicalUnits.size === 1 && // require same unit on all canvases!
     reconstruction.every(canvas => canvas.physicalSize);
+
   const dimensions = reconstruction.map(canvas =>
     usePhysicalSize && canvas.physicalSize
       ? canvas.physicalSize
-      : { width: canvas.width, height: canvas.height }
-  );
+      : { width: canvas.width, height: canvas.height });
+      
   const maxWidth = Math.max(0, ...dimensions.map(size => size.width));
   const scale = maxWidth > 0 ? 1 / maxWidth : 1;
   const scaledDimensions = dimensions.map(size => ({
