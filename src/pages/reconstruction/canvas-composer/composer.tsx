@@ -13,8 +13,8 @@ import { ImageBoundsEditor } from './image-bounds-editor';
 import { useComposerSelection } from './use-composer-selection';
 import { computeVisibleIds, useVisibleCanvases } from './use-visible-canvases';
 import { CanvasIndicatorLayer } from './canvas-indicator-layer';
-import { usePrevious } from './use-previous';
 import { TextAnnotationLayer } from './text-annotation-layer';
+import { usePrevious } from './use-previous';
 
 export const OSD_SPRING_STIFFNESS = 10;
 export const OSD_ANIMATION_TIME = 0.5;
@@ -328,6 +328,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
                     physicalScale={layout.physicalScale}/>
                 </>
               )}/>
+              
             <TextAnnotationLayer
               viewer={viewer}
               layout={layout}
