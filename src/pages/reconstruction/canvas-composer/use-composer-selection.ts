@@ -12,11 +12,14 @@ export const useComposerSelection = (
   isTapeMeasureEnabled: boolean
 ) => {
   const selection = useReconstructionStore(state => state.selection);
+
   const setSelectedItems = useReconstructionStore(state => state.setSelection);
-  const setSelectedImage = useComposerStore(state => state.setSelectedImage);
-  const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
+
   const selectedTextAnnotation = useComposerStore(state => state.selectedTextAnnotation);
   const editMode = useComposerStore(state => state.editMode);
+
+  const setSelectedImage = useComposerStore(state => state.setSelectedImage);
+  const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
 
   // Clear selected image if canvas selection changes from outside (tree view)
   useEffect(() => {
@@ -29,6 +32,7 @@ export const useComposerSelection = (
     if (!stillSelected) setSelectedImage();
   }, [selection, setSelectedImage]);
 
+  // Same for selected text annotation
   useEffect(() => {
     if (!selectedTextAnnotation) return;
 
@@ -36,7 +40,7 @@ export const useComposerSelection = (
       selection.length === 1 && selection[0].id === selectedTextAnnotation.canvasId;
 
     if (!stillSelected) setSelectedTextAnnotation();
-  }, [selection, selectedTextAnnotation, setSelectedTextAnnotation]);
+  }, [selection, selectedTextAnnotation]);
 
   // Bring a selected canvas into view if it isn't already visible
   useEffect(() => {
@@ -62,9 +66,10 @@ export const useComposerSelection = (
     if (!viewer) return;
 
     const onCanvasClick = (evt: CanvasClickEvent) => {
-      if (isTapeMeasureEnabled) return;
-      if (editMode === 'TEXT') return;
-      if (!evt.quick) return;
+      if (!evt.quick) return; // Ignore long OSD clicks/drags
+
+      // Ignore clicks if UI is in tape measure or TEXT edit mode
+      if (isTapeMeasureEnabled || editMode === 'TEXT') return;
       
       const { metaKey } = evt.originalEvent as PointerEvent;
 
@@ -82,6 +87,7 @@ export const useComposerSelection = (
           const scale = item.width / canvas.width;
           const x = (point.x - item.x) / scale;
           const y = (point.y - item.y) / scale;
+          
           const annotation = (canvas.annotations ?? []).find(annotation =>
             annotation.text.length > 0 &&
             x >= annotation.x &&

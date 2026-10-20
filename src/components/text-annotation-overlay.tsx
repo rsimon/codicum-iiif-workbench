@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { Point, type Viewer } from 'openseadragon';
 import type { TextAnnotation } from '@/types';
 
-interface CanvasPlacement {
+// Annotation placement in OSD world coordinates
+interface OSDPlacement {
 
   x: number;
 
@@ -20,7 +21,7 @@ interface TextAnnotationOverlayProps {
 
   annotation: TextAnnotation;
 
-  canvasPlacement: CanvasPlacement;
+  placement: OSDPlacement;
 
   viewer?: Viewer;
 
@@ -30,11 +31,9 @@ interface TextAnnotationOverlayProps {
 
   selected?: boolean;
 
-  showEmpty?: boolean;
-
   onSelect?(): void;
 
-  onCommit?(annotation: TextAnnotation): void;
+  onChange?(annotation: TextAnnotation): void;
 
 }
 
@@ -52,13 +51,15 @@ const sameBounds = (a: TextAnnotation, b: TextAnnotation) =>
   a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 
 export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
-  const { annotation, canvasPlacement } = props;
+  const { annotation, placement, viewer } = props;
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const gestureRef = useRef<Gesture | undefined>(undefined);
   const textRef = useRef(annotation.text);
+
   const [draft, setDraft] = useState(annotation);
   const [text, setText] = useState(annotation.text);
-  const [viewportRevision, setViewportRevision] = useState(0);
 
   useEffect(() => {
     setDraft(annotation);
@@ -66,55 +67,34 @@ export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
     setText(annotation.text);
   }, [annotation]);
 
-  useEffect(() => {
-    const viewer = props.viewer;
-    if (!viewer) return;
-
-    const update = () => setViewportRevision(revision => revision + 1);
-    viewer.addHandler('update-viewport', update);
-
-    const resizeObserver = new ResizeObserver(update);
-    resizeObserver.observe(viewer.element);
-
-    return () => {
-      viewer.removeHandler('update-viewport', update);
-      resizeObserver.disconnect();
-    };
-  }, [props.viewer]);
-
-  useLayoutEffect(() => {
-    if (props.editable && props.selected)
-      textareaRef.current?.focus();
-  }, [annotation.id, props.editable, props.selected]);
-
-  const viewer = props.viewer;
   const screenPosition = (x: number, y: number) => viewer
     ? viewer.viewport.pixelFromPoint(new Point(x, y), true)
     : new Point(x, y);
 
-  const worldX = canvasPlacement.x + draft.x * canvasPlacement.scale;
-  const worldY = canvasPlacement.y + draft.y * canvasPlacement.scale;
+  const worldX = placement.x + draft.x * placement.scale;
+  const worldY = placement.y + draft.y * placement.scale;
+
   const topLeft = screenPosition(worldX, worldY);
+
   const bottomRight = screenPosition(
-    worldX + draft.width * canvasPlacement.scale,
-    worldY + draft.height * canvasPlacement.scale
-  );
+    worldX + draft.width * placement.scale,
+    worldY + draft.height * placement.scale);
+
   const width = Math.max(1, bottomRight.x - topLeft.x);
   const height = Math.max(1, bottomRight.y - topLeft.y);
-  const fontSize = Math.max(1, 64 * canvasPlacement.scale * (
+
+  const fontSize = Math.max(1, 64 * placement.scale * (
     viewer ? viewer.viewport.pixelFromPoint(new Point(1, 0), true).x -
       viewer.viewport.pixelFromPoint(new Point(0, 0), true).x : 1
   ));
 
-  void viewportRevision;
-
   const getPointer = (event: PointerEvent<HTMLElement>) => {
     if (!viewer) return undefined;
+    
     const rect = viewer.element.getBoundingClientRect();
     return viewer.viewport.pointFromPixel(new Point(
       event.clientX - rect.left,
-      event.clientY - rect.top
-    ));
+      event.clientY - rect.top));
   }
 
   const onGestureStart = (type: Gesture['type']) => (event: PointerEvent<HTMLElement>) => {
@@ -141,19 +121,20 @@ export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
     const pointer = getPointer(event);
     if (!pointer) return;
 
-    const dx = (pointer.x - gesture.pointer.x) / canvasPlacement.scale;
-    const dy = (pointer.y - gesture.pointer.y) / canvasPlacement.scale;
+    const dx = (pointer.x - gesture.pointer.x) / placement.scale;
+    const dy = (pointer.y - gesture.pointer.y) / placement.scale;
+
     const initial = gesture.annotation;
 
     if (gesture.type === 'move') {
       setDraft({
         ...initial,
-        x: Math.min(Math.max(0, initial.x + dx), canvasPlacement.width - initial.width),
-        y: Math.min(Math.max(0, initial.y + dy), canvasPlacement.height - initial.height)
+        x: Math.min(Math.max(0, initial.x + dx), placement.width - initial.width),
+        y: Math.min(Math.max(0, initial.y + dy), placement.height - initial.height)
       });
     } else {
-      const availableWidth = Math.max(0, canvasPlacement.width - initial.x);
-      const availableHeight = Math.max(0, canvasPlacement.height - initial.y);
+      const availableWidth = Math.max(0, placement.width - initial.x);
+      const availableHeight = Math.max(0, placement.height - initial.y);
       setDraft({
         ...initial,
         width: Math.min(availableWidth, Math.max(Math.min(80, availableWidth), initial.width + dx)),
@@ -172,15 +153,15 @@ export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
     gestureRef.current = undefined;
 
     if (!sameBounds(annotation, draft) || textRef.current !== annotation.text)
-      props.onCommit?.({ ...draft, text: textRef.current });
+      props.onChange?.({ ...draft, text: textRef.current });
   }
 
   const onTextBlur = () => {
     if (textRef.current !== annotation.text)
-      props.onCommit?.({ ...draft, text: textRef.current });
+      props.onChange?.({ ...draft, text: textRef.current });
   }
 
-  if (text.length === 0 && !props.showEmpty && !props.selected)
+  if (text.length === 0 && !props.selected)
     return null;
 
   const isEditing = props.editable && props.selected;

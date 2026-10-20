@@ -13,7 +13,7 @@ import { ImageBoundsEditor } from './image-bounds-editor';
 import { useComposerSelection } from './use-composer-selection';
 import { computeVisibleIds, useVisibleCanvases } from './use-visible-canvases';
 import { CanvasIndicatorLayer } from './canvas-indicator-layer';
-import { TextAnnotationLayer } from './text-annotation-layer';
+import { TextAnnotationEditor } from './text-annotation-editor';
 import { usePrevious } from './use-previous';
 
 export const OSD_SPRING_STIFFNESS = 10;
@@ -329,7 +329,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
                 </>
               )}/>
               
-            <TextAnnotationLayer
+            <TextAnnotationEditor
               viewer={viewer}
               layout={layout}
               visibleIds={visibleIds} />
