@@ -3,10 +3,11 @@ import OpenSeadragon from 'openseadragon';
 import type { Viewer as OpenSeadragonViewer } from 'openseadragon';
 import { cn } from '@/shadcn/utils';
 import { usePreviewStore } from '../preview-store';
-import { CanvasIndicator, type CanvasIndicatorItem } from './canvas-indicator';
+import { CanvasIndicator } from './canvas-indicator';
 import { ViewerControls } from './viewer-controls';
 import { ViewerToolbar } from './viewer-toolbar';
 import { addPage, getCanvasHeight } from '../preview-utils';
+import { TextAnnotationLayer } from './text-annotation-layer';
 
 interface ViewerProps {
 
@@ -15,6 +16,8 @@ interface ViewerProps {
   onChangeInspectorOpen(open: boolean): void;
 
 }
+
+export type CanvasBounds = { x: number, y: number, width: number, height: number };
 
 // Horizontal gap between pages
 const PAGE_GAP = 0;
@@ -26,7 +29,7 @@ export const Viewer = (props: ViewerProps) => {
   const elementRef = useRef<HTMLDivElement>(null);
 
   const [viewer, setViewer] = useState<OpenSeadragonViewer | null>(null);
-  const [canvasItems, setCanvasItems] = useState<CanvasIndicatorItem[]>([]);
+  const [canvasBounds, setCanvasBounds] = useState<CanvasBounds[]>([]);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -108,13 +111,13 @@ export const Viewer = (props: ViewerProps) => {
       viewer.viewport.fitBounds(viewRect, true);
       setIsReady(true);
     }).then(() => {
-      setCanvasItems([leftBounds, rightBounds].filter((item): item is CanvasIndicatorItem => item !== undefined));
+      setCanvasBounds([leftBounds, rightBounds].filter(b => b !== undefined));
     });
 
     return () => {
       cancelled = true;
       viewer.world.removeAll();
-      setCanvasItems([]);
+      setCanvasBounds([]);
     }
   }, [viewer, left, right]);
 
@@ -122,9 +125,14 @@ export const Viewer = (props: ViewerProps) => {
     <div className="size-full relative bg-neutral-100 [&_.openseadragon-container]:z-10 shadow-[inset_0_0_80px_-5px_rgba(0,0,0,0.07)]">
       <div ref={elementRef} className={cn('size-full', !isReady && 'invisible')}>
         {viewer && (
-          <CanvasIndicator 
-            viewer={viewer} 
-            items={canvasItems} />
+          <>
+            <CanvasIndicator 
+              viewer={viewer} 
+              bounds={canvasBounds} />
+
+            <TextAnnotationLayer
+              viewer={viewer} />
+          </>
         )}
       </div>
 
