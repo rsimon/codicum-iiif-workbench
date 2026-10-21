@@ -126,6 +126,11 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
   }, []);
 
   useEffect(() => {
+    // Bit of a workaround... OpenSeadragon sets programmatic focus,
+    // so the accessibility focus outline always shows (not just on
+    // keyboard tab). This mechanism explicitely flags focus obtained
+    // through pointer actions, so we can keep the accessibility outline
+    // hidden
     if (!viewer) return;
     const { canvas } = viewer;
 
