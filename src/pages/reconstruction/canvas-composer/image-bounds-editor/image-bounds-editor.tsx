@@ -6,6 +6,7 @@ import type { ComposerLayoutItem, DraggableImage } from '../../reconstruction-ty
 import { getImageKey } from '../../reconstruction-utils';
 import { useComposerStore } from '../composer-store';
 import { getIntersectingItems } from '../composer-utils';
+import { useMousewheelForward } from '../use-mousewheel-forward';
 import { CornerHandle } from './corner-handle';
 import { EdgeHandle } from './edge-handle';
 import { 
@@ -48,6 +49,10 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
 
   // Image state when drag started
   const initialShape = useRef<InitialShape | undefined>(undefined);
+
+  const [groupEl, setGroupEl] = useState<SVGGElement | null>(null);
+
+  useMousewheelForward(groupEl, props.viewer);
 
   const [intersectingItems, setIntersectingItems] = useState<ComposerLayoutItem[]>([]);
 
@@ -465,7 +470,7 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
 
   return selectedImage ? (
     <>
-      <g>
+      <g ref={setGroupEl}>
         {intersectingItems.length > 0 && (
           <polygon
             className="pointer-events-none"

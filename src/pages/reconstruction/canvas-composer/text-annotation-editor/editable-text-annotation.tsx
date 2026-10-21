@@ -60,7 +60,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
   const [draft, setDraftState] = useState(annotation);
   const [text, setText] = useState(annotation.text);
 
-  useMousewheelForward(textareaRef, props.viewer);
+  useMousewheelForward(textareaRef.current, props.viewer);
 
   const setDraft = (next: TextAnnotation) => {
     draftRef.current = next;

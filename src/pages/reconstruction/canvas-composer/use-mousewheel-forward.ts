@@ -1,14 +1,15 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect } from 'react';
 import type { Viewer } from 'openseadragon';
 
-export const useMousewheelForward = (ref: RefObject<HTMLElement | null>, viewer: Viewer) => {
+export const useMousewheelForward = (el: HTMLElement | SVGElement | null, viewer: Viewer) => {
 
   useEffect(() => {
-    const element = ref.current;
     const viewerCanvas = viewer.canvas;
-    if (!element || !viewerCanvas) return;
+    if (!el || !viewerCanvas) return;
 
-    const onWheel = (evt: WheelEvent) => {
+    const onWheel: EventListener = e => {
+      const evt = e as WheelEvent;
+
       evt.preventDefault();
       evt.stopPropagation();
 
@@ -32,11 +33,11 @@ export const useMousewheelForward = (ref: RefObject<HTMLElement | null>, viewer:
     };
 
     // Attach native listener with passive: false to enable preventDefault()
-    element.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('wheel', onWheel, { passive: false });
 
     return () => {
-      element.removeEventListener('wheel', onWheel);
+      el.removeEventListener('wheel', onWheel);
     };
-  }, [ref, viewer]);
+  }, [el, viewer]);
   
 }
