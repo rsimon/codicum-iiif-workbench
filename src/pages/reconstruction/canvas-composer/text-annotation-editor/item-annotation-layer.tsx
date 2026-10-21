@@ -2,10 +2,10 @@ import { useCallback, useRef } from 'react';
 import type { Viewer } from 'openseadragon';
 import type { ReconstructionCanvas, TextAnnotation } from '@/types';
 import type { ComposerLayout, ComposerLayoutItem } from '../../reconstruction-types';
-import { EditableTextAnnotation } from './editable-text-annotation';
-import { getScreenScale, useItemTransform } from './use-item-transform';
-import { moveAnnotation, removeAnnotation, updateAnnotation } from './text-annotation-editor-utils';
 import { getIntersectingItems } from '../composer-utils';
+import { EditableTextAnnotation } from './editable-text-annotation';
+import { moveAnnotation, removeAnnotation, updateAnnotation } from './text-annotation-editor-utils';
+import { getScreenScale, useItemTransform } from './use-item-transform';
 
 interface ItemAnnotationLayerProps {
 
