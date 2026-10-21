@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import OpenSeadragon from 'openseadragon';
 import type { Viewer as OpenSeadragonViewer } from 'openseadragon';
 import { cn } from '@/shadcn/utils';
+import type { ReconstructionCanvas } from '@/types';
 import { usePreviewStore } from '../preview-store';
+import { addPage, getCanvasHeight } from '../preview-utils';
 import { CanvasIndicator } from './canvas-indicator';
+import { TextAnnotationLayer } from './text-annotation-layer';
 import { ViewerControls } from './viewer-controls';
 import { ViewerToolbar } from './viewer-toolbar';
-import { addPage, getCanvasHeight } from '../preview-utils';
-import { TextAnnotationLayer } from './text-annotation-layer';
-import type { ReconstructionCanvas } from '@/types';
 
 interface ViewerProps {
 
