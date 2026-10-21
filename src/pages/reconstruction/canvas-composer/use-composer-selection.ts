@@ -94,11 +94,11 @@ export const useComposerSelection = (
           );
 
           if (annotation) {
-            setSelectedImage();
             setSelectedTextAnnotation({
               canvasId: canvas.id,
               annotationId: annotation.id
             });
+            
             setSelectedItems([canvas]);
             return;
           }
