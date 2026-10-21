@@ -127,9 +127,31 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
 
   useEffect(() => {
     if (!viewer) return;
+    const { canvas } = viewer;
+
+    const setPointerFocusFlag = () => {
+      canvas.dataset.pointerFocus = '';
+    }
+
+    const removePointerFocusFlag = () => {
+      delete canvas.dataset.pointerFocus;
+    }
+
+    canvas.addEventListener('pointerdown', setPointerFocusFlag);
+    canvas.addEventListener('keydown', removePointerFocusFlag);
+    canvas.addEventListener('blur', removePointerFocusFlag);
+
+    return () => {
+      canvas?.removeEventListener('pointerdown', setPointerFocusFlag);
+      canvas?.removeEventListener('keydown', removePointerFocusFlag);
+      canvas?.removeEventListener('blur', removePointerFocusFlag);
+    }
+  }, [viewer]);
+
+  useEffect(() => {
+    if (!viewer) return;
 
     const isFirstRender = firstRender.current;
-
     if (isFirstRender) {
       const initialItems = layout.items.slice(0, INITIAL_VISIBLE_ITEMS);
 
