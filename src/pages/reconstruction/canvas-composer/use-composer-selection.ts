@@ -15,7 +15,6 @@ export const useComposerSelection = (
   const setSelectedItems = useReconstructionStore(state => state.setSelection);
 
   const editMode = useComposerStore(state => state.editMode);
-  const selectedTextAnnotation = useComposerStore(state => state.selectedTextAnnotation);
   const setSelectedImage = useComposerStore(state => state.setSelectedImage);
   const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
 
@@ -32,13 +31,14 @@ export const useComposerSelection = (
 
   // Same for selected text annotation
   useEffect(() => {
+    const { selectedTextAnnotation } = useComposerStore.getState();
     if (!selectedTextAnnotation) return;
 
     const stillSelected =
       selection.length === 1 && selection[0].id === selectedTextAnnotation.canvasId;
 
     if (!stillSelected) setSelectedTextAnnotation();
-  }, [selection, selectedTextAnnotation]);
+  }, [selection, setSelectedTextAnnotation]);
 
   // Bring a selected canvas into view if it isn't already visible
   useEffect(() => {
