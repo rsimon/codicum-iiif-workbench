@@ -72,6 +72,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
     if (hasChanged(next, annotation)) props.onChange(next);
   }
 
+  // flush on unmount (a focused layer can unmount without a blur)
   const commitRef = useRef(commit);
   commitRef.current = commit;
 
