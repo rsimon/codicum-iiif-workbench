@@ -12,12 +12,10 @@ export const useComposerSelection = (
   isTapeMeasureEnabled: boolean
 ) => {
   const selection = useReconstructionStore(state => state.selection);
-
   const setSelectedItems = useReconstructionStore(state => state.setSelection);
 
-  const selectedTextAnnotation = useComposerStore(state => state.selectedTextAnnotation);
   const editMode = useComposerStore(state => state.editMode);
-
+  const selectedTextAnnotation = useComposerStore(state => state.selectedTextAnnotation);
   const setSelectedImage = useComposerStore(state => state.setSelectedImage);
   const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
 
