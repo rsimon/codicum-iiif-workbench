@@ -329,6 +329,12 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
   }, [viewer, layout, images, visibleIds, reconstructionById, selectedImage, editMode]);
 
   useEffect(() => {
+    // This effect appends a data attribute to the OpenSeadragon
+    // container DIV when editMode === TEXT - we'll use this 
+    // downstream to switch the cursor to crosshair (unfortunately,
+    // this has to sit here, higher-up in the hieararchy, because
+    // all the components that render the text overlays are styled with 
+    // pointer-events: none)
     if (!elementRef.current) return;
     if (editMode !== 'TEXT') return;
 
