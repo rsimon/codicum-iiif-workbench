@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } fr
 import type { Viewer } from 'openseadragon';
 import { cn } from '@/shadcn/utils';
 import type { TextAnnotation } from '@/types';
+import { useMousewheelForward } from '../use-mousewheel-forward';
 
 // Canvas pixels
 const MIN_WIDTH = 40;
@@ -58,6 +59,8 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
 
   const [draft, setDraftState] = useState(annotation);
   const [text, setText] = useState(annotation.text);
+
+  useMousewheelForward(textareaRef, props.viewer);
 
   const setDraft = (next: TextAnnotation) => {
     draftRef.current = next;
