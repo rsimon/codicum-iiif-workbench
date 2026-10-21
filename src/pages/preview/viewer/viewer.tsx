@@ -8,6 +8,7 @@ import { ViewerControls } from './viewer-controls';
 import { ViewerToolbar } from './viewer-toolbar';
 import { addPage, getCanvasHeight } from '../preview-utils';
 import { TextAnnotationLayer } from './text-annotation-layer';
+import type { ReconstructionCanvas } from '@/types';
 
 interface ViewerProps {
 
@@ -17,7 +18,20 @@ interface ViewerProps {
 
 }
 
-export type CanvasBounds = { x: number, y: number, width: number, height: number };
+export interface CanvasPlacement {
+  
+  canvas: ReconstructionCanvas;
+  
+  // OSD world coordinates
+  x: number; 
+  
+  y: number; 
+  
+  width: number; 
+  
+  height: number; 
+
+}
 
 // Horizontal gap between pages
 const PAGE_GAP = 0;
@@ -29,7 +43,7 @@ export const Viewer = (props: ViewerProps) => {
   const elementRef = useRef<HTMLDivElement>(null);
 
   const [viewer, setViewer] = useState<OpenSeadragonViewer | null>(null);
-  const [canvasBounds, setCanvasBounds] = useState<CanvasBounds[]>([]);
+  const [canvasBounds, setCanvasBounds] = useState<CanvasPlacement[]>([]);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -128,10 +142,11 @@ export const Viewer = (props: ViewerProps) => {
           <>
             <CanvasIndicator 
               viewer={viewer} 
-              bounds={canvasBounds} />
+              canvases={canvasBounds} />
 
             <TextAnnotationLayer
-              viewer={viewer} />
+              viewer={viewer} 
+              canvases={canvasBounds} />
           </>
         )}
       </div>

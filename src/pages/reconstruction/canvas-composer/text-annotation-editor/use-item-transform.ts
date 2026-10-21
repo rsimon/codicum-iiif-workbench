@@ -15,8 +15,8 @@ export const useItemTransform = (
   canvasWidth: number,
   ref: RefObject<HTMLElement | null>
 ) => {
-  useLayoutEffect(() => {
   
+  useLayoutEffect(() => {
     const update = () => {
       const el = ref.current;
       if (!el) return;
