@@ -286,7 +286,8 @@ useAppStore.subscribe((state, prevState) => {
     imagesByCanvasId: prevImages,
     hasPendingSync: prevHasPendingSync,
     layout: prevLayout,
-    selectedImage: prevSelectedImage 
+    selectedImage: prevSelectedImage,
+    selectedTextAnnotation: prevSelectedTextAnnotation
   } = useComposerStore.getState();
 
   const imagesByCanvasId = new Map(state.reconstruction.map(r => {
@@ -345,10 +346,18 @@ useAppStore.subscribe((state, prevState) => {
       : undefined;
   }
 
+  // Clear the text selection if undo/redo removed its annotation
+  const hasSelectedAnnotation = !prevSelectedTextAnnotation || state.reconstruction
+    .find(r => r.id === prevSelectedTextAnnotation.canvasId)?.annotations
+    ?.some(a => a.id === prevSelectedTextAnnotation.annotationId);
+
+  const selectedTextAnnotation = hasSelectedAnnotation ? prevSelectedTextAnnotation : undefined;
+
   if (
     !layoutChanged &&
     !imagesChanged &&
     selectedImage === prevSelectedImage &&
+    selectedTextAnnotation === prevSelectedTextAnnotation && 
     hasPendingSync === prevHasPendingSync
   ) return;
 
@@ -356,6 +365,7 @@ useAppStore.subscribe((state, prevState) => {
     hasPendingSync,
     ...(layoutChanged ? { layout } : {}),
     ...(imagesChanged ? { imagesByCanvasId } : {}),
-    ...(selectedImage !== prevSelectedImage ? { selectedImage } : {})
+    ...(selectedImage !== prevSelectedImage ? { selectedImage } : {}),
+    ...(selectedTextAnnotation !== prevSelectedTextAnnotation ? { selectedTextAnnotation } : {})  
   });
 });

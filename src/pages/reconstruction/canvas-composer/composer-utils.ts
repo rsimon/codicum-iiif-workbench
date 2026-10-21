@@ -249,7 +249,8 @@ export const applyEdits = (
           sources: sources.map(applySourceEdits),
           width: r.width,
           height: r.height,
-          physicalSize: r.physicalSize
+          physicalSize: r.physicalSize,
+          annotations: r.annotations
         };
       } else {
         const nextSources = sources.map(applySourceEdits);
@@ -264,7 +265,8 @@ export const applyEdits = (
             source,
             width: r.width,
             height: r.height,
-            physicalSize: r.physicalSize ?? source.physicalSize
+            physicalSize: r.physicalSize ?? source.physicalSize,
+            annotations: r.annotations
           };
         }
 

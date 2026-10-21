@@ -44,6 +44,8 @@ interface EditableTextAnnotationProps {
 
   onChange(updated: TextAnnotation): void;
 
+  onRemove(): void;
+
 }
 
 const hasChanged = (a: TextAnnotation, b: TextAnnotation) =>
@@ -65,6 +67,18 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
     setDraftState(next);
   }
 
+  const commit = () => {
+    const next = { ...draftRef.current, text: textRef.current };
+    if (hasChanged(next, annotation)) props.onChange(next);
+  }
+
+  const commitRef = useRef(commit);
+  commitRef.current = commit;
+
+  useEffect(() => () => {
+    if (textRef.current.trim()) commitRef.current();
+  }, []);
+
   useEffect(() => {
     if (gestureRef.current) return;
 
@@ -79,11 +93,6 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
     if (isSelected) textareaRef.current?.focus({ preventScroll: true });
   }, [isSelected]);
 
-  const commit = () => {
-    const next = { ...draftRef.current, text: textRef.current };
-    if (hasChanged(next, annotation)) props.onChange(next);
-  };
-
   const onTextChange = (value: string) => {
     textRef.current = value;
     setText(value);
@@ -97,6 +106,12 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
       evt.preventDefault();
       evt.currentTarget.blur();
     }
+  }
+
+  const onBlur = () => {
+    if (gestureRef.current) return; // a handle drag is in progress
+    if (!textRef.current.trim()) props.onRemove();
+    else commit();
   }
 
   const onGestureStart = (kind: GestureKind) => (evt: PointerEvent<HTMLDivElement>) => {
@@ -179,7 +194,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
         tabIndex={isSelected ? 0 : -1}
         placeholder={isSelected ? 'Type here' : undefined}
         onChange={evt => onTextChange(evt.target.value)}
-        onBlur={commit}
+        onBlur={onBlur}
         onKeyDown={onKeyDown}
         onKeyUp={evt => evt.stopPropagation()}
         style={{

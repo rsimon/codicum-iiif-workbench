@@ -89,7 +89,6 @@ export const useComposerSelection = (
           const y = (point.y - item.y) / scale;
           
           const annotation = (canvas.annotations ?? []).find(annotation =>
-            annotation.text.length > 0 &&
             x >= annotation.x &&
             x <= annotation.x + annotation.width &&
             y >= annotation.y &&

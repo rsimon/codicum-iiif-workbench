@@ -7,6 +7,7 @@ import type { ComposerLayout } from '../../reconstruction-types';
 import { getItemAt } from '../composer-utils';
 import { useComposerStore } from '../composer-store';
 import { ItemAnnotationLayer } from './item-annotation-layer';
+import { createAnnotation } from './text-annotation-editor-utils';
 
 interface TextAnnotationEditorProps {
 
@@ -30,8 +31,6 @@ export const TextAnnotationEditor = (props: TextAnnotationEditorProps) => {
   const { isTapeMeasureEnabled } = useMeasurement();
 
   useEffect(() => {
-    console.log('[text-annotation-editor-utils] attaching handler');
-
     if (editMode !== 'TEXT' || isTapeMeasureEnabled) return;
 
     const onCanvasClick = (event: CanvasClickEvent) => {
@@ -64,7 +63,7 @@ export const TextAnnotationEditor = (props: TextAnnotationEditorProps) => {
         useReconstructionStore.getState().setSelection([canvas]);
       } else {
         console.log('[text-annotation-editor] create new!');
-        // createAnnotation(canvas.id, canvasPoint);
+        createAnnotation(canvas.id, canvasPoint);
       }
     };
 
@@ -88,8 +87,7 @@ export const TextAnnotationEditor = (props: TextAnnotationEditorProps) => {
           viewer={props.viewer}
           item={item}
           canvas={canvas}
-          selectedAnnotationId={selected?.canvasId === canvas.id ? selected.annotationId : undefined}
-          onChange={(arg1, arg2) => console.log(arg1, arg2)} />
+          selectedAnnotationId={selected?.canvasId === canvas.id ? selected.annotationId : undefined} />
       );
     });
 
