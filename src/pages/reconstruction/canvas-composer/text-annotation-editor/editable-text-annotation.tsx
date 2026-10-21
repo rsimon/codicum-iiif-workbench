@@ -203,7 +203,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
           fontSize: annotation.fontSize,
           padding: annotation.fontSize / 2,
           background: isSelected ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.35)',
-          border: `${counterScale(1.75)} dashed ${isSelected ? 'oklch(14.5% 0 none)' : 'transparent'}`
+          border: `${counterScale(1.5)} dashed ${isSelected ? 'oklch(14.5% 0 none)' : 'transparent'}`
         }} />
 
       {isSelected && (
@@ -216,14 +216,13 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
 
           <div
             aria-label="Resize annotation"
-            className="absolute cursor-nwse-resize touch-none rounded-sm border-primary bg-white"
+            className="absolute rounded-full cursor-nwse-resize touch-none border border-neutral-950 bg-white"
             style={{
-              right: counterScale(-7),
-              bottom: counterScale(-7),
-              width: counterScale(14),
-              height: counterScale(14),
-              borderStyle: 'solid',
-              borderWidth: counterScale(2)
+              right: counterScale(-5),
+              bottom: counterScale(-5),
+              width: counterScale(10),
+              height: counterScale(10),
+              borderWidth: counterScale(1.5)
             }}
             {...gestureHandlers('resize')} />
         </>

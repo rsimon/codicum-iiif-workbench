@@ -306,10 +306,22 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
     syncTiledImageOrder();
   }, [viewer, layout, images, visibleIds, reconstructionById, selectedImage, editMode]);
 
+  useEffect(() => {
+    if (!elementRef.current) return;
+    if (editMode !== 'TEXT') return;
+
+    const el = elementRef.current;
+    el.setAttribute('data-edit-text', 'true');
+
+    return () => {
+      el?.removeAttribute('data-edit-text');
+    }
+  }, [editMode]);
+
   return (
     <div className="size-full select-none relative bg-neutral-100 bg-[radial-gradient(#e0e0e0_1px,transparent_1px)] bg-size-[16px_16px]
       [&_.openseadragon-container]:z-10 shadow-[inset_0_0_80px_-5px_rgba(0,0,0,0.06)]">
-      <div ref={elementRef} className={cn('size-full leading-0', !isReady && 'invisible')}>
+      <div ref={elementRef} className={cn('size-full leading-0 data-edit-text:cursor-crosshair', !isReady && 'invisible')}>
         {viewer && (
           <>
             <CanvasIndicatorLayer
