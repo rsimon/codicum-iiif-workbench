@@ -1,10 +1,10 @@
-import { Point, type CanvasClickEvent, type Viewer } from 'openseadragon';
-import { useReconstructionStore } from '../reconstruction-store';
 import { useEffect } from 'react';
+import { Point, type CanvasClickEvent, type Viewer } from 'openseadragon';
+import { useAppStore } from '@/store/app-store';
+import { useReconstructionStore } from '../reconstruction-store';
 import type { ComposerLayout } from '../reconstruction-types';
 import { getImageAt, getItemAt } from './composer-utils';
 import { useComposerStore } from './composer-store';
-import { useAppStore } from '@/store/app-store';
 
 export const useComposerSelection = (
   viewer: Viewer | undefined,
