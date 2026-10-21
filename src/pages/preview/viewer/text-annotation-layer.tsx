@@ -1,5 +1,4 @@
 import type { Viewer } from 'openseadragon';
-// import { TextAnnotationOverlay } from '@/components/text-annotation-overlay';
 
 interface TextAnnotationLayerProps {
 
@@ -7,7 +6,7 @@ interface TextAnnotationLayerProps {
 
 }
 
-export const TextAnnotationLayer = (props: TextAnnotationLayerProps) => {
+export const TextAnnotationLayer = (props: TextAnnotationLayerProps) => {
 
   // TODO
   
