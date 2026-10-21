@@ -85,6 +85,8 @@ export const TextAnnotationEditor = (props: TextAnnotationEditorProps) => {
         <ItemAnnotationLayer
           key={item.reconstructionCanvasId}
           viewer={props.viewer}
+          layout={props.layout}
+          reconstruction={reconstruction}
           item={item}
           canvas={canvas}
           selectedAnnotationId={selected?.canvasId === canvas.id ? selected.annotationId : undefined} />

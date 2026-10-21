@@ -55,6 +55,8 @@ export interface TextAnnotation {
 
   height: number;
 
+  fontSize: number;
+
 }
 
 /** Reconstruction **/

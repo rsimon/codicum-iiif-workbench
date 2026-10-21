@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import type { Viewer } from 'openseadragon';
+import { cn } from '@/shadcn/utils';
 import type { TextAnnotation } from '@/types';
 
 // Canvas pixels
-const DEFAULT_FONT_SIZE = 24;
 const MIN_WIDTH = 40;
 const MIN_HEIGHT = 24;
 
@@ -34,9 +34,6 @@ interface EditableTextAnnotationProps {
 
   isSelected?: boolean;
 
-  // Canvas pixels - TODO: read from the annotation later
-  fontSize?: number;
-
   viewer: Viewer;
 
   // Screen pixels per canvas pixel
@@ -52,7 +49,7 @@ const hasChanged = (a: TextAnnotation, b: TextAnnotation) =>
   a.x !== b.x || a.y !== b.y || a.width !== b.width || a.height !== b.height || a.text !== b.text;
 
 export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
-  const { annotation, isSelected = false, fontSize = DEFAULT_FONT_SIZE, viewer, getScale } = props;
+  const { annotation, isSelected = false, viewer, getScale } = props;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textRef = useRef(annotation.text);
@@ -189,7 +186,11 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
 
       <textarea
         ref={textareaRef}
-        className="size-full resize-none overflow-hidden outline-none whitespace-pre-wrap"
+        className={cn(
+          `size-full resize-none overflow-hidden outline-none whitespace-pre-wrap 
+           leading-relaxed box-border wrap-break-word`,
+          isSelected ? 'cursor-text' : 'cursor-default border-transparent'
+        )}
         value={text}
         readOnly={!isSelected}
         tabIndex={isSelected ? 0 : -1}
@@ -199,17 +200,10 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
         onKeyDown={onKeyDown}
         onKeyUp={evt => evt.stopPropagation()}
         style={{
-          boxSizing: 'border-box',
-          fontFamily: 'inherit',
-          fontSize,
-          lineHeight: 1.25,
-          padding: fontSize / 8,
-          overflowWrap: 'break-word',
-          color: '#171717',
-          background: isSelected && !text ? 'rgba(255, 255, 255, 0.94)' : 'rgba(255, 255, 255, 0.84)',
-          border: `${counterScale(1)} solid ${isSelected ? 'oklch(0.5 0.15 246.78)' : 'transparent'}`,
-          borderRadius: 2,
-          cursor: isSelected ? 'text' : 'default'
+          fontSize: annotation.fontSize,
+          padding: annotation.fontSize / 2,
+          background: isSelected ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.35)',
+          border: `${counterScale(1.75)} dashed ${isSelected ? 'oklch(14.5% 0 none)' : 'transparent'}`
         }} />
 
       {isSelected && (

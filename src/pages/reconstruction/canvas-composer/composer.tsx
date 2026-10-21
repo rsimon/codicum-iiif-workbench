@@ -100,8 +100,9 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
     const viewerInstance = OpenSeadragon({
       element: elementRef.current,
       showNavigationControl: false,
-      maxZoomPixelRatio: Infinity,
+      maxZoomPixelRatio: 10,
       minZoomImageRatio: 0,
+      visibilityRatio: 0,
       animationTime: OSD_ANIMATION_TIME,
       springStiffness: OSD_SPRING_STIFFNESS,
       clickDistThreshold: 10,

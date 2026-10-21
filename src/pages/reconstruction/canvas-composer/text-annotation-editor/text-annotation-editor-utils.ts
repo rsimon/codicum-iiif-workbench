@@ -5,6 +5,8 @@ import { withHistory } from '../../reconstruction-history';
 import { useReconstructionStore } from '../../reconstruction-store';
 import { useComposerStore } from '../composer-store';
 
+const FONT_SIZE_RATIO = 0.02; // relative to canvas width
+
 export const createAnnotation = (canvasId: string, point: { x: number; y: number }) => {
   withHistory(() => {
     const { reconstruction, updateReconstruction } = useAppStore.getState();
@@ -20,7 +22,8 @@ export const createAnnotation = (canvasId: string, point: { x: number; y: number
       x,
       y,
       width: Math.min(canvas.width - x, Math.max(80, canvas.width * 0.4)),
-      height: Math.min(canvas.height - y, Math.max(48, canvas.height * 0.16))
+      height: Math.min(canvas.height - y, Math.max(48, canvas.height * 0.16)),
+      fontSize: Math.round(canvas.width * FONT_SIZE_RATIO)
     };
 
     updateReconstruction(reconstruction.map(item => item.id === canvasId
@@ -47,6 +50,29 @@ export const updateAnnotation = (canvasId: string, annotation: TextAnnotation) =
     updateReconstruction(reconstruction.map(item => item.id === canvasId
       ? { ...item, annotations: annotations.map(a => a.id === annotation.id ? annotation : a) }
       : item));
+  });
+}
+
+export const moveAnnotation = (fromCanvasId: string, toCanvasId: string, annotation: TextAnnotation) => {
+  withHistory(() => {
+    const { reconstruction, updateReconstruction } = useAppStore.getState();
+
+    const from = reconstruction.find(item => item.id === fromCanvasId);
+    const to = reconstruction.find(item => item.id === toCanvasId);
+    if (!from?.annotations?.some(a => a.id === annotation.id) || !to) return;
+
+    updateReconstruction(reconstruction.map(item => {
+      if (item.id === fromCanvasId)
+        return { ...item, annotations: (item.annotations ?? []).filter(a => a.id !== annotation.id) };
+
+      if (item.id === toCanvasId)
+        return { ...item, annotations: [...(item.annotations ?? []), annotation] };
+
+      return item;
+    }));
+
+    useComposerStore.getState().setSelectedTextAnnotation({ canvasId: toCanvasId, annotationId: annotation.id });
+    useReconstructionStore.getState().setSelection([to]);
   });
 }
 
