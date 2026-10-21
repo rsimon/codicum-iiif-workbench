@@ -30,7 +30,6 @@ export const createAnnotation = (canvasId: string, point: { x: number; y: number
       ? { ...item, annotations: [...(item.annotations ?? []), annotation] }
       : item));
 
-    useComposerStore.getState().setSelectedImage();
     useComposerStore.getState().setSelectedTextAnnotation({ canvasId, annotationId: annotation.id });
     useReconstructionStore.getState().setSelection([canvas]);
   });
