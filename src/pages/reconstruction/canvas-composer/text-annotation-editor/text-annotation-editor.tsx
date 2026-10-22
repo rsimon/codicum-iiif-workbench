@@ -9,8 +9,6 @@ import { getItemAt } from '../composer-utils';
 import { useComposerStore } from '../composer-store';
 import { ItemAnnotationLayer } from './item-annotation-layer';
 
-import './text-annotation-editor.css';
-
 interface TextAnnotationEditorProps {
 
   viewer: Viewer;
