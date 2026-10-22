@@ -7,10 +7,11 @@ import { TiptapEditor } from '@/components/tiptap-editor';
 import { TiptapReadOnlyView } from '@/components/tiptap-readonly-view';
 import { cn } from '@/shadcn/utils';
 import type { TextAnnotation } from '@/types';
+import { useComposerStore } from '../../composer-store';
 import { useMousewheelForward } from '../../use-mousewheel-forward';
 import { isEmptyDoc } from './editable-text-annotation-utils';
 import { counterScale, EDGE_HANDLES } from './editable-text-annotation-utils';
-import { EditableTextToolbar } from './editable-text-toolbar';
+import { TextAnnotationToolbar } from './text-annotation-toolbar';
 
 // Text box initial size - canvas pixels
 const INITIAL_WIDTH = 40;
@@ -57,6 +58,8 @@ const geometryChanged = (a: TextAnnotation, b: TextAnnotation) =>
 
 export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
   const { annotation, isSelected = false, viewer, getScale } = props;
+
+  const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
 
   const draftRef = useRef(annotation);
   const gestureRef = useRef<Gesture | undefined>(undefined);
@@ -147,6 +150,8 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
     if (gestureRef.current) return; // a handle drag is in progress
     if (isEmptyDoc(docRef.current)) props.onRemove();
     else commit();
+
+    setSelectedTextAnnotation();
   }
 
   const onGestureStart = (kind: GestureKind) => (evt: PointerEvent<HTMLDivElement>) => {
@@ -222,7 +227,6 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
       }}
       onPointerDown={evt => evt.stopPropagation()}>
 
-      {/* Box chrome: identical for the static view and the live editor */}
       <div
         ref={setContentEl}
         className={cn(
@@ -231,7 +235,8 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
         )}
         style={{
           fontSize: annotation.fontSize,
-          padding: annotation.fontSize / 2,
+          paddingLeft: annotation.fontSize / 5,
+          paddingRight: annotation.fontSize / 5,
           background: isSelected ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.35)',
           border: `${counterScale(1.5)} dashed ${isSelected ? 'oklch(14.5% 0 none)' : 'transparent'}`
         }}
@@ -279,7 +284,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
               style={floatingStyles}
               className="z-50"
               onMouseDown={evt => evt.preventDefault()}>  {/* keep focus in the editor */}
-              <EditableTextToolbar
+              <TextAnnotationToolbar
                 editor={editor}
                 dragHandleProps={gestureHandlers('move')} />
             </div>,

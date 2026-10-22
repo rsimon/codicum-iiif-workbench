@@ -144,9 +144,13 @@
 /** Shared by the Tiptap editor and static HTML annotation view **/
 .text-annotation-content {
   font-family: 'EB Garamond Variable', serif;
+  font-variant-ligatures: normal;
+  font-feature-settings: "liga" 0, "clig" 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
   white-space: pre-wrap;
   overflow-wrap: break-word;
-  line-height: 1.625;
+  line-height: 1.5;
   outline: none;
 }
 

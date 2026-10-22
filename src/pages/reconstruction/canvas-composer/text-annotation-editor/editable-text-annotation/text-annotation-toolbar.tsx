@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from 'react';
 import type { Editor } from '@tiptap/react';
 
-interface EditableTextToolbarProps {
+interface TextAnnotationToolbarProps {
 
   editor: Editor | null;
 
@@ -9,7 +9,7 @@ interface EditableTextToolbarProps {
 
 }
 
-export const EditableTextToolbar = (props: EditableTextToolbarProps) => {
+export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
 
   return (
     <div className="h-12 w-40 bg-red-500">
