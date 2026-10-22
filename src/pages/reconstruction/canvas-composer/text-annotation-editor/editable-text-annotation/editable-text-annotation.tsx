@@ -4,9 +4,9 @@ import type { Viewer } from 'openseadragon';
 import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/react-dom';
 import { cn } from '@/shadcn/utils';
 import type { TextAnnotation } from '@/types';
-import { useMousewheelForward } from '../use-mousewheel-forward';
-import { counterScale, EDGE_HANDLES } from './text-annotation-editor-utils';
-import { TextAnnotationToolbar } from './text-annotation-toolbar';
+import { useMousewheelForward } from '../../use-mousewheel-forward';
+import { counterScale, EDGE_HANDLES } from '../text-annotation-editor-utils';
+import { TextAnnotationToolbar } from '../text-annotation-toolbar';
 
 // Text box initial size - canvas pixels
 const INITIAL_WIDTH = 40;
