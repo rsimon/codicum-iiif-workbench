@@ -54,8 +54,6 @@ export interface TextAnnotation {
 
   height: number;
 
-  fontSize: number;
-
   content: JSONContent;
 
 }

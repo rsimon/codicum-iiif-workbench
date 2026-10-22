@@ -12,9 +12,6 @@ export const getImageKey = (image: DraggableImage): string =>
 export const getCanvasImageKey = (canvasId: string, image: DraggableImage): string =>
   `${canvasId}:${getImageKey(image)}`;
 
-// Annotation font size relative to canvas width
-const FONT_SIZE_RATIO = 0.03;
-
 export const createAnnotation = (canvasId: string, point: { x: number; y: number }) => {
   withHistory(() => {
     const { reconstruction, updateReconstruction } = useAppStore.getState();
@@ -30,7 +27,6 @@ export const createAnnotation = (canvasId: string, point: { x: number; y: number
       y,
       width: Math.min(canvas.width - x, Math.max(80, canvas.width * 0.4)),
       height: Math.min(canvas.height - y, Math.max(48, canvas.height * 0.16)),
-      fontSize: Math.round(canvas.width * FONT_SIZE_RATIO),
       content: {
         type: 'doc',
         content: [{ type: 'paragraph' }]

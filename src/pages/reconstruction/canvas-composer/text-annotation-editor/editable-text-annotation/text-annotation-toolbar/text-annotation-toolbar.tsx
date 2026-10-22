@@ -32,7 +32,10 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
     selector: ctx => ({
       isBold: Boolean(ctx.editor?.isActive('bold')),
       isItalic: Boolean(ctx.editor?.isActive('italic')),
-      fontSize: parseInt(ctx.editor?.getAttributes('textStyle').fontSize) || 16
+      fontSize: ctx.editor ? parseInt(
+        ctx.editor.getAttributes('textStyle').fontSize || 
+        getComputedStyle(ctx.editor.view.dom).fontSize
+      ) : 16
     })
   });
 

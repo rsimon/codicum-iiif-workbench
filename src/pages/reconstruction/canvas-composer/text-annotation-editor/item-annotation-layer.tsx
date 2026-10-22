@@ -64,8 +64,7 @@ export const ItemAnnotationLayer = (props: ItemAnnotationLayerProps) => {
       x: (x1 - destination.x) / targetScale,
       y: (y1 - destination.y) / targetScale,
       width: annotation.width * scale / targetScale,
-      height: annotation.height * scale / targetScale,
-      fontSize: annotation.fontSize * scale / targetScale
+      height: annotation.height * scale / targetScale
     });
   }
 
@@ -83,6 +82,7 @@ export const ItemAnnotationLayer = (props: ItemAnnotationLayerProps) => {
           key={annotation.id}
           annotation={annotation}
           isSelected={annotation.id === selectedAnnotationId}
+          canvas={canvas}
           viewer={viewer}
           getScale={getScale}
           onChange={onChange}

@@ -6,7 +6,7 @@ import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/react
 import { TiptapEditor } from '@/components/tiptap-editor';
 import { TiptapReadOnlyView } from '@/components/tiptap-readonly-view';
 import { cn } from '@/shadcn/utils';
-import type { TextAnnotation } from '@/types';
+import type { ReconstructionCanvas, TextAnnotation } from '@/types';
 import { useComposerStore } from '../../composer-store';
 import { useMousewheelForward } from '../../use-mousewheel-forward';
 import { isEmptyDoc } from './editable-text-annotation-utils';
@@ -16,6 +16,9 @@ import { TextAnnotationToolbar } from './text-annotation-toolbar';
 // Text box initial size - canvas pixels
 const INITIAL_WIDTH = 40;
 const INITIAL_HEIGHT = 24;
+
+// Annotation font size relative to canvas width
+const FONT_SIZE_RATIO = 0.03;
 
 type GestureKind = 'move' | 'resize';
 
@@ -37,6 +40,8 @@ interface Gesture {
 }
 
 interface EditableTextAnnotationProps {
+
+  canvas: ReconstructionCanvas;
 
   annotation: TextAnnotation;
 
@@ -234,9 +239,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
           isSelected ? 'cursor-text' : 'cursor-default'
         )}
         style={{
-          fontSize: annotation.fontSize,
-          paddingLeft: annotation.fontSize / 5,
-          paddingRight: annotation.fontSize / 5,
+          fontSize: Math.round(props.canvas.width * FONT_SIZE_RATIO),
           background: isSelected ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.35)',
           border: `${counterScale(1.5)} dashed ${isSelected ? 'oklch(14.5% 0 none)' : 'transparent'}`
         }}
