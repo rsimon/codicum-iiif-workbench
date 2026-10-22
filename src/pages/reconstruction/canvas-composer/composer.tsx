@@ -13,6 +13,7 @@ import { ImageBoundsEditor } from './image-bounds-editor';
 import { useComposerSelection } from './use-composer-selection';
 import { computeVisibleIds, useVisibleCanvases } from './use-visible-canvases';
 import { CanvasIndicatorLayer } from './canvas-indicator-layer';
+import { TextAnnotationEditor } from './text-annotation-editor';
 import { usePrevious } from './use-previous';
 
 export const OSD_SPRING_STIFFNESS = 10;
@@ -99,8 +100,9 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
     const viewerInstance = OpenSeadragon({
       element: elementRef.current,
       showNavigationControl: false,
-      maxZoomPixelRatio: Infinity,
+      maxZoomPixelRatio: 10,
       minZoomImageRatio: 0,
+      visibilityRatio: 0,
       animationTime: OSD_ANIMATION_TIME,
       springStiffness: OSD_SPRING_STIFFNESS,
       clickDistThreshold: 10,
@@ -124,10 +126,37 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
   }, []);
 
   useEffect(() => {
+    // Bit of a workaround... OpenSeadragon sets programmatic focus,
+    // so the accessibility focus outline always shows (not just on
+    // keyboard tab). This mechanism explicitely flags focus obtained
+    // through pointer actions, so we can keep the accessibility outline
+    // hidden
+    if (!viewer) return;
+    const { canvas } = viewer;
+
+    const setPointerFocusFlag = () => {
+      canvas.dataset.pointerFocus = '';
+    }
+
+    const removePointerFocusFlag = () => {
+      delete canvas.dataset.pointerFocus;
+    }
+
+    canvas.addEventListener('pointerdown', setPointerFocusFlag);
+    canvas.addEventListener('keydown', removePointerFocusFlag);
+    canvas.addEventListener('blur', removePointerFocusFlag);
+
+    return () => {
+      canvas?.removeEventListener('pointerdown', setPointerFocusFlag);
+      canvas?.removeEventListener('keydown', removePointerFocusFlag);
+      canvas?.removeEventListener('blur', removePointerFocusFlag);
+    }
+  }, [viewer]);
+
+  useEffect(() => {
     if (!viewer) return;
 
     const isFirstRender = firstRender.current;
-
     if (isFirstRender) {
       const initialItems = layout.items.slice(0, INITIAL_VISIBLE_ITEMS);
 
@@ -304,10 +333,28 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
     syncTiledImageOrder();
   }, [viewer, layout, images, visibleIds, reconstructionById, selectedImage, editMode]);
 
+  useEffect(() => {
+    // This effect appends a data attribute to the OpenSeadragon
+    // container DIV when editMode === TEXT - we'll use this 
+    // downstream to switch the cursor to crosshair (unfortunately,
+    // this has to sit here, higher-up in the hieararchy, because
+    // all the components that render the text overlays are styled with 
+    // pointer-events: none)
+    if (!elementRef.current) return;
+    if (editMode !== 'TEXT') return;
+
+    const el = elementRef.current;
+    el.setAttribute('data-edit-text', 'true');
+
+    return () => {
+      el?.removeAttribute('data-edit-text');
+    }
+  }, [editMode]);
+
   return (
     <div className="size-full select-none relative bg-neutral-100 bg-[radial-gradient(#e0e0e0_1px,transparent_1px)] bg-size-[16px_16px]
       [&_.openseadragon-container]:z-10 shadow-[inset_0_0_80px_-5px_rgba(0,0,0,0.06)]">
-      <div ref={elementRef} className={cn('size-full leading-0', !isReady && 'invisible')}>
+      <div ref={elementRef} className={cn('size-full leading-0 data-edit-text:cursor-crosshair', !isReady && 'invisible')}>
         {viewer && (
           <>
             <CanvasIndicatorLayer
@@ -319,7 +366,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
               viewer={viewer}
               topLayer={(
                 <>
-                  {!isTapeMeasureEnabled && (
+                  {!isTapeMeasureEnabled && editMode !== 'TEXT' && (
                     <ImageBoundsEditor viewer={viewer}/>
                   )}
                   <MeasurementTool
@@ -327,6 +374,11 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
                     physicalScale={layout.physicalScale}/>
                 </>
               )}/>
+              
+            <TextAnnotationEditor
+              viewer={viewer}
+              layout={layout}
+              visibleIds={visibleIds} />
           </>
         )}
       </div>

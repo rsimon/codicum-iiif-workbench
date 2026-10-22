@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import type { ButtonProps } from '@base-ui/react';
-import { IconArrowBackUp, IconArrowForwardUp, IconCrop, IconMaximize, IconRulerMeasure, IconStackPop, IconStackPush } from '@tabler/icons-react';
-import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { ToolbarToggle } from '@/components/toolbar-toggle';
+import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
@@ -11,6 +10,16 @@ import { redo, undo, useReconstructionHistory } from '../reconstruction-history'
 import { getCanvasImageKey } from '../reconstruction-utils';
 import { useComposerStore } from './composer-store';
 import { getFillSize, isSelectionFullSize } from './composer-utils';
+import { 
+  IconArrowBackUp, 
+  IconArrowForwardUp, 
+  IconCrop, 
+  IconMaximize, 
+  IconRulerMeasure, 
+  IconStackPop, 
+  IconStackPush,
+  IconTextResize
+} from '@tabler/icons-react';
 
 const ComposerToolbarButton = (props: ButtonProps & { tooltip: string }) => {
   const { children, ...rest } = props;
@@ -44,9 +53,12 @@ export const ComposerToolbar = () => {
   const updateImage = useComposerStore(state => state.updateImage);
   const changeImageZOrder = useComposerStore(state => state.changeImageZOrder);
   const setIsUserEdit = useComposerStore(state => state.setIsUserEdit);
+  const setSelectedImage = useComposerStore(state => state.setSelectedImage);
+  const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
 
   const editMode = useComposerStore(state => state.editMode);
   const setEditMode = useComposerStore(state => state.setEditMode);
+
   const { isTapeMeasureEnabled, setEnableTapeMeasure } = useMeasurement();
 
   const reconstruction = useAppStore(state => state.reconstruction);
@@ -108,6 +120,16 @@ export const ComposerToolbar = () => {
     setEditMode(editMode === 'CROP' ? 'RESIZE' : 'CROP');
   };
 
+  const onToggleText = () => {
+    if (editMode === 'TEXT') {
+      setEditMode('RESIZE');
+    } else {
+      setSelectedImage();
+      setSelectedTextAnnotation();
+      setEditMode('TEXT');
+    }
+  };
+
   return (
     <div className="absolute bottom-8 w-full flex justify-center z-50 pointer-events-none">
       <div className="bg-white flex items-center gap-1 min-w-20 rounded-full p-1 pointer-events-auto
@@ -116,14 +138,14 @@ export const ComposerToolbar = () => {
           disabled={!selectedImage || selectedImageIndex < 0 || selectedImageIndex === images.length - 1}
           onClick={() => onChangeZOrder('up')}
           tooltip="Move image up">
-          <IconStackPop className="size-4.5" />
+          <IconStackPop className="size-5" strokeWidth={1.5} />
         </ComposerToolbarButton>
 
         <ComposerToolbarButton
           disabled={!selectedImage || selectedImageIndex <= 0}
           onClick={() => onChangeZOrder('down')}
           tooltip="Move image down">
-          <IconStackPush className="size-4.5" />
+          <IconStackPush className="size-5" strokeWidth={1.5} />
         </ComposerToolbarButton>
 
         <ToolbarToggle
@@ -131,14 +153,21 @@ export const ComposerToolbar = () => {
           tooltip="Crop image"
           onClick={onToggleCrop}
           aria-pressed={editMode === 'CROP'}>
-          <IconCrop className="size-5" strokeWidth={1.75} />
+          <IconCrop className="size-5.5" strokeWidth={1.6} />
+        </ToolbarToggle>
+
+        <ToolbarToggle
+          tooltip="Create text annotation"
+          onClick={onToggleText}
+          aria-pressed={editMode === 'TEXT'}>
+          <IconTextResize className="size-6" strokeWidth={1.5} />
         </ToolbarToggle>
 
         <ComposerToolbarButton
           disabled={!selectedImage || isFullSize}
           tooltip="Adjust image size to fill canvas"
           onClick={onFillCanvas}>
-          <IconMaximize className="size-4.5" />
+          <IconMaximize className="size-5" />
         </ComposerToolbarButton>
 
         <ToolbarToggle
@@ -146,7 +175,7 @@ export const ComposerToolbar = () => {
           tooltip="Measure physical distance"
           pressed={isTapeMeasureEnabled}
           onPressedChange={pressed => setEnableTapeMeasure(pressed, { showLabel: true })}>
-          <IconRulerMeasure className="size-4.5" />
+          <IconRulerMeasure className="size-5" strokeWidth={1.5} />
         </ToolbarToggle>
 
         <Separator orientation="vertical" />
@@ -155,14 +184,14 @@ export const ComposerToolbar = () => {
           disabled={!canUndo && !hasPendingSync}
           onClick={undo}
           tooltip="Undo">
-          <IconArrowBackUp className="size-4.5" />
+          <IconArrowBackUp className="size-5" strokeWidth={1.5} />
         </ComposerToolbarButton>
 
         <ComposerToolbarButton
           disabled={!canRedo || hasPendingSync}
           onClick={redo}
           tooltip="Redo">
-          <IconArrowForwardUp className="size-4.5" />
+          <IconArrowForwardUp className="size-5" strokeWidth={1.5} />
         </ComposerToolbarButton>
       </div>
     </div>

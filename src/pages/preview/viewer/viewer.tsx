@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import OpenSeadragon from 'openseadragon';
 import type { Viewer as OpenSeadragonViewer } from 'openseadragon';
 import { cn } from '@/shadcn/utils';
+import type { ReconstructionCanvas } from '@/types';
 import { usePreviewStore } from '../preview-store';
+import { addPage, getCanvasHeight } from '../preview-utils';
 import { CanvasIndicator } from './canvas-indicator';
+import { TextAnnotationLayer } from './text-annotation-layer';
 import { ViewerControls } from './viewer-controls';
 import { ViewerToolbar } from './viewer-toolbar';
-import { addPage, getCanvasHeight } from '../preview-utils';
 
 interface ViewerProps {
 
@@ -16,7 +18,20 @@ interface ViewerProps {
 
 }
 
-export type CanvasBounds = { x: number, y: number, width: number, height: number };
+export interface CanvasPlacement {
+  
+  canvas: ReconstructionCanvas;
+  
+  // OSD world coordinates
+  x: number; 
+  
+  y: number; 
+  
+  width: number; 
+  
+  height: number; 
+
+}
 
 // Horizontal gap between pages
 const PAGE_GAP = 0;
@@ -28,7 +43,7 @@ export const Viewer = (props: ViewerProps) => {
   const elementRef = useRef<HTMLDivElement>(null);
 
   const [viewer, setViewer] = useState<OpenSeadragonViewer | null>(null);
-  const [canvasBounds, setCanvasBounds] = useState<CanvasBounds[]>([]);
+  const [canvasBounds, setCanvasBounds] = useState<CanvasPlacement[]>([]);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -83,14 +98,16 @@ export const Viewer = (props: ViewerProps) => {
 
     const totalWidth = (leftHeight && rightHeight) ? 2 + PAGE_GAP : 1;
 
-    const leftBounds = leftHeight ? { 
+    const leftBounds = left && leftHeight ? {
+      canvas: left,
       x: 0, 
       y: (totalHeight - leftHeight) / 2,
       width: 1,
       height: leftHeight
     } : undefined;
 
-    const rightBounds = rightHeight ? {
+    const rightBounds = right && rightHeight ? {
+      canvas: right,
       x: 1 + PAGE_GAP, 
       y: (totalHeight - rightHeight) / 2,
       width: 1,
@@ -122,9 +139,15 @@ export const Viewer = (props: ViewerProps) => {
     <div className="size-full relative bg-neutral-100 [&_.openseadragon-container]:z-10 shadow-[inset_0_0_80px_-5px_rgba(0,0,0,0.07)]">
       <div ref={elementRef} className={cn('size-full', !isReady && 'invisible')}>
         {viewer && (
-          <CanvasIndicator 
-            viewer={viewer} 
-            bounds={canvasBounds} />
+          <>
+            <CanvasIndicator 
+              viewer={viewer} 
+              canvases={canvasBounds} />
+
+            <TextAnnotationLayer
+              viewer={viewer} 
+              canvases={canvasBounds} />
+          </>
         )}
       </div>
 

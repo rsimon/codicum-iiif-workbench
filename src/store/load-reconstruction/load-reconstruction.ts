@@ -10,7 +10,8 @@ import type {
   PhysicalSize, 
   ReconstructionCanvas, 
   SourceCanvas, 
-  SourceManifest 
+  SourceManifest,
+  TextAnnotation
 } from '@/types';
 
 export interface ReconstructionParseResult {
@@ -48,6 +49,72 @@ const parsePhysicalSize = (canvas: CozyCanvas): PhysicalSize | undefined => {
     console.warn(physDimService);
     console.warn('Error parsing physical size');
   }
+}
+
+const parseTextAnnotations = (canvas: CozyCanvas): TextAnnotation[] => {
+  type RawAnnotation = {
+    id?: unknown;
+    body?: unknown;
+    target?: unknown;
+  };
+
+  type RawPage = { items?: unknown };
+  const pages = canvas.annotations as unknown as RawPage[];
+
+  const parseTarget = (target: unknown): { x: number; y: number; width: number; height: number } | undefined => {
+    if (Array.isArray(target))
+      return target.map(parseTarget).find(Boolean);
+
+    if (typeof target === 'string') {
+      const match = target.match(/xywh=(?:pixel:)?(\d+(?:\.\d+)?),(\d+(?:\.\d+)?),(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)/);
+      return match ? {
+        x: Number(match[1]),
+        y: Number(match[2]),
+        width: Number(match[3]),
+        height: Number(match[4])
+      } : undefined;
+    }
+
+    if (!target || typeof target !== 'object') return undefined;
+
+    const candidate = target as {
+      id?: unknown;
+      source?: unknown;
+      selector?: unknown;
+    };
+    const selector = candidate.selector;
+    if (selector && typeof selector === 'object') {
+      const value = (selector as { value?: unknown }).value;
+      if (typeof value === 'string') return parseTarget(value);
+    }
+
+    return parseTarget(candidate.id) ?? parseTarget(candidate.source);
+  }
+
+  return pages.flatMap(page => {
+    const items = Array.isArray(page.items) ? page.items as RawAnnotation[] : [];
+    return items.flatMap(annotation => {
+      if (!annotation || typeof annotation !== 'object') return [];
+
+      const body = annotation.body;
+      if (!body || typeof body !== 'object' || Array.isArray(body)) return [];
+
+      const textBody = body as { type?: unknown; value?: unknown };
+      if (textBody.type !== 'TextualBody' || typeof textBody.value !== 'string')
+        return [];
+
+      const bounds = parseTarget(annotation.target);
+      if (!bounds || bounds.width <= 0 || bounds.height <= 0) return [];
+
+      return [{
+        id: typeof annotation.id === 'string' ? annotation.id : crypto.randomUUID(),
+        text: textBody.value,
+        // TODO this is our default size... how to store that in the annotation?
+        fontSize: Math.round(canvas.width * 0.02),
+        ...bounds
+      }];
+    });
+  });
 }
 
 const parseReconstructionManifest = async (manifest: CozyManifest): Promise<ReconstructionParseResult> => {
@@ -146,6 +213,7 @@ const parseReconstructionManifest = async (manifest: CozyManifest): Promise<Reco
         height: canvas.height,
         width: canvas.width,
         source: regenerateSourceCanvases(canvas)[0],
+        annotations: parseTextAnnotations(canvas),
         physicalSize
       }
     } else {
@@ -156,6 +224,7 @@ const parseReconstructionManifest = async (manifest: CozyManifest): Promise<Reco
         height: canvas.height,
         width: canvas.width,
         sources: regenerateSourceCanvases(canvas),
+        annotations: parseTextAnnotations(canvas),
         physicalSize: parsePhysicalSize(canvas)
       }
     }

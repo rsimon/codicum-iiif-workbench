@@ -40,6 +40,25 @@ export interface PhysicalScale {
 
 }
 
+
+export interface TextAnnotation {
+
+  id: string;
+
+  text: string;
+
+  x: number;
+
+  y: number;
+
+  width: number;
+
+  height: number;
+
+  fontSize: number;
+
+}
+
 /** Reconstruction **/
 
 export interface OriginalCanvas {
@@ -58,6 +77,8 @@ export interface OriginalCanvas {
 
   physicalSize?: PhysicalSize;
 
+  annotations?: TextAnnotation[];
+
 }
 
 export interface CompositeCanvas {
@@ -75,6 +96,8 @@ export interface CompositeCanvas {
   height: number;
 
   physicalSize?: PhysicalSize;
+
+  annotations?: TextAnnotation[];
 
 }
 

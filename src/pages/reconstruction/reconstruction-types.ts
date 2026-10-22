@@ -62,3 +62,11 @@ export interface DraggableImageSelection {
   canChangeItem: boolean;
 
 }
+
+export interface TextAnnotationSelection {
+
+  canvasId: string;
+
+  annotationId: string;
+
+}

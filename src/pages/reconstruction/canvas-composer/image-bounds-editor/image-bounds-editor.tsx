@@ -6,6 +6,7 @@ import type { ComposerLayoutItem, DraggableImage } from '../../reconstruction-ty
 import { getImageKey } from '../../reconstruction-utils';
 import { useComposerStore } from '../composer-store';
 import { getIntersectingItems } from '../composer-utils';
+import { useMousewheelForward } from '../use-mousewheel-forward';
 import { CornerHandle } from './corner-handle';
 import { EdgeHandle } from './edge-handle';
 import { 
@@ -48,6 +49,10 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
 
   // Image state when drag started
   const initialShape = useRef<InitialShape | undefined>(undefined);
+
+  const [groupEl, setGroupEl] = useState<SVGGElement | null>(null);
+
+  useMousewheelForward(groupEl, props.viewer);
 
   const [intersectingItems, setIntersectingItems] = useState<ComposerLayoutItem[]>([]);
 
@@ -238,6 +243,49 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
     setEditMode(editMode === 'CROP' ? 'RESIZE' : 'CROP');
   }
 
+  // Translates an image from viewport coordinates into the destination canvas's
+  // local coordinates and moves it there. Returns true on success.
+  const reassociateImage = (
+    viewport: { x: number; y: number; width: number },
+    destination: ComposerLayoutItem
+  ): boolean => {
+    const shape = initialShape.current;
+    if (!shape) return false;
+
+    const target = reconstruction.find(r => r.id === destination.reconstructionCanvasId);
+    const targetItem = layout.items.find(i => i.reconstructionCanvasId === destination.reconstructionCanvasId);
+
+    // Should never happen
+    if (!target || !targetItem) return false;
+
+    const targetScale = targetItem.width / target.width;
+
+    const targetImage: DraggableImage = {
+      ...shape.image,
+      x: (viewport.x - targetItem.x) / targetScale,
+      y: (viewport.y - targetItem.y) / targetScale,
+      width: viewport.width / targetScale
+    };
+
+    const success = moveImageToCanvas(
+      shape.item.reconstructionCanvasId,
+      destination.reconstructionCanvasId,
+      targetImage);
+
+    if (success) {
+      initialShape.current = {
+        ...shape,
+        image: targetImage,
+        item: targetItem,
+        canvas: target
+      };
+
+      setSelectedCanvas([target]);
+    }
+
+    return success;
+  }
+
   const onMoveImage = (delta: number[]) => {
     if (!selectedImage || !initialShape.current) return;
 
@@ -273,40 +321,9 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
     } = checkDestination(initialShape.current, intersecting);
 
     if (hasChangedDestination && isValidDestination) {
-      const source = reconstruction.find(r => r.id === initialItem.reconstructionCanvasId);
-      const target = reconstruction.find(r => r.id === destination.reconstructionCanvasId);
-
-      const targetItem = layout.items.find(i => i.reconstructionCanvasId === destination.reconstructionCanvasId);
-
-      // Should never happen
-      if (!source || !target || !targetItem) return;
-
-      // Translate image into the new canvas's local coordinate system
-      const { width: targetWidth } = target;
-      const targetScale = targetItem.width / targetWidth;
-
-      const targetImage = {
-        ...initialImg,
-        x: (viewportX - destination.x) / targetScale,
-        y: (viewportY - destination.y) / targetScale,
-        width: initialPos.width / targetScale
-      };
-
-      const success = moveImageToCanvas(
-        initialItem.reconstructionCanvasId,
-        destination.reconstructionCanvasId,
-        targetImage);
-
-      if (success) {
-        initialShape.current = {
-          ...initialShape.current,
-          image: targetImage,
-          item: targetItem,
-          canvas: target
-        };
-
-        setSelectedCanvas([target]);
-      }
+      reassociateImage(
+        { x: viewportX, y: viewportY, width: initialPos.width },
+        destination);
     } else {
       const { width: canvasWidth } = initialShape.current.canvas;
       const canvasScale = initialItem.width / canvasWidth;
@@ -319,6 +336,89 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
 
       updateImage(initialItem.reconstructionCanvasId, updatedImage);
     }
+  }
+
+  const onResizeImage = (handle: ResizeHandleType, delta: number[]) => {
+    if (!selectedImage || !initialShape.current) return;
+
+    const { width: canvasWidth } = initialShape.current.canvas;
+    const canvasScale = initialShape.current.item.width / canvasWidth;
+
+    const dx = delta[0] / canvasScale;
+    const dy = delta[1] / canvasScale;
+
+    const { h, v } = RESIZE_SIGNS[handle];
+
+    const initialImage = initialShape.current.image;
+
+    const crop = initialImage.crop ?? {
+      x: 0,
+      y: 0,
+      w: initialImage.resource.width,
+      h: initialImage.resource.height
+    };
+    
+    const aspect = crop.w / crop.h;
+    const initialHeight = initialImage.width / aspect;
+
+    const dWidthFromX = h * dx;
+    const dWidthFromY = v * dy * aspect;
+
+    const dWidth = Math.abs(dWidthFromX) >= Math.abs(dWidthFromY) ? dWidthFromX : dWidthFromY;
+
+    const width = Math.max(1, initialImage.width + dWidth);
+    const height = width / aspect;
+
+    const x = h < 0 ? (initialImage.x + initialImage.width) - width : initialImage.x;
+    const y = v < 0 ? (initialImage.y + initialHeight) - height : initialImage.y;
+
+    // New bounds in OSD viewport coordinates
+    const { item } = initialShape.current;
+    
+    const viewport = {
+      x: item.x + x * canvasScale,
+      y: item.y + y * canvasScale,
+      width: width * canvasScale
+    };
+
+    const viewportHeight = viewport.width / aspect;
+
+    const intersecting = updateIntersectingItems([
+      new Point(viewport.x, viewport.y),
+      new Point(viewport.x + viewport.width, viewport.y),
+      new Point(viewport.x + viewport.width, viewport.y + viewportHeight),
+      new Point(viewport.x, viewport.y + viewportHeight)
+    ]);
+
+    const {
+      destination,
+      hasChangedDestination,
+      isValidDestination
+    } = checkDestination(initialShape.current, intersecting);
+
+    if (hasChangedDestination && isValidDestination) {
+      const success = reassociateImage(viewport, destination);
+
+      if (success && origin.current) {
+        // Re-base the drag: from here on, deltas are measured from the
+        // current pointer position against the already-resized image.
+        origin.current = new Point(
+          origin.current.x + delta[0],
+          origin.current.y + delta[1]);
+
+        initialShape.current = {
+          ...initialShape.current!,
+          initialViewportPos: viewport
+        };
+      }
+
+      return;
+    }
+
+    updateImage(initialShape.current.item.reconstructionCanvasId, {
+      ...initialImage,
+      x, y, width
+    });
   }
 
   const onMoveCrop = (delta: number[]) => {
@@ -406,66 +506,9 @@ export const ImageBoundsEditor = (props: ImageBoundsEditorProps) => {
     });
   }
 
-  const onResizeImage = (handle: ResizeHandleType, delta: number[]) => {
-    if (!selectedImage || !initialShape.current) return;
-
-    const { width: canvasWidth } = initialShape.current.canvas;
-    const canvasScale = initialShape.current.item.width / canvasWidth;
-
-    const dx = delta[0] / canvasScale;
-    const dy = delta[1] / canvasScale;
-
-    const { h, v } = RESIZE_SIGNS[handle];
-
-    const initialImage = initialShape.current.image;
-
-    const crop = initialImage.crop ?? {
-      x: 0,
-      y: 0,
-      w: initialImage.resource.width,
-      h: initialImage.resource.height
-    };
-    
-    const aspect = crop.w / crop.h;
-    const initialHeight = initialImage.width / aspect;
-
-    const dWidthFromX = h * dx;
-    const dWidthFromY = v * dy * aspect;
-
-    const dWidth = Math.abs(dWidthFromX) >= Math.abs(dWidthFromY) ? dWidthFromX : dWidthFromY;
-
-    const width = Math.max(1, initialImage.width + dWidth);
-    const height = width / aspect;
-
-    const x = h < 0 ? (initialImage.x + initialImage.width) - width : initialImage.x;
-    const y = v < 0 ? (initialImage.y + initialHeight) - height : initialImage.y;
-
-    // const liveCorners = getImageCorners(selectedImage, x, y, width);
-    // const intersecting = updateIntersectingItems(liveCorners);
-
-    updateImage(initialShape.current.item.reconstructionCanvasId, {
-      ...initialImage,
-      x, y, width
-    });
-
-    /*
-    // TODO we should handle re-association after resize, too!
-    const hasChangedItem = intersecting.length > 0 && selectedImage.canChangeItem &&
-      intersecting.every(r => r.reconstructionCanvasId !== selectedImage.item.reconstructionCanvasId);
-
-    const destinationId = hasChangedItem 
-      ? intersecting[0].reconstructionCanvasId : selectedImage.item.reconstructionCanvasId;
-
-    updateImage(destinationId, {
-      ...selectedImage.image,
-      x, y, width
-    });
-    */
-  }
-
   return selectedImage ? (
     <>
-      <g>
+      <g ref={setGroupEl}>
         {intersectingItems.length > 0 && (
           <polygon
             className="pointer-events-none"
