@@ -286,6 +286,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
               onMouseDown={evt => evt.preventDefault()}>  {/* keep focus in the editor */}
               <TextAnnotationToolbar
                 editor={editor}
+                viewer={viewer}
                 dragHandleProps={gestureHandlers('move')} />
             </div>,
             document.body
