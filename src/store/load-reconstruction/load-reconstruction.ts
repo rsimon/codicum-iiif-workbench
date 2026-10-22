@@ -1,3 +1,5 @@
+import { generateJSON } from '@tiptap/react';
+import { EDITOR_EXTENSIONS } from '@/components/tiptap-editor';
 import { parseCanvas } from '@/store/app-store-utils';
 import { 
   Cozy, 
@@ -13,6 +15,7 @@ import type {
   SourceManifest,
   TextAnnotation
 } from '@/types';
+
 
 export interface ReconstructionParseResult {
 
@@ -108,7 +111,7 @@ const parseTextAnnotations = (canvas: CozyCanvas): TextAnnotation[] => {
 
       return [{
         id: typeof annotation.id === 'string' ? annotation.id : crypto.randomUUID(),
-        text: textBody.value,
+        content: generateJSON(textBody.value, EDITOR_EXTENSIONS),
         // TODO this is our default size... how to store that in the annotation?
         fontSize: Math.round(canvas.width * 0.02),
         ...bounds

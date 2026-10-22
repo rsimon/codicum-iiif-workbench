@@ -13,7 +13,7 @@ export const getCanvasImageKey = (canvasId: string, image: DraggableImage): stri
   `${canvasId}:${getImageKey(image)}`;
 
 // Annotation font size relative to canvas width
-const FONT_SIZE_RATIO = 0.02;
+const FONT_SIZE_RATIO = 0.03;
 
 export const createAnnotation = (canvasId: string, point: { x: number; y: number }) => {
   withHistory(() => {
@@ -26,12 +26,15 @@ export const createAnnotation = (canvasId: string, point: { x: number; y: number
 
     const annotation: TextAnnotation = {
       id: crypto.randomUUID(),
-      text: '',
       x,
       y,
       width: Math.min(canvas.width - x, Math.max(80, canvas.width * 0.4)),
       height: Math.min(canvas.height - y, Math.max(48, canvas.height * 0.16)),
-      fontSize: Math.round(canvas.width * FONT_SIZE_RATIO)
+      fontSize: Math.round(canvas.width * FONT_SIZE_RATIO),
+      content: {
+        type: 'doc',
+        content: [{ type: 'paragraph' }]
+      }
     };
 
     updateReconstruction(reconstruction.map(item => item.id === canvasId

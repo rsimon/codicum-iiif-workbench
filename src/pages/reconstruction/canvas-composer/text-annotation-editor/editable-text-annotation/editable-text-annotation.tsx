@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
+import type { Editor, JSONContent } from '@tiptap/react';
 import type { Viewer } from 'openseadragon';
 import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/react-dom';
+import { TiptapEditor } from '@/components/tiptap-editor';
+import { TiptapReadOnlyView } from '@/components/tiptap-readonly-view';
 import { cn } from '@/shadcn/utils';
 import type { TextAnnotation } from '@/types';
-import { useMousewheelForward } from '../use-mousewheel-forward';
-import { counterScale, EDGE_HANDLES } from './text-annotation-editor-utils';
+import { useComposerStore } from '../../composer-store';
+import { useMousewheelForward } from '../../use-mousewheel-forward';
+import { isEmptyDoc } from './editable-text-annotation-utils';
+import { counterScale, EDGE_HANDLES } from './editable-text-annotation-utils';
 import { TextAnnotationToolbar } from './text-annotation-toolbar';
 
 // Text box initial size - canvas pixels
@@ -48,26 +53,40 @@ interface EditableTextAnnotationProps {
 
 }
 
-const hasChanged = (a: TextAnnotation, b: TextAnnotation) =>
-  a.x !== b.x || a.y !== b.y || a.width !== b.width || a.height !== b.height || a.text !== b.text;
+const geometryChanged = (a: TextAnnotation, b: TextAnnotation) =>
+  a.x !== b.x || a.y !== b.y || a.width !== b.width || a.height !== b.height;
 
 export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
   const { annotation, isSelected = false, viewer, getScale } = props;
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const textRef = useRef(annotation.text);
+  const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
+
   const draftRef = useRef(annotation);
   const gestureRef = useRef<Gesture | undefined>(undefined);
 
-  const [draft, setDraftState] = useState(annotation);
-  const [text, setText] = useState(annotation.text);
+  // The latest content, written by the editor on every change. A ref, so
+  // typing doesn't re-render this component.
+  const docRef = useRef(annotation.content);
 
-  useMousewheelForward(textareaRef.current, props.viewer);
+  // The latest content the parent knows about
+  const savedRef = useRef(annotation.content);
+
+  const [draft, setDraftState] = useState(annotation);
+
+  // What the static view renders
+  const [doc, setDoc] = useState(annotation.content);
+
+  // The live editor exists only while selected; the toolbar needs it
+  const [editor, setEditor] = useState<Editor | null>(null);
+
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
+
+  useMousewheelForward(contentEl, props.viewer);
 
   const { refs, floatingStyles } = useFloating({
     placement: 'top',
     strategy: 'fixed',
-    middleware: [offset(12), flip(), shift({ padding: 8 })],
+    middleware: [offset(6), flip(), shift({ padding: 8 })],
     // animationFrame re-measures every frame, so the panel tracks
     // dragging, resizing, and OSD pan/zoom without extra wiring
     whileElementsMounted: (ref, floating, update) =>
@@ -79,9 +98,18 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
     setDraftState(next);
   }
 
+  // The editor replaces docRef.current on every edit, so a different
+  // reference means there is content the parent hasn't seen yet
+  const hasUnsavedContent = () => docRef.current !== savedRef.current;
+
   const commit = () => {
-    const next = { ...draftRef.current, text: textRef.current };
-    if (hasChanged(next, annotation)) props.onChange(next);
+    const next: TextAnnotation = { ...draftRef.current, content: docRef.current };
+
+    if (!hasUnsavedContent() && !geometryChanged(next, annotation)) return;
+
+    savedRef.current = docRef.current;
+    setDoc(docRef.current);
+    props.onChange(next);
   }
 
   // flush on unmount (a focused layer can unmount without a blur)
@@ -89,42 +117,41 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
   commitRef.current = commit;
 
   useEffect(() => () => {
-    if (textRef.current.trim()) commitRef.current();
+    if (!isEmptyDoc(docRef.current)) commitRef.current();
   }, []);
 
   useEffect(() => {
-    if (gestureRef.current) return;
+    // Don't clobber a gesture or unsaved edits with a stale prop
+    if (gestureRef.current || hasUnsavedContent()) return;
 
     draftRef.current = annotation;
     setDraftState(annotation);
 
-    textRef.current = annotation.text;
-    setText(annotation.text);
+    docRef.current = savedRef.current = annotation.content;
+    setDoc(annotation.content);
   }, [annotation]);
 
-  useEffect(() => {
-    if (isSelected) textareaRef.current?.focus({ preventScroll: true });
-  }, [isSelected]);
-
-  const onTextChange = (value: string) => {
-    textRef.current = value;
-    setText(value);
+  const onContentChange = (next: JSONContent) => {
+    docRef.current = next;
   }
 
-  const onKeyDown = (evt: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Keep OSD from reacting to shortcuts (+, -, arrows, w/a/s/d, ...)
+  const onKeyDown = (evt: KeyboardEvent<HTMLDivElement>) => {
+    // Keep OSD from reacting to shortcuts (+, -, arrows, w/a/s/d, ...).
+    // ProseMirror has already handled the key by the time it gets here.
     evt.stopPropagation();
 
     if (evt.key === 'Escape') {
       evt.preventDefault();
-      evt.currentTarget.blur();
+      editor?.commands.blur();
     }
   }
 
   const onBlur = () => {
     if (gestureRef.current) return; // a handle drag is in progress
-    if (!textRef.current.trim()) props.onRemove();
+    if (isEmptyDoc(docRef.current)) props.onRemove();
     else commit();
+
+    setSelectedTextAnnotation();
   }
 
   const onGestureStart = (kind: GestureKind) => (evt: PointerEvent<HTMLDivElement>) => {
@@ -200,27 +227,33 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
       }}
       onPointerDown={evt => evt.stopPropagation()}>
 
-      <textarea
-        ref={textareaRef}
+      <div
+        ref={setContentEl}
         className={cn(
-          `size-full resize-none overflow-hidden outline-none whitespace-pre-wrap 
-           leading-relaxed box-border wrap-break-word`,
-          isSelected ? 'cursor-text' : 'cursor-default border-transparent'
+          'size-full box-border overflow-hidden',
+          isSelected ? 'cursor-text' : 'cursor-default'
         )}
-        value={text}
-        readOnly={!isSelected}
-        tabIndex={isSelected ? 0 : -1}
-        placeholder={isSelected ? 'Type here' : undefined}
-        onChange={evt => onTextChange(evt.target.value)}
-        onBlur={onBlur}
-        onKeyDown={onKeyDown}
-        onKeyUp={evt => evt.stopPropagation()}
         style={{
           fontSize: annotation.fontSize,
-          padding: annotation.fontSize / 2,
+          paddingLeft: annotation.fontSize / 5,
+          paddingRight: annotation.fontSize / 5,
           background: isSelected ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.35)',
           border: `${counterScale(1.5)} dashed ${isSelected ? 'oklch(14.5% 0 none)' : 'transparent'}`
-        }} />
+        }}
+        onKeyDown={onKeyDown}
+        onKeyUp={evt => evt.stopPropagation()}>
+
+        {isSelected ? (
+          <TiptapEditor
+            doc={doc}
+            onEditor={setEditor}
+            onContentChange={onContentChange}
+            onBlur={onBlur} />
+        ) : (
+          <TiptapReadOnlyView 
+            doc={doc} />
+        )}
+      </div>
 
       {isSelected && (
         <>
@@ -250,8 +283,10 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
               ref={refs.setFloating}
               style={floatingStyles}
               className="z-50"
-              onMouseDown={evt => evt.preventDefault()}>  {/* keep focus in the textarea */}
-              <TextAnnotationToolbar 
+              onMouseDown={evt => evt.preventDefault()}>  {/* keep focus in the editor */}
+              <TextAnnotationToolbar
+                editor={editor}
+                viewer={viewer}
                 dragHandleProps={gestureHandlers('move')} />
             </div>,
             document.body

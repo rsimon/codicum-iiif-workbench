@@ -1,3 +1,5 @@
+import { generateHTML } from '@tiptap/react';
+import { SCHEMA_EXTENSIONS } from '@/components/tiptap-editor';
 import type { ReconstructionCanvas, SourceManifest } from '@/types';
 
 export const createManifest = (
@@ -38,7 +40,8 @@ export const createManifest = (
 
 const toCanvasItem = (r: ReconstructionCanvas) => {
   const { width, height } = r;
-  const textAnnotations = (r.annotations ?? []).filter(annotation => annotation.text.trim().length > 0);
+
+  const annotations = (r.annotations ?? []);
 
   // https://iiif.io/api/annex/services/#physical-dimensions
   const physdim = r.physicalSize ? {
@@ -72,17 +75,17 @@ const toCanvasItem = (r: ReconstructionCanvas) => {
           : r.id
       })))
     }],
-    ...(textAnnotations.length > 0 ? {
+    ...(annotations.length > 0 ? {
       annotations: [{
           id: `${r.id}/annotations/page/1`,
           type: 'AnnotationPage',
-          items: textAnnotations.map(annotation => ({
+          items: annotations.map(annotation => ({
             id: `${r.id}/annotation/${annotation.id}`,
             type: 'Annotation',
             motivation: 'commenting',
             body: {
               type: 'TextualBody',
-              value: annotation.text,
+              value: generateHTML(annotation.content, SCHEMA_EXTENSIONS),
               format: 'text/plain'
             },
             target: {

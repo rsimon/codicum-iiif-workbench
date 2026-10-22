@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Point, type Viewer } from 'openseadragon';
 import type { TextAnnotation } from '@/types';
 import type { CanvasPlacement } from './viewer';
+import { TiptapReadOnlyView } from '@/components/tiptap-readonly-view';
 
 interface TextAnnotationLayerProps {
 
@@ -87,15 +88,7 @@ export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
       }}
       onPointerDown={evt => evt.stopPropagation()}>
 
-      <textarea
-        readOnly
-        className="size-full resize-none overflow-hidden outline-none whitespace-pre-wrap leading-relaxed box-border wrap-break-word"
-        value={annotation.text}
-        tabIndex={-1}
-        style={{
-          fontSize: annotation.fontSize,
-          padding: annotation.fontSize / 2
-        }} />
+      <TiptapReadOnlyView doc={annotation.content} />
     </div>
   )
 

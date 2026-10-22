@@ -1,3 +1,4 @@
+import type { JSONContent  } from '@tiptap/react';
 import type { CozyCanvas, CozyManifest } from 'cozy-iiif';
 
 /** Sources **/
@@ -45,8 +46,6 @@ export interface TextAnnotation {
 
   id: string;
 
-  text: string;
-
   x: number;
 
   y: number;
@@ -56,6 +55,8 @@ export interface TextAnnotation {
   height: number;
 
   fontSize: number;
+
+  content: JSONContent;
 
 }
 
