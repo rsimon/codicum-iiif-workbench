@@ -91,7 +91,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
   const { refs, floatingStyles } = useFloating({
     placement: 'top',
     strategy: 'fixed',
-    middleware: [offset(6), flip(), shift({ padding: 8 })],
+    middleware: [offset(10), flip(), shift({ padding: 8 })],
     // animationFrame re-measures every frame, so the panel tracks
     // dragging, resizing, and OSD pan/zoom without extra wiring
     whileElementsMounted: (ref, floating, update) =>

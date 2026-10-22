@@ -21,7 +21,7 @@ export const FontSizeWidget = (props: FontSizeWidgetProps) => {
         <IconPlus className="size-3.5" />
       </Button>
 
-      <div className="rounded-sm border text-xs p-1 flex items-center justify-center min-w-7">
+      <div className="rounded-sm border text-xs py-0.5 px-1.5 flex items-center justify-center min-w-8">
         {fontSize}
       </div>
 
