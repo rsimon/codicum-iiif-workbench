@@ -9,6 +9,8 @@ import { getItemAt } from '../composer-utils';
 import { useComposerStore } from '../composer-store';
 import { ItemAnnotationLayer } from './item-annotation-layer';
 
+import './text-annotation-editor.css';
+
 interface TextAnnotationEditorProps {
 
   viewer: Viewer;
@@ -25,6 +27,7 @@ export const TextAnnotationEditor = (props: TextAnnotationEditorProps) => {
   const editMode = useComposerStore(state => state.editMode);
   const selected = useComposerStore(state => state.selectedTextAnnotation);
 
+  const setEditMode = useComposerStore(state => state.setEditMode);
   const setSelectedAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
   const setSelectedImage = useComposerStore(state => state.setSelectedImage);
 
@@ -62,8 +65,8 @@ export const TextAnnotationEditor = (props: TextAnnotationEditorProps) => {
         setSelectedAnnotation({ canvasId: item.reconstructionCanvasId, annotationId: hit.id });
         useReconstructionStore.getState().setSelection([canvas]);
       } else {
-        console.log('[text-annotation-editor] create new!');
         createAnnotation(canvas.id, canvasPoint);
+        setEditMode('RESIZE');
       }
     };
 

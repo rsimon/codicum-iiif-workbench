@@ -1,10 +1,8 @@
 import { useMemo } from 'react';
-import type { JSONContent } from '@tiptap/core';
-import { generateHTML } from '@tiptap/html';
-import { SCHEMA_EXTENSIONS } from './content-utils';
-import './text-annotation-content.css';
+import { generateHTML, type JSONContent } from '@tiptap/react';
+import { SCHEMA_EXTENSIONS } from './tiptap-editor';
 
-interface ContentReadOnlyProps {
+interface TiptapReadOnlyViewProps {
 
   doc: JSONContent;
 
@@ -14,7 +12,7 @@ interface ContentReadOnlyProps {
  * Idle rendering: plain HTML generated from the stored document. No editor
  * instance, so any number of these can be on screen.
  */
-export const ContentReadOnly = (props: ContentReadOnlyProps) => {
+export const TiptapReadOnlyView = (props: TiptapReadOnlyViewProps) => {
 
   const html = useMemo(() => generateHTML(props.doc, SCHEMA_EXTENSIONS), [props.doc]);
 

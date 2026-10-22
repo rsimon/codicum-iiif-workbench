@@ -34,7 +34,7 @@ export const SelectedTextAnnotation = (props: SelectedTextAnnotationProps) => {
           variant="ghost"
           size="icon-xs"
           className="text-muted-foreground hover:text-destructive"
-          aria-label={`Delete text annotation ${annotation.text.trim() || 'Untitled text'}`}
+          aria-label="Delete text annotation"
           title="Delete annotation"
           onClick={props.onDelete}>
           <IconTrash className="size-3.5 mb-0.5" />

@@ -1,12 +1,15 @@
 import type { HTMLAttributes } from 'react';
+import type { Editor } from '@tiptap/react';
 
-interface TextAnnotationToolbarProps {
+interface EditableTextToolbarProps {
+
+  editor: Editor | null;
 
   dragHandleProps: HTMLAttributes<HTMLElement>;
 
 }
 
-export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
+export const EditableTextToolbar = (props: EditableTextToolbarProps) => {
 
   return (
     <div className="h-12 w-40 bg-red-500">

@@ -1,3 +1,5 @@
+import type { JSONContent } from '@tiptap/react';
+
 const EDGE_HANDLE_SIZE = 8; // screen px, centered on the border
 
 export const counterScale = (px: number) => `calc(${px}px / var(--osd-scale, 1))`;
@@ -8,3 +10,8 @@ export const EDGE_HANDLES = {
   left:   { left: counterScale(-EDGE_HANDLE_SIZE / 2), top: 0, bottom: 0, width: counterScale(EDGE_HANDLE_SIZE) },
   right:  { right: counterScale(-EDGE_HANDLE_SIZE / 2), top: 0, bottom: 0, width: counterScale(EDGE_HANDLE_SIZE) }
 };
+
+export const isEmptyDoc = (node: JSONContent): boolean =>
+  node?.text !== undefined
+    ? node.text.trim() === ''
+    : (node.content ?? []).every(isEmptyDoc);
