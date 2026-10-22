@@ -287,7 +287,8 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
               <TextAnnotationToolbar
                 editor={editor}
                 viewer={viewer}
-                dragHandleProps={gestureHandlers('move')} />
+                dragHandleProps={gestureHandlers('move')}
+                onDelete={props.onRemove} />
             </div>,
             document.body
           )}

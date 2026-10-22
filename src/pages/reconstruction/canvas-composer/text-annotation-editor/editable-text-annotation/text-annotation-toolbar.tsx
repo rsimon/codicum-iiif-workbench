@@ -1,9 +1,10 @@
 import { useState, type HTMLAttributes } from 'react';
 import type { Viewer } from 'openseadragon';
-import type { Editor } from '@tiptap/react';
+import { useEditorState, type Editor } from '@tiptap/react';
 import { IconBold, IconGripVertical, IconItalic, IconTrash } from '@tabler/icons-react';
 import { ToolbarButton } from '@/components/toolbar-button';
 import { Separator } from '@/shadcn/separator';
+import { Toggle } from '@/shadcn/toggle';
 import { useMousewheelForward } from '../../use-mousewheel-forward';
 
 interface TextAnnotationToolbarProps {
@@ -14,15 +15,26 @@ interface TextAnnotationToolbarProps {
 
   dragHandleProps: HTMLAttributes<HTMLElement>;
 
+  onDelete(): void;
+
 }
 
 export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
+  const editor = props.editor;
 
   const [el, setEl] = useState<HTMLDivElement | null>(null);
 
   useMousewheelForward(el, props.viewer);
 
-  return (
+  const state = useEditorState({
+    editor,
+    selector: ctx => ({
+      isBold: Boolean(ctx.editor?.isActive('bold')),
+      isItalic: Boolean(ctx.editor?.isActive('italic')),
+    })
+  });
+
+  return editor ? (
     <div 
       ref={setEl}
       className="bg-white flex items-stretch rounded-md pointer-events-auto ring-1
@@ -33,18 +45,20 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
         <IconGripVertical className="size-4" />
       </div>
 
-      <div className="p-1 flex items-center">
-        <ToolbarButton
-          className="rounded-md size-7"
-          tooltip="Bold">
+      <div className="p-1 flex gap-0.75 items-center">
+        <Toggle
+          pressed={state?.isBold}
+          className="rounded-sm size-7 min-w-7"
+          onPressedChange={() => editor.chain().focus().toggleBold().run()}>
           <IconBold className="size-3.5" />
-        </ToolbarButton>
+        </Toggle>
 
-        <ToolbarButton
-          className="rounded-md size-7"
-          tooltip="Italic">
+        <Toggle
+          className="rounded-sm size-7 min-w-7"
+          pressed={state?.isItalic}
+          onPressedChange={() => editor.chain().focus().toggleItalic().run()}>
           <IconItalic className="size-3.5"  />
-        </ToolbarButton>
+        </Toggle>
 
         <Separator
           className="mx-1"
@@ -52,11 +66,12 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
 
         <ToolbarButton
           className="rounded-md size-7 text-destructive hover:text-destructive"
-          tooltip="Italic">
+          tooltip="Italic"
+          onClick={props.onDelete}>
           <IconTrash className="size-3.5" />
         </ToolbarButton>
       </div>
     </div>
-  )
+  ) : null;
 
 }
