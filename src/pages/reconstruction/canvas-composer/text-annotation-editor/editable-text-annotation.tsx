@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { createPortal } from 'react-dom';
 import type { Viewer } from 'openseadragon';
+import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/react-dom';
 import { cn } from '@/shadcn/utils';
 import type { TextAnnotation } from '@/types';
 import { useMousewheelForward } from '../use-mousewheel-forward';
+import { counterScale, EDGE_HANDLES } from './text-annotation-editor-utils';
+import { TextAnnotationToolbar } from './text-annotation-toolbar';
 
-// Canvas pixels
-const MIN_WIDTH = 40;
-const MIN_HEIGHT = 24;
-
-const counterScale = (px: number) => `calc(${px}px / var(--osd-scale, 1))`;
+// Text box initial size - canvas pixels
+const INITIAL_WIDTH = 40;
+const INITIAL_HEIGHT = 24;
 
 type GestureKind = 'move' | 'resize';
 
@@ -61,6 +63,16 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
   const [text, setText] = useState(annotation.text);
 
   useMousewheelForward(textareaRef.current, props.viewer);
+
+  const { refs, floatingStyles } = useFloating({
+    placement: 'top',
+    strategy: 'fixed',
+    middleware: [offset(12), flip(), shift({ padding: 8 })],
+    // animationFrame re-measures every frame, so the panel tracks
+    // dragging, resizing, and OSD pan/zoom without extra wiring
+    whileElementsMounted: (ref, floating, update) =>
+      autoUpdate(ref, floating, update, { animationFrame: true })
+  });
 
   const setDraft = (next: TextAnnotation) => {
     draftRef.current = next;
@@ -150,8 +162,8 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
       ? { ...origin, x: origin.x + dx, y: origin.y + dy }
       : {
         ...origin,
-        width: Math.max(MIN_WIDTH, origin.width + dx),
-        height: Math.max(MIN_HEIGHT, origin.height + dy)
+        width: Math.max(INITIAL_WIDTH, origin.width + dx),
+        height: Math.max(INITIAL_HEIGHT, origin.height + dy)
       });
   }
 
@@ -177,6 +189,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
 
   return (
     <div
+      ref={refs.setReference}
       className="absolute"
       style={{
         left: draft.x,
@@ -211,11 +224,14 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
 
       {isSelected && (
         <>
-          <div
-            aria-label="Move annotation"
-            className="absolute inset-x-0 cursor-move touch-none rounded-sm bg-primary"
-            style={{ top: counterScale(-12), height: counterScale(10) }}
-            {...gestureHandlers('move')} />
+          {Object.entries(EDGE_HANDLES).map(([name, style]) => (
+            <div
+              key={name}
+              aria-label={`Move annotation (${name} edge)`}
+              className="absolute cursor-move touch-none"
+              style={style}
+              {...gestureHandlers('move')} />
+          ))}
 
           <div
             aria-label="Resize annotation"
@@ -228,6 +244,18 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
               borderWidth: counterScale(1.5)
             }}
             {...gestureHandlers('resize')} />
+
+          {createPortal(
+            <div
+              ref={refs.setFloating}
+              style={floatingStyles}
+              className="z-50"
+              onMouseDown={evt => evt.preventDefault()}>  {/* keep focus in the textarea */}
+              <TextAnnotationToolbar 
+                dragHandleProps={gestureHandlers('move')} />
+            </div>,
+            document.body
+          )}
         </>
       )}
     </div>
