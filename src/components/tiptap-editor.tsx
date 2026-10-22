@@ -6,6 +6,7 @@ import HardBreak from '@tiptap/extension-hard-break';
 import Italic from '@tiptap/extension-italic';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
+import { TextStyle, FontSize } from '@tiptap/extension-text-style';
 import { Placeholder, UndoRedo } from '@tiptap/extensions';
 
 export const SCHEMA_EXTENSIONS = [
@@ -14,7 +15,9 @@ export const SCHEMA_EXTENSIONS = [
   Text, 
   HardBreak,
   Bold, 
-  Italic
+  Italic,
+  TextStyle,
+  FontSize
 ];
 
 export const EDITOR_EXTENSIONS = [

@@ -5,7 +5,8 @@ import { IconBold, IconGripVertical, IconItalic, IconTrash } from '@tabler/icons
 import { ToolbarButton } from '@/components/toolbar-button';
 import { Separator } from '@/shadcn/separator';
 import { Toggle } from '@/shadcn/toggle';
-import { useMousewheelForward } from '../../use-mousewheel-forward';
+import { useMousewheelForward } from '../../../use-mousewheel-forward';
+import { FontSizeWidget } from './font-size-widget';
 
 interface TextAnnotationToolbarProps {
 
@@ -31,10 +32,11 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
     selector: ctx => ({
       isBold: Boolean(ctx.editor?.isActive('bold')),
       isItalic: Boolean(ctx.editor?.isActive('italic')),
+      fontSize: parseInt(ctx.editor?.getAttributes('textStyle').fontSize) || 16
     })
   });
 
-  return editor ? (
+  return (editor && state) ? (
     <div 
       ref={setEl}
       className="bg-white flex items-stretch rounded-md pointer-events-auto ring-1
@@ -46,16 +48,24 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
       </div>
 
       <div className="p-1 flex gap-0.75 items-center">
+        <FontSizeWidget 
+          fontSize={state.fontSize}
+          onChange={s => editor.chain().focus().setFontSize(`${s}px`).run()} />
+
+        <Separator
+          className="mx-1"
+          orientation="vertical" />
+
         <Toggle
-          pressed={state?.isBold}
-          className="rounded-sm size-7 min-w-7"
+          pressed={state.isBold}
+          className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
           onPressedChange={() => editor.chain().focus().toggleBold().run()}>
           <IconBold className="size-3.5" />
         </Toggle>
 
         <Toggle
-          className="rounded-sm size-7 min-w-7"
-          pressed={state?.isItalic}
+          className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
+          pressed={state.isItalic}
           onPressedChange={() => editor.chain().focus().toggleItalic().run()}>
           <IconItalic className="size-3.5"  />
         </Toggle>
