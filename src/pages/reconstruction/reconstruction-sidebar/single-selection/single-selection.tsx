@@ -103,6 +103,7 @@ export const SingleSelection = (props: SingleSelectionProps) => {
           <FieldLegend variant="label" className="data-[variant=label]:text-xs uppercase font-normal text-muted-foreground">
             Image size
           </FieldLegend>
+          
           <EditablePixelSize
             width={width}
             height={height}
@@ -113,6 +114,7 @@ export const SingleSelection = (props: SingleSelectionProps) => {
           <FieldLegend variant="label" className="data-[variant=label]:text-xs  uppercase font-normal text-muted-foreground">
             Physical size
           </FieldLegend>
+
           <EditablePhysicalSize
             size={canvas.physicalSize}
             onCommit={onResizeCanvasPhys} />
