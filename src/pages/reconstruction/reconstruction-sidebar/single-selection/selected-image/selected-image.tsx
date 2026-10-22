@@ -1,8 +1,8 @@
 import { FieldLegend, FieldSet } from '@/shadcn/field';
-import type { DraggableImage } from '../../reconstruction-types';
-import { EditableBoxSize } from './editable-box-size';
+import type { DraggableImage } from '../../../reconstruction-types';
+import { EditableBoxSize } from '../editable-box-size';
 
-interface EditableImagePositionProps {
+interface SelectedImageProps {
 
   image: DraggableImage;
 
@@ -10,7 +10,7 @@ interface EditableImagePositionProps {
 
 }
 
-export const EditableImagePosition = (props: EditableImagePositionProps) => {
+export const SelectedImage = (props: SelectedImageProps) => {
   const { image } = props;
 
   const aspectRatio = image.resource.width / image.resource.height;
@@ -22,13 +22,13 @@ export const EditableImagePosition = (props: EditableImagePositionProps) => {
       </FieldLegend>
 
       <EditableBoxSize
+        lockAspectRatio
         value={{
           x: image.x,
           y: image.y,
           width: image.width,
-          height: image.width / aspectRatio,
+          height: image.width / aspectRatio
         }}
-        lockAspectRatio
         onCommit={box => props.onCommit(box.x, box.y, box.width)} />
     </FieldSet>
   )

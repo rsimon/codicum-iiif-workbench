@@ -4,7 +4,7 @@ import { Input } from '@/shadcn/input';
 import { Field, FieldGroup, FieldLabel } from '@/shadcn/field';
 import { isBlurLeavingGroup } from '../reconstruction-sidebar-utils';
 
-interface Box {
+export interface Box {
 
   x: number;
 

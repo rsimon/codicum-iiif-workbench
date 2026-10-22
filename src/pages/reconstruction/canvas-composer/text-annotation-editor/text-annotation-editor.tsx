@@ -4,10 +4,10 @@ import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { useAppStore } from '@/store/app-store';
 import { useReconstructionStore } from '../../reconstruction-store';
 import type { ComposerLayout } from '../../reconstruction-types';
+import { createAnnotation } from '../../reconstruction-utils';
 import { getItemAt } from '../composer-utils';
 import { useComposerStore } from '../composer-store';
 import { ItemAnnotationLayer } from './item-annotation-layer';
-import { createAnnotation } from './text-annotation-editor-utils';
 
 interface TextAnnotationEditorProps {
 
