@@ -109,6 +109,8 @@ const parseTextAnnotations = (canvas: CozyCanvas): TextAnnotation[] => {
       return [{
         id: typeof annotation.id === 'string' ? annotation.id : crypto.randomUUID(),
         text: textBody.value,
+        // TODO this is our default size... how to store that in the annotation?
+        fontSize: Math.round(canvas.width * 0.02),
         ...bounds
       }];
     });
