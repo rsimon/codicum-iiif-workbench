@@ -86,7 +86,7 @@ const toCanvasItem = (r: ReconstructionCanvas) => {
             body: {
               type: 'TextualBody',
               value: generateHTML(annotation.content, SCHEMA_EXTENSIONS),
-              format: 'text/plain'
+              format: 'text/html'
             },
             target: {
               type: 'SpecificResource',
