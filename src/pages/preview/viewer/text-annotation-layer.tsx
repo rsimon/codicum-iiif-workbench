@@ -47,7 +47,7 @@ export const TextAnnotationLayer = (props: TextAnnotationLayerProps) => {
   }, [canvases, viewer]);
   
   return props.canvases.length > 0 ? (
-    <div className="absolute inset-0 z-60 pointer-events-none overflow-hidden">
+    <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
       {props.canvases.map((p, idx) => (
         <div
           key={idx}

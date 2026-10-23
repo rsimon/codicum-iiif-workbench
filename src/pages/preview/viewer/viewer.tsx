@@ -52,8 +52,9 @@ export const Viewer = (props: ViewerProps) => {
     const v = OpenSeadragon({
       element: elementRef.current,
       showNavigationControl: false,
-      maxZoomPixelRatio: Infinity,
+      maxZoomPixelRatio: 10,
       minZoomImageRatio: 0,
+      visibilityRatio: 0,
       animationTime: 0.5,
       springStiffness: 10,
       gestureSettingsMouse: {
