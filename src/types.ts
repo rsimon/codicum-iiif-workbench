@@ -41,7 +41,6 @@ export interface PhysicalScale {
 
 }
 
-
 export interface TextAnnotation {
 
   id: string;
