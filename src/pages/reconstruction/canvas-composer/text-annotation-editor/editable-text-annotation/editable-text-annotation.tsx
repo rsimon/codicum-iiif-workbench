@@ -250,7 +250,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
           <TiptapEditor
             doc={doc}
             onEditor={setEditor}
-            onContentChange={onContentChange}
+            onContentChange={onContentChange} 
             onBlur={onBlur} />
         ) : (
           <TiptapReadOnlyView 
@@ -286,7 +286,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
               ref={refs.setFloating}
               style={floatingStyles}
               className="z-50"
-              onMouseDown={evt => evt.preventDefault()}>  {/* keep focus in the editor */}
+              onMouseDown={evt => evt.preventDefault()}>
               <TextAnnotationToolbar
                 editor={editor}
                 viewer={viewer}

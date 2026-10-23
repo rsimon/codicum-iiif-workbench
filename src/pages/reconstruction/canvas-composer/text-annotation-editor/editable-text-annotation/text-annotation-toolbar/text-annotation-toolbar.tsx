@@ -50,7 +50,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
         <IconGripVertical className="size-4" />
       </div>
 
-      <div className="p-1 flex gap-0.75 items-center">
+      <div className="p-1.5 flex gap-0.75 items-center">
         <FontSizeWidget 
           fontSize={state.fontSize}
           onChange={s => editor.chain().focus().setFontSize(`${s}px`).run()} />
