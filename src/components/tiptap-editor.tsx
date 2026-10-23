@@ -36,8 +36,6 @@ interface TiptapEditorProps {
 
   onContentChange(doc: JSONContent): void;
 
-  onBlur(): void;
-
 }
 
 export const TiptapEditor = (props: TiptapEditorProps) => {
@@ -55,8 +53,7 @@ export const TiptapEditor = (props: TiptapEditorProps) => {
       }
     },
     onUpdate: ({ editor }) =>
-      callbacks.current.onContentChange(editor.getJSON()),
-    onBlur: () => callbacks.current.onBlur()
+      callbacks.current.onContentChange(editor.getJSON())
   });
 
   useEffect(() => {

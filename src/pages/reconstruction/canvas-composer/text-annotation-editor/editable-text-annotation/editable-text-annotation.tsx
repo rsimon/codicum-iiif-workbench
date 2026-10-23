@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import type { Editor, JSONContent } from '@tiptap/react';
 import type { Viewer } from 'openseadragon';
@@ -125,6 +125,19 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
     if (!isEmptyDoc(docRef.current)) commitRef.current();
   }, []);
 
+  const wasSelectedRef = useRef(isSelected);
+
+  useEffect(() => {
+    if (wasSelectedRef.current && !isSelected) {
+      if (isEmptyDoc(docRef.current)) 
+        props.onRemove();
+      else 
+        commit();
+    }
+
+    wasSelectedRef.current = isSelected;
+  }, [isSelected]);
+
   useEffect(() => {
     // Don't clobber a gesture or unsaved edits with a stale prop
     if (gestureRef.current || hasUnsavedContent()) return;
@@ -147,16 +160,8 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
 
     if (evt.key === 'Escape') {
       evt.preventDefault();
-      editor?.commands.blur();
+      setSelectedTextAnnotation();
     }
-  }
-
-  const onBlur = () => {
-    if (gestureRef.current) return; // a handle drag is in progress
-    if (isEmptyDoc(docRef.current)) props.onRemove();
-    else commit();
-
-    setSelectedTextAnnotation();
   }
 
   const onGestureStart = (kind: GestureKind) => (evt: PointerEvent<HTMLDivElement>) => {
@@ -219,6 +224,13 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
     onPointerCancel: onGestureEnd
   });
 
+  const keepFocus = (evt: MouseEvent) => {
+    // Keeps focus to the Tiptap editor, except for toolbar
+    // elements that don't work without focus
+    if (!(evt.target as HTMLElement).closest('input')) 
+      evt.preventDefault();
+  }
+
   return (
     <div
       ref={refs.setReference}
@@ -250,8 +262,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
           <TiptapEditor
             doc={doc}
             onEditor={setEditor}
-            onContentChange={onContentChange} 
-            onBlur={onBlur} />
+            onContentChange={onContentChange} />
         ) : (
           <TiptapReadOnlyView 
             doc={doc} />
@@ -286,7 +297,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
               ref={refs.setFloating}
               style={floatingStyles}
               className="z-50"
-              onMouseDown={evt => evt.preventDefault()}>
+              onMouseDown={keepFocus}>
               <TextAnnotationToolbar
                 editor={editor}
                 viewer={viewer}

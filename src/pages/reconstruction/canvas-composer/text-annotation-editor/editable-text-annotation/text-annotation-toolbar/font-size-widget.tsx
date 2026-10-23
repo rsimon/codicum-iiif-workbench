@@ -38,6 +38,7 @@ export const FontSizeWidget = (props: FontSizeWidgetProps) => {
   return (
     <div className="flex gap-0.5 items-stretch">
       <Button
+        tabIndex={-1}
         variant="ghost"
         size="icon-xs"
         onClick={() => onChange(fontSize + 1)}>
@@ -45,6 +46,7 @@ export const FontSizeWidget = (props: FontSizeWidgetProps) => {
       </Button>
 
       <Input
+        tabIndex={-1}
         id="pixel-width"
         ref={ref}
         size={2}
@@ -54,6 +56,7 @@ export const FontSizeWidget = (props: FontSizeWidgetProps) => {
         className="tabular-nums h-auto field-sizing-content rounded-sm text-xs py-0.5 px-1.5" />
 
       <Button
+        tabIndex={-1}
         variant="ghost"
         size="icon-xs"
         onClick={() => onChange(Math.max(1, fontSize - 1))}>

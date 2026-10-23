@@ -43,7 +43,10 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
     <div 
       ref={setEl}
       className="bg-white flex items-stretch rounded-md pointer-events-auto ring-1
-      ring-black/5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.10)]">
+      ring-black/5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.10)]"
+      role="toolbar"
+      aria-label="Text formatting"
+      tabIndex={0}>
       <div
         className="bg-muted text-muted-foreground cursor-grab rounded-l-md border-r flex items-center px-1"
         {...props.dragHandleProps}>
@@ -60,6 +63,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
           orientation="vertical" />
 
         <Toggle
+          tabIndex={-1}
           pressed={state.isBold}
           className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
           onPressedChange={() => editor.chain().focus().toggleBold().run()}>
@@ -67,6 +71,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
         </Toggle>
 
         <Toggle
+          tabIndex={-1}
           className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
           pressed={state.isItalic}
           onPressedChange={() => editor.chain().focus().toggleItalic().run()}>
@@ -78,6 +83,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
           orientation="vertical" />
 
         <ToolbarButton
+          tabIndex={-1}
           className="rounded-md size-7 text-destructive hover:text-destructive"
           tooltip="Italic"
           onClick={props.onDelete}>
