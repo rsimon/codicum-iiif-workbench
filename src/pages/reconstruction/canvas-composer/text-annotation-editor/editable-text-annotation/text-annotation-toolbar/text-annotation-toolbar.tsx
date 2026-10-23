@@ -1,12 +1,22 @@
 import { useState, type HTMLAttributes } from 'react';
 import type { Viewer } from 'openseadragon';
 import { useEditorState, type Editor } from '@tiptap/react';
-import { IconBold, IconGripVertical, IconItalic, IconTrash } from '@tabler/icons-react';
-import { ToolbarButton } from '@/components/toolbar-button';
+import { type Toggle as TogglePrimitive } from '@base-ui/react';
+import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { Toggle } from '@/shadcn/toggle';
 import { useMousewheelForward } from '../../../use-mousewheel-forward';
 import { FontSizeWidget } from './font-size-widget';
+import { ToggleGroup, ToggleGroupItem } from '@/shadcn/toggle-group';
+import { 
+  IconAlignCenter,
+  IconAlignLeft, 
+  IconAlignRight, 
+  IconBold, 
+  IconGripVertical, 
+  IconItalic, 
+  IconTrash 
+} from '@tabler/icons-react';
 
 interface TextAnnotationToolbarProps {
 
@@ -31,11 +41,17 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
     editor,
     selector: ctx => ({
       isBold: Boolean(ctx.editor?.isActive('bold')),
+
       isItalic: Boolean(ctx.editor?.isActive('italic')),
+      
       fontSize: ctx.editor ? parseInt(
         ctx.editor.getAttributes('textStyle').fontSize || 
         getComputedStyle(ctx.editor.view.dom).fontSize
-      ) : 16
+      ) : 16,
+
+      textAlign: (['left', 'center', 'right'] as const).find(a =>
+        ctx.editor?.isActive({ textAlign: a })
+      ) ?? 'left'
     })
   });
 
@@ -82,15 +98,48 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
           className="mx-1"
           orientation="vertical" />
 
-        <ToolbarButton
+        <ToggleGroup
+          className="gap-0.75"
+          value={[state.textAlign]}
+          onValueChange={([val]) => {
+            if (val) editor.chain().focus().setTextAlign(val).run();
+          }}>
+          <ToolbarToggleGroupItem value="left">
+            <IconAlignLeft className="size-3.5" /> 
+          </ToolbarToggleGroupItem>
+
+          <ToolbarToggleGroupItem value="center">
+            <IconAlignCenter className="size-3.5" /> 
+          </ToolbarToggleGroupItem>
+
+          <ToolbarToggleGroupItem value="right">
+            <IconAlignRight className="size-3.5" /> 
+          </ToolbarToggleGroupItem>
+        </ToggleGroup>
+
+        <Separator
+          className="mx-1"
+          orientation="vertical" />
+
+        <Button
           tabIndex={-1}
+          variant="ghost"
           className="rounded-md size-7 text-destructive hover:text-destructive"
-          tooltip="Italic"
           onClick={props.onDelete}>
           <IconTrash className="size-3.5" />
-        </ToolbarButton>
+        </Button>
       </div>
     </div>
   ) : null;
+
+}
+
+const ToolbarToggleGroupItem = (props: TogglePrimitive.Props) => {
+
+  return (
+    <ToggleGroupItem
+      className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
+      {...props} />
+  )
 
 }

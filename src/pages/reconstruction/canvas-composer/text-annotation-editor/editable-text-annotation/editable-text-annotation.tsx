@@ -252,8 +252,10 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
         )}
         style={{
           fontSize: Math.round(props.canvas.width * FONT_SIZE_RATIO),
-          background: isSelected ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.35)',
-          border: `${counterScale(1.5)} dashed ${isSelected ? 'oklch(14.5% 0 none)' : 'transparent'}`
+          background: isSelected ? 'oklch(0.92 0.03 248.81 / 0.35)' : 'rgba(255, 255, 255, 0.35)',
+          borderRadius: `${counterScale(2)}`,
+          border: `${counterScale(1)} ${isSelected ? 'dashed oklch(0.5 0.15 246.78)' : 'solid oklch(70.8% 0 none / 0.25)'}`,
+          padding: counterScale(4)
         }}
         onKeyDown={onKeyDown}
         onKeyUp={evt => evt.stopPropagation()}>
@@ -282,13 +284,13 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
 
           <div
             aria-label="Resize annotation"
-            className="absolute rounded-full cursor-nwse-resize touch-none border border-neutral-950 bg-white"
+            className="absolute rounded-full cursor-nwse-resize touch-none border border-primary bg-accent"
             style={{
-              right: counterScale(-5),
-              bottom: counterScale(-5),
+              right: counterScale(-4.5),
+              bottom: counterScale(-4.5),
               width: counterScale(10),
               height: counterScale(10),
-              borderWidth: counterScale(1.5)
+              borderWidth: counterScale(1.25)
             }}
             {...gestureHandlers('resize')} />
 

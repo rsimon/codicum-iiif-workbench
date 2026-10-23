@@ -6,6 +6,7 @@ import HardBreak from '@tiptap/extension-hard-break';
 import Italic from '@tiptap/extension-italic';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
+import TextAlign from '@tiptap/extension-text-align'
 import { TextStyle, FontSize } from '@tiptap/extension-text-style';
 import { Placeholder, UndoRedo } from '@tiptap/extensions';
 
@@ -16,6 +17,9 @@ export const SCHEMA_EXTENSIONS = [
   HardBreak,
   Bold, 
   Italic,
+  TextAlign.configure({
+    types: ['heading', 'paragraph']
+  }),
   TextStyle,
   FontSize
 ];
