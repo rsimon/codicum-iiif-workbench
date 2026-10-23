@@ -141,6 +141,18 @@
   outline-offset: -4px;
 }
 
+/** Paint a11y focus emphasis in a pseudo element - otherwise OSD **/
+/** images would get drawn over the outline!                      **/
+.openseadragon-canvas:focus-visible:not([data-pointer-focus])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  outline: 2px solid color-mix(in oklab, var(--ring) 80%, transparent);
+  outline-offset: -4px;
+}
+
 /** Shared by the Tiptap editor and static HTML annotation view **/
 .text-annotation-content {
   font-family: 'EB Garamond Variable', serif;
