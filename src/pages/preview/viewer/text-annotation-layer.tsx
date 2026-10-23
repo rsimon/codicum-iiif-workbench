@@ -54,7 +54,7 @@ export const TextAnnotationLayer = (props: TextAnnotationLayerProps) => {
           ref={el => { refs.current[idx] = el; }}
           className="absolute left-0 top-0 pointer-events-none"
           style={{
-            width: p.canvas.width,       // canvas px space, NOT screen px
+            width: p.canvas.width,
             height: p.canvas.height,
             transformOrigin: '0 0'
           }}>
