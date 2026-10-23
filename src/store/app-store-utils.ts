@@ -166,6 +166,8 @@ export const mergeInto = (
   const sourcesToMerge = toMerge.reduce<SourceCanvas[]>((all, r) =>
     r.type === 'original' ? [...all, r.source] : [...all, ...r.sources]
   , []);
+  
+  const annotationsToMerge = toMerge.flatMap(r => r.annotations ?? []);
     
   return removeCanvasFromReconstruction(current, others.map(r => r.id))
     .map(r => { 
@@ -174,7 +176,8 @@ export const mergeInto = (
           // Simple case - destination is already a composite
           return {
             ...r,
-            sources: sourcesToMerge
+            sources: sourcesToMerge,
+            annotations: annotationsToMerge
           };
         } else {
           return {
@@ -185,7 +188,8 @@ export const mergeInto = (
             label: r.label,
             width: r.width,
             height: r.height,
-            physicalSize: r.physicalSize
+            physicalSize: r.physicalSize,
+            annotations: annotationsToMerge
           }
         }
       } else {

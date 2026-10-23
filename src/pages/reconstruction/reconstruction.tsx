@@ -49,7 +49,11 @@ export const Reconstruction = () => {
         <Separator 
           className="focus-visible:outline-2 focus-visible:outline-primary" />
 
-        <Panel>
+        <Panel 
+          // Without this, scrollbar padding messes up the OSD overlay placement
+          // while the panel opens!
+          // https://www.npmjs.com/package/react-resizable-panels#documentation
+          style={{ overflow: 'hidden '}}>
           <MeasurementProvider>
             <CanvasComposer
               isSidebarOpen={isSidebarOpen}

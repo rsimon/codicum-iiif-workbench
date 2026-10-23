@@ -2,12 +2,14 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/rubik";
+@import "@fontsource-variable/eb-garamond";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Rubik Variable', sans-serif;
+    --font-serif: 'EB Garamond Variable', serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -129,11 +131,59 @@
   }
 }
 
+/** OpenSeadragon focus style **/
 .openseadragon-canvas {
   outline: none;
 }
 
-.openseadragon-canvas:focus-visible {
+.openseadragon-canvas:focus-visible:not([data-pointer-focus]) {
   outline: 2px solid color-mix(in oklab, var(--ring) 80%, transparent);
-  outline-offset: -4px; 
+  outline-offset: -4px;
+}
+
+/** Paint a11y focus emphasis in a pseudo element - otherwise OSD **/
+/** images would get drawn over the outline!                      **/
+.openseadragon-canvas:focus-visible:not([data-pointer-focus])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  outline: 2px solid color-mix(in oklab, var(--ring) 80%, transparent);
+  outline-offset: -4px;
+}
+
+/** Shared by the Tiptap editor and static HTML annotation view **/
+.text-annotation-content {
+  font-family: 'EB Garamond Variable', serif;
+  font-variant-ligatures: normal;
+  font-feature-settings: "liga" 0, "clig" 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  line-height: 1.5;
+  outline: none;
+}
+
+.text-annotation-content p {
+  margin: 0;
+}
+
+.text-annotation-content sup,
+.text-annotation-content sub {
+  line-height: 0;
+}
+
+/** ProseMirror gives an empty paragraph a trailing <br> - preserve height in static render **/
+.text-annotation-content p:empty::before {
+  content: '\200B';
+}
+
+.text-annotation-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  opacity: 0.5;
 }

@@ -4,13 +4,18 @@ import { dequal } from 'dequal/lite';
 import { withViewTransition } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import type { ReconstructionCanvas } from '@/types';
-import { getImageKey, getCanvasImageKey } from '../reconstruction-utils';
-import type { ComposerLayout, DraggableImage, DraggableImageSelection } from '../reconstruction-types';
 import { registerComposerSyncFlusher, withHistory } from '../reconstruction-history';
+import { getImageKey, getCanvasImageKey } from '../reconstruction-utils';
 import { applyEdits, findSourceCanvasById, toDraggableImages } from './composer-utils';
 import { TwoColumnLayout } from './layout';
+import type {
+  ComposerLayout,
+  DraggableImage,
+  DraggableImageSelection,
+  TextAnnotationSelection
+} from '../reconstruction-types';
 
-export type EditMode = 'RESIZE' | 'CROP';
+export type EditMode = 'RESIZE' | 'CROP' | 'TEXT';
 
 export interface ComposerState {
 
@@ -31,6 +36,8 @@ export interface ComposerState {
 
   selectedImage?: DraggableImageSelection;
 
+  selectedTextAnnotation?: TextAnnotationSelection;
+
   editMode: EditMode;
 
   isUserEdit: boolean;
@@ -40,6 +47,8 @@ export interface ComposerState {
   setLayout(layout: ComposerLayout): void;
 
   setSelectedImage(selectedImage?: DraggableImageSelection): void;
+
+  setSelectedTextAnnotation(selectedTextAnnotation?: TextAnnotationSelection): void;
 
   setEditMode(mode: EditMode): void;
 
@@ -69,6 +78,8 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
   selectedImage: undefined,
 
+  selectedTextAnnotation: undefined,
+
   editMode: 'RESIZE',
 
   isUserEdit: false,
@@ -77,7 +88,9 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
   setLayout: layout => set({ layout }),
 
-  setSelectedImage: selectedImage => set({ selectedImage, editMode: 'RESIZE' }),
+  setSelectedImage: selectedImage => set({ selectedImage, editMode: 'RESIZE', selectedTextAnnotation: undefined }),
+
+  setSelectedTextAnnotation: selectedTextAnnotation => set({ selectedTextAnnotation, selectedImage: undefined }),
 
   setEditMode: editMode => set({ editMode }),
 
@@ -273,7 +286,8 @@ useAppStore.subscribe((state, prevState) => {
     imagesByCanvasId: prevImages,
     hasPendingSync: prevHasPendingSync,
     layout: prevLayout,
-    selectedImage: prevSelectedImage 
+    selectedImage: prevSelectedImage,
+    selectedTextAnnotation: prevSelectedTextAnnotation
   } = useComposerStore.getState();
 
   const imagesByCanvasId = new Map(state.reconstruction.map(r => {
@@ -332,10 +346,18 @@ useAppStore.subscribe((state, prevState) => {
       : undefined;
   }
 
+  // Clear the text selection if undo/redo removed its annotation
+  const hasSelectedAnnotation = !prevSelectedTextAnnotation || state.reconstruction
+    .find(r => r.id === prevSelectedTextAnnotation.canvasId)?.annotations
+    ?.some(a => a.id === prevSelectedTextAnnotation.annotationId);
+
+  const selectedTextAnnotation = hasSelectedAnnotation ? prevSelectedTextAnnotation : undefined;
+
   if (
     !layoutChanged &&
     !imagesChanged &&
     selectedImage === prevSelectedImage &&
+    selectedTextAnnotation === prevSelectedTextAnnotation && 
     hasPendingSync === prevHasPendingSync
   ) return;
 
@@ -343,6 +365,7 @@ useAppStore.subscribe((state, prevState) => {
     hasPendingSync,
     ...(layoutChanged ? { layout } : {}),
     ...(imagesChanged ? { imagesByCanvasId } : {}),
-    ...(selectedImage !== prevSelectedImage ? { selectedImage } : {})
+    ...(selectedImage !== prevSelectedImage ? { selectedImage } : {}),
+    ...(selectedTextAnnotation !== prevSelectedTextAnnotation ? { selectedTextAnnotation } : {})  
   });
 });
