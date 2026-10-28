@@ -68,8 +68,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
       aria-label="Text formatting"
       onMouseDown={e => {
         if (!(e.target instanceof HTMLInputElement)) e.preventDefault();
-      }}
-      tabIndex={0}>
+      }}>
       <div
         tabIndex={-1}
         className="bg-muted text-muted-foreground cursor-grab rounded-l-md border-r flex items-center px-1"
