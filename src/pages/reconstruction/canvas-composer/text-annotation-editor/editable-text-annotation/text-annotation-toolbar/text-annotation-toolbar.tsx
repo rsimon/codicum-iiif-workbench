@@ -1,4 +1,5 @@
 import { useState, type HTMLAttributes } from 'react';
+import { Toolbar } from '@base-ui/react/toolbar';
 import type { Viewer } from 'openseadragon';
 import { useEditorState, type Editor } from '@tiptap/react';
 import { type Toggle as TogglePrimitive } from '@base-ui/react';
@@ -59,7 +60,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
   });
 
   return (editor && state) ? (
-    <div 
+    <Toolbar.Root 
       ref={setEl}
       className="bg-white flex items-stretch rounded-md pointer-events-auto ring-1
       ring-black/5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.10)]"
@@ -67,12 +68,13 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
       aria-label="Text formatting"
       tabIndex={0}>
       <div
+        tabIndex={-1}
         className="bg-muted text-muted-foreground cursor-grab rounded-l-md border-r flex items-center px-1"
         {...props.dragHandleProps}>
         <IconGripVertical className="size-4" />
       </div>
 
-      <div className="p-1.5 flex gap-0.75 items-center">
+      <div className="p-1.5 flex gap-1 items-center">
         <FontSizeWidget 
           fontSize={state.fontSize}
           onChange={s => editor.chain().focus().setFontSize(`${s}px`).run()} />
@@ -81,66 +83,72 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
           className="mx-1"
           orientation="vertical" />
 
-        <Toggle
-          tabIndex={-1}
-          pressed={state.isBold}
-          className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
-          onPressedChange={() => editor.chain().focus().toggleBold().run()}>
+        <Toolbar.Button render={
+          <Toggle
+            pressed={state.isBold}
+            className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
+            onPressedChange={() => editor.chain().focus().toggleBold().run()} /> 
+          }>
           <IconBold className="size-3.5" />
-        </Toggle>
+        </Toolbar.Button>
 
-        <Toggle
-          tabIndex={-1}
-          className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
-          pressed={state.isItalic}
-          onPressedChange={() => editor.chain().focus().toggleItalic().run()}>
+        <Toolbar.Button render={
+          <Toggle
+            className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
+            pressed={state.isItalic}
+            onPressedChange={() => editor.chain().focus().toggleItalic().run()} />
+          }>
           <IconItalic className="size-3.5"  />
-        </Toggle>
+        </Toolbar.Button>
 
-        <Toggle
-          tabIndex={-1}
-          className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
-          pressed={state.isUnderline}
-          onPressedChange={() => editor.chain().focus().toggleUnderline().run()}>
-          <IconUnderline className="size-3.5"  />
-        </Toggle>
-
-        <Separator
-          className="mx-1"
-          orientation="vertical" />
-
-        <ToggleGroup
-          className="gap-0.75"
-          value={[state.textAlign]}
-          onValueChange={([val]) => {
-            if (val) editor.chain().focus().setTextAlign(val).run();
-          }}>
-          <ToolbarToggleGroupItem value="left">
-            <IconAlignLeft className="size-3.5" /> 
-          </ToolbarToggleGroupItem>
-
-          <ToolbarToggleGroupItem value="center">
-            <IconAlignCenter className="size-3.5" /> 
-          </ToolbarToggleGroupItem>
-
-          <ToolbarToggleGroupItem value="right">
-            <IconAlignRight className="size-3.5" /> 
-          </ToolbarToggleGroupItem>
-        </ToggleGroup>
+        <Toolbar.Button render={
+          <Toggle
+            className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
+            pressed={state.isUnderline}
+            onPressedChange={() => editor.chain().focus().toggleUnderline().run()} />
+          }>
+            <IconUnderline className="size-3.5"  />
+          </Toolbar.Button>
 
         <Separator
           className="mx-1"
           orientation="vertical" />
 
-        <Button
-          tabIndex={-1}
-          variant="ghost"
-          className="rounded-md size-7 text-destructive hover:text-destructive"
-          onClick={props.onDelete}>
+        <Toolbar.Group>
+          <ToggleGroup
+            className="gap-1"
+            value={[state.textAlign]}
+            onValueChange={([val]) => {
+              if (val) editor.chain().focus().setTextAlign(val).run();
+            }}>
+            <ToolbarToggleGroupItem value="left">
+              <IconAlignLeft className="size-3.5" /> 
+            </ToolbarToggleGroupItem>
+
+            <ToolbarToggleGroupItem value="center">
+              <IconAlignCenter className="size-3.5" /> 
+            </ToolbarToggleGroupItem>
+
+            <ToolbarToggleGroupItem value="right">
+              <IconAlignRight className="size-3.5" /> 
+            </ToolbarToggleGroupItem>
+          </ToggleGroup>
+        </Toolbar.Group>
+
+        <Separator
+          className="mx-1"
+          orientation="vertical" />
+
+        <Toolbar.Button render={
+          <Button
+            variant="ghost"
+            className="rounded-md size-7 text-destructive hover:text-destructive"
+            onClick={props.onDelete} />
+          }>
           <IconTrash className="size-3.5" />
-        </Button>
+        </Toolbar.Button>
       </div>
-    </div>
+    </Toolbar.Root>
   ) : null;
 
 }
