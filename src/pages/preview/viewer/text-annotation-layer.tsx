@@ -80,8 +80,6 @@ interface TextAnnotationOverlayProps {
 
 }
 
-
-
 export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
   const { annotation } = props;
 
