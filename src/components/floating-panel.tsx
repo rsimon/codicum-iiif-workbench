@@ -72,7 +72,7 @@ export const FloatingPanelContent = (props: FloatingPanelContentProps) => {
 
           <div
             ref={headerRef}
-            className="pointer-events-auto flex cursor-move items-center justify-between border-b rounded-t-md px-1 py-1 select-none">
+            className="pointer-events-auto flex cursor-move items-center justify-between border-b rounded-t-md p-1.5 select-none">
             <div className="flex gap-1.5 items-center text-xs">
               <IconGripVertical 
                 className="size-3.5 text-muted-foreground" />
@@ -82,7 +82,8 @@ export const FloatingPanelContent = (props: FloatingPanelContentProps) => {
             <Popover.Close
               data-panel-close
               aria-label="Close"
-              className="rounded-sm p-1 cursor-pointer text-muted-foreground opacity-70 
+              className="rounded-sm p-0.5 outline-none cursor-pointer opacity-70 border border-transparent
+                focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50
                 transition-opacity hover:opacity-100 hover:bg-accent">
               <IconX className="size-4" />
             </Popover.Close>
