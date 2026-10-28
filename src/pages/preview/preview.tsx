@@ -18,7 +18,8 @@ export const Preview = () => {
           <ThumbnailStrip />
         </Panel>
 
-        <Separator />
+        <Separator
+          className="focus-visible:outline-2 focus-visible:outline-primary" />
 
         <Panel>
           <Viewer 
@@ -26,7 +27,9 @@ export const Preview = () => {
             onChangeInspectorOpen={setIsInspectorOpen} />
         </Panel>
 
-        <Separator />
+        <Separator 
+          className="relative focus-visible:outline focus-visible:outline-primary" 
+          inert={!isInspectorOpen} />
         
         <AnimatedPanel 
           open={isInspectorOpen}

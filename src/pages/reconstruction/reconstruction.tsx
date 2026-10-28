@@ -63,7 +63,7 @@ export const Reconstruction = () => {
 
         <Separator 
           className="relative focus-visible:outline focus-visible:outline-primary" 
-          inert={!isSidebarOpen}/>
+          inert={!isSidebarOpen} />
 
         <AnimatedPanel 
           open={isSidebarOpen}
