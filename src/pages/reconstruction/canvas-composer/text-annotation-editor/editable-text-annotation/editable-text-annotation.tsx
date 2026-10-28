@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent, MouseEvent, PointerEvent } from 'react';
 import type { Editor, JSONContent } from '@tiptap/react';
 import type { Viewer } from 'openseadragon';
-import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/react-dom';
 import { FONT_SIZE_RATIO, TiptapEditor } from '@/components/tiptap-editor';
 import { TiptapReadOnlyView } from '@/components/tiptap-readonly-view';
 import { cn } from '@/shadcn/utils';
@@ -12,6 +11,15 @@ import { useMousewheelForward } from '../../use-mousewheel-forward';
 import { isEmptyDoc } from './editable-text-annotation-utils';
 import { counterScale, EDGE_HANDLES } from './editable-text-annotation-utils';
 import { TextAnnotationToolbar } from './text-annotation-toolbar';
+import { 
+  autoUpdate, 
+  flip, 
+  offset, 
+  shift, 
+  useFloating,
+  FloatingPortal,
+  FloatingFocusManager
+} from '@floating-ui/react';
 
 // Text box initial size - canvas pixels
 const INITIAL_WIDTH = 40;
@@ -85,7 +93,8 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
 
   useMousewheelForward(contentEl, props.viewer);
 
-  const { refs, floatingStyles } = useFloating({
+  const { refs, floatingStyles, context } = useFloating({
+    open: isSelected,
     placement: 'top',
     strategy: 'fixed',
     middleware: [offset(10), flip(), shift({ padding: 8 })],
@@ -290,23 +299,29 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
               borderWidth: counterScale(1.25)
             }}
             {...gestureHandlers('resize')} />
-
-          {createPortal(
-            <div
-              ref={refs.setFloating}
-              style={floatingStyles}
-              className="z-50"
-              onMouseDown={keepFocus}>
-              <TextAnnotationToolbar
-                editor={editor}
-                viewer={viewer}
-                dragHandleProps={gestureHandlers('move')}
-                onDelete={props.onRemove} />
-            </div>,
-            document.body
-          )}
         </>
       )}
+
+      <FloatingPortal>
+        <FloatingFocusManager
+          context={context}
+          modal={false} 
+          initialFocus={-1}
+          returnFocus={false}
+          closeOnFocusOut={false}>
+          <div
+            ref={refs.setFloating}
+            style={floatingStyles}
+            className="z-50"
+            onMouseDown={keepFocus}>
+            <TextAnnotationToolbar
+              editor={editor}
+              viewer={viewer}
+              dragHandleProps={gestureHandlers('move')}
+              onDelete={props.onRemove} />
+          </div>
+        </FloatingFocusManager>
+      </FloatingPortal>
     </div>
   )
 
