@@ -66,6 +66,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
       ring-black/5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.10)]"
       role="toolbar"
       aria-label="Text formatting"
+      onMouseDown={e => e.preventDefault()}
       tabIndex={0}>
       <div
         tabIndex={-1}
