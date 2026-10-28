@@ -15,7 +15,8 @@ import {
   IconBold, 
   IconGripVertical, 
   IconItalic, 
-  IconTrash 
+  IconTrash, 
+  IconUnderline
 } from '@tabler/icons-react';
 
 interface TextAnnotationToolbarProps {
@@ -43,6 +44,8 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
       isBold: Boolean(ctx.editor?.isActive('bold')),
 
       isItalic: Boolean(ctx.editor?.isActive('italic')),
+
+      isUnderline: Boolean(ctx.editor?.isActive('underline')),
       
       fontSize: ctx.editor ? parseInt(
         ctx.editor.getAttributes('textStyle').fontSize || 
@@ -92,6 +95,14 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
           pressed={state.isItalic}
           onPressedChange={() => editor.chain().focus().toggleItalic().run()}>
           <IconItalic className="size-3.5"  />
+        </Toggle>
+
+        <Toggle
+          tabIndex={-1}
+          className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
+          pressed={state.isUnderline}
+          onPressedChange={() => editor.chain().focus().toggleUnderline().run()}>
+          <IconUnderline className="size-3.5"  />
         </Toggle>
 
         <Separator

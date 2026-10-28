@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { EditorContent, useEditor, type Editor, type JSONContent } from '@tiptap/react';
+import { Placeholder, UndoRedo } from '@tiptap/extensions';
 import Bold from '@tiptap/extension-bold';
 import Document from '@tiptap/extension-document';
 import HardBreak from '@tiptap/extension-hard-break';
@@ -8,20 +9,21 @@ import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import TextAlign from '@tiptap/extension-text-align'
 import { TextStyle, FontSize } from '@tiptap/extension-text-style';
-import { Placeholder, UndoRedo } from '@tiptap/extensions';
+import Underline from '@tiptap/extension-underline'
 
 export const SCHEMA_EXTENSIONS = [
+  Bold, 
   Document, 
+  FontSize,
+  HardBreak,
+  Italic,
   Paragraph, 
   Text, 
-  HardBreak,
-  Bold, 
-  Italic,
   TextAlign.configure({
     types: ['heading', 'paragraph']
   }),
   TextStyle,
-  FontSize
+  Underline
 ];
 
 export const EDITOR_EXTENSIONS = [
