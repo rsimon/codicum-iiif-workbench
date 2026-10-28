@@ -29,7 +29,7 @@ export const SCHEMA_EXTENSIONS = [
 export const EDITOR_EXTENSIONS = [
   ...SCHEMA_EXTENSIONS,
   UndoRedo,
-  Placeholder.configure({ placeholder: 'Type here' })
+  Placeholder.configure({ placeholder: 'Start typing...' })
 ];
 
 // Annotation base font size relative to canvas width
