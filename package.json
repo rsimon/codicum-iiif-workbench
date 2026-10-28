@@ -1,5 +1,5 @@
 {
-  "name": "iiif-manuscript-workbench",
+  "name": "codicum-manuscript-workbench",
   "version": "0.2.0",
   "author": "Rainer Simon",
   "main": "src/index.tsx",
