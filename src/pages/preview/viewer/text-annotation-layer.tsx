@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Point, type Viewer } from 'openseadragon';
-import type { TextAnnotation } from '@/types';
-import type { CanvasPlacement } from './viewer';
+import type { ReconstructionCanvas, TextAnnotation } from '@/types';
 import { TiptapReadOnlyView } from '@/components/tiptap-readonly-view';
+import { FONT_SIZE_RATIO } from '@/components/tiptap-editor';
+import type { CanvasPlacement } from './viewer';
 
 interface TextAnnotationLayerProps {
 
@@ -59,7 +60,10 @@ export const TextAnnotationLayer = (props: TextAnnotationLayerProps) => {
             transformOrigin: '0 0'
           }}>
           {(p.canvas.annotations ?? []) .map(annotation => (
-            <TextAnnotationOverlay key={annotation.id} annotation={annotation} />
+            <TextAnnotationOverlay 
+              key={annotation.id} 
+              canvas={p.canvas}
+              annotation={annotation} />
           ))}
         </div>
       ))}
@@ -72,7 +76,11 @@ interface TextAnnotationOverlayProps {
 
   annotation: TextAnnotation;
 
+  canvas: ReconstructionCanvas;
+
 }
+
+
 
 export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
   const { annotation } = props;
@@ -81,6 +89,7 @@ export const TextAnnotationOverlay = (props: TextAnnotationOverlayProps) => {
     <div
       className="absolute pointer-none:"
       style={{
+        fontSize: Math.round(props.canvas.width * FONT_SIZE_RATIO),
         left: annotation.x,
         top: annotation.y,
         width: annotation.width,

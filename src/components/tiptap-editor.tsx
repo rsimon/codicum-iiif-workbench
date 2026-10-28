@@ -32,6 +32,9 @@ export const EDITOR_EXTENSIONS = [
   Placeholder.configure({ placeholder: 'Type here' })
 ];
 
+// Annotation base font size relative to canvas width
+export const FONT_SIZE_RATIO = 0.03;
+
 interface TiptapEditorProps {
 
   // Initial content

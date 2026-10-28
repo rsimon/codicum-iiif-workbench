@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import type { Editor, JSONContent } from '@tiptap/react';
 import type { Viewer } from 'openseadragon';
 import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/react-dom';
-import { TiptapEditor } from '@/components/tiptap-editor';
+import { FONT_SIZE_RATIO, TiptapEditor } from '@/components/tiptap-editor';
 import { TiptapReadOnlyView } from '@/components/tiptap-readonly-view';
 import { cn } from '@/shadcn/utils';
 import type { ReconstructionCanvas, TextAnnotation } from '@/types';
@@ -16,9 +16,6 @@ import { TextAnnotationToolbar } from './text-annotation-toolbar';
 // Text box initial size - canvas pixels
 const INITIAL_WIDTH = 40;
 const INITIAL_HEIGHT = 24;
-
-// Annotation font size relative to canvas width
-const FONT_SIZE_RATIO = 0.03;
 
 type GestureKind = 'move' | 'resize';
 
@@ -247,7 +244,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
       <div
         ref={setContentEl}
         className={cn(
-          'size-full box-border overflow-hidden',
+          'size-full box-border',
           isSelected ? 'cursor-text' : 'cursor-default'
         )}
         style={{
@@ -255,7 +252,7 @@ export const EditableTextAnnotation = (props: EditableTextAnnotationProps) => {
           background: isSelected ? 'oklch(0.92 0.03 248.81 / 0.35)' : 'rgba(255, 255, 255, 0.35)',
           borderRadius: `${counterScale(2)}`,
           border: `${counterScale(1)} ${isSelected ? 'dashed oklch(0.5 0.15 246.78)' : 'solid oklch(70.8% 0 none / 0.25)'}`,
-          padding: counterScale(4)
+          padding: `0 ${counterScale(4)}px`
         }}
         onKeyDown={onKeyDown}
         onKeyUp={evt => evt.stopPropagation()}>
