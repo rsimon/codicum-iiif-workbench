@@ -1,10 +1,10 @@
-import { Point, type CanvasClickEvent, type Viewer } from 'openseadragon';
-import { useReconstructionStore } from '../reconstruction-store';
 import { useEffect } from 'react';
+import { Point, type CanvasClickEvent, type Viewer } from 'openseadragon';
+import { useAppStore } from '@/store/app-store';
+import { useReconstructionStore } from '../reconstruction-store';
 import type { ComposerLayout } from '../reconstruction-types';
 import { getImageAt, getItemAt } from './composer-utils';
 import { useComposerStore } from './composer-store';
-import { useAppStore } from '@/store/app-store';
 
 export const useComposerSelection = (
   viewer: Viewer | undefined,
@@ -13,7 +13,10 @@ export const useComposerSelection = (
 ) => {
   const selection = useReconstructionStore(state => state.selection);
   const setSelectedItems = useReconstructionStore(state => state.setSelection);
+
+  const editMode = useComposerStore(state => state.editMode);
   const setSelectedImage = useComposerStore(state => state.setSelectedImage);
+  const setSelectedTextAnnotation = useComposerStore(state => state.setSelectedTextAnnotation);
 
   // Clear selected image if canvas selection changes from outside (tree view)
   useEffect(() => {
@@ -25,6 +28,17 @@ export const useComposerSelection = (
 
     if (!stillSelected) setSelectedImage();
   }, [selection, setSelectedImage]);
+
+  // Same for selected text annotation
+  useEffect(() => {
+    const { selectedTextAnnotation } = useComposerStore.getState();
+    if (!selectedTextAnnotation) return;
+
+    const stillSelected =
+      selection.length === 1 && selection[0].id === selectedTextAnnotation.canvasId;
+
+    if (!stillSelected) setSelectedTextAnnotation();
+  }, [selection, setSelectedTextAnnotation]);
 
   // Bring a selected canvas into view if it isn't already visible
   useEffect(() => {
@@ -50,8 +64,10 @@ export const useComposerSelection = (
     if (!viewer) return;
 
     const onCanvasClick = (evt: CanvasClickEvent) => {
-      if (isTapeMeasureEnabled) return;
-      if (!evt.quick) return;
+      if (!evt.quick) return; // Ignore long OSD clicks/drags
+
+      // Ignore clicks if UI is in tape measure or TEXT edit mode
+      if (isTapeMeasureEnabled || editMode === 'TEXT') return;
       
       const { metaKey } = evt.originalEvent as PointerEvent;
 
@@ -64,6 +80,31 @@ export const useComposerSelection = (
         
         const canvas = reconstruction.find(r => r.id === item.reconstructionCanvasId);
         if (!canvas) return;
+
+        if (!metaKey) {
+          const scale = item.width / canvas.width;
+          const x = (point.x - item.x) / scale;
+          const y = (point.y - item.y) / scale;
+          
+          const annotation = (canvas.annotations ?? []).find(annotation =>
+            x >= annotation.x &&
+            x <= annotation.x + annotation.width &&
+            y >= annotation.y &&
+            y <= annotation.y + annotation.height
+          );
+
+          if (annotation) {
+            setSelectedTextAnnotation({
+              canvasId: canvas.id,
+              annotationId: annotation.id
+            });
+            
+            setSelectedItems([canvas]);
+            return;
+          }
+        }
+
+        setSelectedTextAnnotation();
 
         if (metaKey) {
           setSelectedImage();
@@ -82,6 +123,7 @@ export const useComposerSelection = (
           });
         }
       } else if (!metaKey) {
+        setSelectedTextAnnotation();
         setSelectedImage();
         setSelectedItems([]);
       }
@@ -92,6 +134,6 @@ export const useComposerSelection = (
     return () => {
       viewer?.removeHandler('canvas-click', onCanvasClick);
     }
-  }, [viewer, layout, setSelectedItems, setSelectedImage, isTapeMeasureEnabled]);
+  }, [viewer, layout, setSelectedItems, setSelectedImage, setSelectedTextAnnotation, isTapeMeasureEnabled, editMode]);
 
 }

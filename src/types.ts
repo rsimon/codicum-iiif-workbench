@@ -1,3 +1,4 @@
+import type { JSONContent  } from '@tiptap/react';
 import type { CozyCanvas, CozyManifest } from 'cozy-iiif';
 
 /** Sources **/
@@ -40,6 +41,22 @@ export interface PhysicalScale {
 
 }
 
+export interface TextAnnotation {
+
+  id: string;
+
+  x: number;
+
+  y: number;
+
+  width: number;
+
+  height: number;
+
+  content: JSONContent;
+
+}
+
 /** Reconstruction **/
 
 export interface OriginalCanvas {
@@ -58,6 +75,8 @@ export interface OriginalCanvas {
 
   physicalSize?: PhysicalSize;
 
+  annotations?: TextAnnotation[];
+
 }
 
 export interface CompositeCanvas {
@@ -75,6 +94,8 @@ export interface CompositeCanvas {
   height: number;
 
   physicalSize?: PhysicalSize;
+
+  annotations?: TextAnnotation[];
 
 }
 

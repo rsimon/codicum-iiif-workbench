@@ -206,7 +206,7 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
                 <Button
                   variant="link"
                   size="sm"
-                  className="font-normal text-primary hover:text-primary px-0.5 h-auto"
+                  className="font-normal rounded-sm text-primary hover:text-primary px-1 h-auto"
                   onClick={() => setMode('MEASURE')}>
                   <IconRulerMeasure className="size-4" /> Measure from image
                 </Button>
