@@ -66,7 +66,9 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
       ring-black/5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.10)]"
       role="toolbar"
       aria-label="Text formatting"
-      onMouseDown={e => e.preventDefault()}
+      onMouseDown={e => {
+        if (!(e.target instanceof HTMLInputElement)) e.preventDefault();
+      }}
       tabIndex={0}>
       <div
         tabIndex={-1}
@@ -78,7 +80,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
       <div className="p-1.5 flex gap-1 items-center">
         <FontSizeWidget 
           fontSize={state.fontSize}
-          onChange={s => editor.chain().focus().setFontSize(`${s}px`).run()} />
+          onChange={s => editor.chain().setFontSize(`${s}px`).run()} />
 
         <Separator
           className="mx-1"
@@ -88,7 +90,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
           <Toggle
             pressed={state.isBold}
             className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
-            onPressedChange={() => editor.chain().focus().toggleBold().run()} /> 
+            onPressedChange={() => editor.chain().toggleBold().run()} /> 
           }>
           <IconBold className="size-3.5" />
         </Toolbar.Button>
@@ -97,7 +99,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
           <Toggle
             className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
             pressed={state.isItalic}
-            onPressedChange={() => editor.chain().focus().toggleItalic().run()} />
+            onPressedChange={() => editor.chain().toggleItalic().run()} />
           }>
           <IconItalic className="size-3.5"  />
         </Toolbar.Button>
@@ -106,7 +108,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
           <Toggle
             className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
             pressed={state.isUnderline}
-            onPressedChange={() => editor.chain().focus().toggleUnderline().run()} />
+            onPressedChange={() => editor.chain().toggleUnderline().run()} />
           }>
             <IconUnderline className="size-3.5"  />
           </Toolbar.Button>
@@ -120,7 +122,7 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
             className="gap-1"
             value={[state.textAlign]}
             onValueChange={([val]) => {
-              if (val) editor.chain().focus().setTextAlign(val).run();
+              if (val) editor.chain().setTextAlign(val).run();
             }}>
             <ToolbarToggleGroupItem value="left">
               <IconAlignLeft className="size-3.5" /> 
