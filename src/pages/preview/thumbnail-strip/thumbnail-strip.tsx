@@ -25,7 +25,8 @@ export const ThumbnailStrip = () => {
     return (
       <button
         className={cn(
-          'cursor-pointer flex flex-col @[160px]:flex-row items-center justify-center gap-2.5 p-0.5 w-full max-w-42 mx-auto rounded',
+          'border border-transparent outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+          'cursor-pointer flex flex-col @[160px]:flex-row items-center justify-center gap-2.5 p-1 w-full max-w-42 mx-auto rounded',
           idx > 0 && 'mt-2',
           isSelected ? 'ring-2 ring-primary bg-primary/15' : 'hover:ring-2 hover:ring-primary/25'
         )}
