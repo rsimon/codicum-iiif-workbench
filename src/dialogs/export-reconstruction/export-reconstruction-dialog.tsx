@@ -132,6 +132,7 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
             <div className="space-y-2">
               <Label htmlFor="export-attribution">Attribution (optional)</Label>
               <Input
+                required
                 id="export-attribution"
                 value={attribution}
                 onChange={(e) => setAttribution(e.target.value)}
@@ -167,12 +168,16 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
                 className="absolute left-0 -bottom-12 text-xs">
                 {copied ? (
                   <>
-                    <Check className="mr-1 h-3 w-3" />
+                    <Check 
+                      aria-hidden
+                      className="mr-1 h-3 w-3" />
                     Copied
                   </>
                 ) : (
                   <>
-                    <Copy className="mr-1 h-3 w-3" />
+                    <Copy 
+                      aria-hidden
+                      className="mr-1 h-3 w-3" />
                     Copy
                   </>
                 )}
@@ -190,7 +195,9 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
             </Button>
 
             <Button onClick={onDownload}>
-              <Download className="mr-2 h-4 w-4" />
+              <Download 
+                aria-hidden
+                className="mr-2 h-4 w-4" />
               Download JSON
             </Button>
           </div>
