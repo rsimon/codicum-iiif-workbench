@@ -41,22 +41,21 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
 
   const state = useEditorState({
     editor,
-    selector: ctx => ({
-      isBold: Boolean(ctx.editor?.isActive('bold')),
+    selector: ({ editor }) => {
+      if (!editor || !editor.isInitialized || editor.isDestroyed) return null;
 
-      isItalic: Boolean(ctx.editor?.isActive('italic')),
-
-      isUnderline: Boolean(ctx.editor?.isActive('underline')),
-      
-      fontSize: ctx.editor ? parseInt(
-        ctx.editor.getAttributes('textStyle').fontSize || 
-        getComputedStyle(ctx.editor.view.dom).fontSize
-      ) : 16,
-
-      textAlign: (['left', 'center', 'right'] as const).find(a =>
-        ctx.editor?.isActive({ textAlign: a })
-      ) ?? 'left'
-    })
+      return {
+        isBold: Boolean(editor.isActive('bold')),
+        isItalic: Boolean(editor.isActive('italic')),
+        isUnderline: Boolean(editor.isActive('underline')),
+        fontSize: parseInt(
+          editor.getAttributes('textStyle').fontSize || 
+          getComputedStyle(editor.view.dom).fontSize),
+        textAlign: (['left', 'center', 'right'] as const).find(a =>
+          editor.isActive({ textAlign: a })
+        ) ?? 'left'
+      }
+    }
   });
 
   return (editor && state) ? (
