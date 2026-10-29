@@ -104,7 +104,10 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
             <TabsTrigger value="preview">JSON Preview</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="settings" className="space-y-6 pt-4">
+          <TabsContent 
+            value="settings" 
+            className="space-y-6 pt-4"
+            tabIndex={-1}>
             <div className="space-y-2">
               <Label htmlFor="export-label">Manifest Label</Label>
               <Input
@@ -145,12 +148,18 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
             </div>
           </TabsContent>
           
-          <TabsContent value="preview" className="pt-4">
-            <div className="relative">
-              <Textarea
-                value={manifestJson}
-                readOnly
-                className="h-80 field-sizing-fixed wrap-anywhere font-mono text-sm! font-light" />
+          <TabsContent 
+            value="preview" 
+            className="pt-4"
+            tabIndex={-1}>
+            <div className="relative rounded-md">
+              <div className="h-80 relative rounded-md overflow-hidden border border-input focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
+                <Textarea
+                  readOnly
+                  value={manifestJson}
+                  aria-label="Manifest JSON"
+                  className="border-none size-full field-sizing-fixed wrap-anywhere font-mono text-sm! font-light" />
+              </div>
               
               <Button
                 variant="ghost"
