@@ -60,6 +60,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
     maxFiles: 1,
     multiple: false,
     noClick: true,
+    noKeyboard: true,
     onDrop: acceptedFiles => {
       const selectedFile = acceptedFiles[0];
       if (selectedFile) void onFileImport(selectedFile);
@@ -134,7 +135,10 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
                   <TabsTrigger value="file">From JSON file</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="url" className="space-y-2 pt-4">
+                <TabsContent 
+                  value="url" 
+                  className="space-y-2 pt-4"
+                  tabIndex={-1}>
                   <Label htmlFor="reconstruction-url">Manifest URL</Label>
                   <Input
                     id="reconstruction-url"
@@ -151,7 +155,10 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
                   />
                 </TabsContent>
 
-                <TabsContent value="file" className="pt-4">
+                <TabsContent
+                  value="file" 
+                  className="pt-4"
+                  tabIndex={-1}>
                   <div
                     {...getRootProps()}
                     className={cn(
@@ -166,6 +173,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
                       onClick={openFilePicker}>
                       Choose file
                     </Button>
+
                     <p className={cn(
                       'mt-3 text-sm',
                       isDragActive ? 'text-sky-800/80' : 'text-muted-foreground'
