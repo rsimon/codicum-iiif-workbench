@@ -16,7 +16,6 @@ import type {
   TextAnnotation
 } from '@/types';
 
-
 export interface ReconstructionParseResult {
 
   sources: SourceManifest[];
