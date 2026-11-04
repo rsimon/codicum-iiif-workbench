@@ -92,6 +92,7 @@ export const LazyThumbnail = (props: LazyThumbnailProps) => {
   const state = savedState.canvasId === canvas.id
     ? savedState.state
     : loadedThumbnails.has(canvas.id) ? 'loaded' : 'pending';
+
   const src = savedState.canvasId === canvas.id
     ? savedState.src
     : loadedThumbnails.get(canvas.id);
@@ -106,7 +107,8 @@ export const LazyThumbnail = (props: LazyThumbnailProps) => {
 
     const timer = setTimeout(() => {
       setSavedState({ canvasId: canvas.id, state: 'loading' });
-      void loadThumbnail(canvas).then(
+
+      loadThumbnail(canvas).then(
         src => setSavedState({ canvasId: canvas.id, src, state: 'loaded' }),
         () => setSavedState({ canvasId: canvas.id, state: 'failed' })
       );
