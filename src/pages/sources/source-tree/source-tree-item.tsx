@@ -106,6 +106,7 @@ interface CanvasTreeItemProps {
 export const CanvasTreeItem = (props: CanvasTreeItemProps) => {
   const physicalSize = useAppStore(state => state.sizes.get(props.canvas.id));
 
+  // Thumbnail size (Tailwind) is 36 x 44
   return (
     <div
       className={cn(
@@ -135,7 +136,7 @@ export const CanvasTreeItem = (props: CanvasTreeItemProps) => {
         </div>
 
         <LazyThumbnail
-          src={props.canvas.getThumbnailURL(80)}
+          canvas={props.canvas}
           alt={`${props.canvas.getLabel()} preview image`}
           className="w-9 h-11 shrink-0 rounded-xs shadow-xs object-cover ring-1 ring-foreground/10" />
 

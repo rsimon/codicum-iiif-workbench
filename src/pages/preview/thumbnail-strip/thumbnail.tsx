@@ -11,8 +11,6 @@ interface ThumbnailProps {
 
   className?: string;
 
-  minSize?: number;
-
 }
 
 export const Thumbnail = (props: ThumbnailProps) => {
@@ -31,16 +29,14 @@ export const Thumbnail = (props: ThumbnailProps) => {
       label={canvas.label}
       canvasWidth={canvasWidth}
       canvasHeight={canvasHeight}
-      className={props.className}
-      minSize={props.minSize} />
+      className={props.className} />
   ) : (
     <CompositeImageThumbnail 
       canvasHeight={canvasHeight}
       canvasWidth={canvasWidth} 
       images={images} 
       label={canvas.label} 
-      className={props.className} 
-      minSize={props.minSize} />
+      className={props.className} />
   )
 
 }
@@ -57,20 +53,19 @@ interface PrimitiveImageThumbnailProps {
 
   label: string;
 
-  minSize?: number;
-
 }
 
 const PrimitiveImageThumbnail = (props: PrimitiveImageThumbnailProps) => {
   const crop = getImageCrop(props.image);
 
+  // Note that thumbnail max size (Tailwind) is (88 x 112 px) x devicePixelRatio
   const isCropped = crop.x !== 0 || crop.y !== 0 || crop.w !== props.image.width || crop.h !== props.image.height;
   return isCropped ? (
     <div
       className={cn(THUMBNAIL_SIZING, 'relative overflow-hidden rounded ring ring-foreground/10 shadow-xs', props.className)}
       style={{ aspectRatio: `${props.canvasWidth} / ${props.canvasHeight}` }}>
       <img
-        src={props.image.getImageURL(props.minSize || 320)}
+        src={props.image.getImageURL({ size: 350 })}
         className="absolute max-w-none"
         style={{
           left: `${-(crop.x / crop.w) * 100}%`,
@@ -82,7 +77,7 @@ const PrimitiveImageThumbnail = (props: PrimitiveImageThumbnailProps) => {
     </div>
   ) : (
     <img
-      src={props.image.getImageURL(props.minSize || 320)}
+      src={props.image.getImageURL({ size: 350 })}
       className={cn(THUMBNAIL_SIZING, 'rounded ring ring-foreground/10 shadow-xs object-cover', props.className)}
       style={{ aspectRatio: `${props.canvasWidth} / ${props.canvasHeight}` }}
       alt={props.label} />
@@ -102,12 +97,10 @@ interface CompositeImageThumbnailProps {
 
   label: string;
 
-  minSize?: number;
-
 }
 
 const CompositeImageThumbnail = (props: CompositeImageThumbnailProps) => {
-  const { canvasWidth, canvasHeight, label, minSize = 160 } = props;
+  const { canvasWidth, canvasHeight, label } = props;
 
   const renderImage = (image: CozyImageResource, idx: number) => {
     const target = image.target || {
@@ -131,7 +124,7 @@ const CompositeImageThumbnail = (props: CompositeImageThumbnailProps) => {
           height: `${(target.h / canvasHeight) * 100}%`,
         }}>
         <img
-          src={image.getImageURL(minSize)}
+          src={image.getImageURL({ size: 350 })}
           alt={`${label}: image ${idx + 1}`}
           className="absolute max-w-none"
           style={isCropped ? {

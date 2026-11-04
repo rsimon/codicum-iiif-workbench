@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import pLimit from 'p-limit';
+import type { CozyCanvas } from 'cozy-iiif';
+import { getThumbnailURL } from 'cozy-iiif/level-0';
 import { cn } from '@/shadcn/utils';
 import { Skeleton } from '@/shadcn/skeleton';
 
@@ -8,8 +10,8 @@ const IDLE_DELAY_MS = 350;
 const FETCH_TIMEOUT_MS = 30000;
 
 const limit = pLimit(5);
-const thumbnailLoads = new Map<string, Promise<void>>();
-const loadedThumbnails = new Set<string>();
+const thumbnailLoads = new Map<string, Promise<string>>();
+const loadedThumbnails = new Map<string, string>();
 
 const preload = (src: string) => new Promise<void>((resolve, reject) => {
   const img = new Image();
@@ -33,26 +35,36 @@ const preload = (src: string) => new Promise<void>((resolve, reject) => {
   img.src = src;
 });
 
-const loadThumbnail = (src: string) => {
-  const existing = thumbnailLoads.get(src);
+const loadThumbnail = (canvas: CozyCanvas) => {
+  const cached = loadedThumbnails.get(canvas.id);
+  if (cached) return Promise.resolve(cached);
+
+  const existing = thumbnailLoads.get(canvas.id);
   if (existing) return existing;
 
-  const load = limit(() => preload(src));
-  thumbnailLoads.set(src, load);
+  const load = limit(async () => {
+    const src = await getThumbnailURL(canvas, canvas.images, { size: 350 });
+    if (!src)
+      throw new Error(`Failed to get thumbnail URL for canvas: ${canvas.id}`);
+
+    await preload(src);
+    return src;
+  });
+  thumbnailLoads.set(canvas.id, load);
 
   void load.then(
-    () => loadedThumbnails.add(src),
-    () => thumbnailLoads.delete(src)
+    src => loadedThumbnails.set(canvas.id, src),
+    () => thumbnailLoads.delete(canvas.id)
   );
 
   return load;
 };
 
-type LazyThumbnailState = 'pending' | 'loaded' | 'failed';
+type LazyThumbnailState = 'pending' | 'loading' | 'loaded' | 'failed';
 
 interface LazyThumbnailProps {
 
-  src: string;
+  canvas: CozyCanvas;
 
   alt: string;
 
@@ -61,14 +73,28 @@ interface LazyThumbnailProps {
 }
 
 export const LazyThumbnail = (props: LazyThumbnailProps) => {
-  const { src, alt, className } = props;
+  const { canvas, alt, className } = props;
 
-  const [savedState, setSavedState] = useState<{ src: string; state: LazyThumbnailState }>(
-    () => ({ src, state: loadedThumbnails.has(src) ? 'loaded' : 'pending' })
+  const [savedState, setSavedState] = useState<{
+    canvasId: string;
+    src?: string;
+    state: LazyThumbnailState;
+  }>(
+    () => {
+      const src = loadedThumbnails.get(canvas.id);
+      return {
+        canvasId: canvas.id,
+        src,
+        state: src ? 'loaded' : 'pending'
+      };
+    }
   );
-  const state = savedState.src === src
+  const state = savedState.canvasId === canvas.id
     ? savedState.state
-    : loadedThumbnails.has(src) ? 'loaded' : 'pending';
+    : loadedThumbnails.has(canvas.id) ? 'loaded' : 'pending';
+  const src = savedState.canvasId === canvas.id
+    ? savedState.src
+    : loadedThumbnails.get(canvas.id);
 
   const { ref, inView } = useInView({
     rootMargin: '200px 0px',
@@ -79,26 +105,27 @@ export const LazyThumbnail = (props: LazyThumbnailProps) => {
     if (!inView || state !== 'pending') return;
 
     const timer = setTimeout(() => {
-      void loadThumbnail(src).then(
-        () => setSavedState({ src, state: 'loaded' }),
-        () => setSavedState({ src, state: 'failed' })
+      setSavedState({ canvasId: canvas.id, state: 'loading' });
+      void loadThumbnail(canvas).then(
+        src => setSavedState({ canvasId: canvas.id, src, state: 'loaded' }),
+        () => setSavedState({ canvasId: canvas.id, state: 'failed' })
       );
     }, IDLE_DELAY_MS);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [inView, state, src]);
+  }, [canvas, inView, state]);
 
   return (
     <div ref={ref} className={cn('relative overflow-hidden', className)}>
-      {state === 'loaded' ? (
+      {state === 'loaded' && src ? (
         <img
           src={src}
           alt={alt}
           decoding="async"
           className="size-full object-cover" />
-      ) : state === 'pending' ? (
+      ) : state === 'pending' || state === 'loading' ? (
         <Skeleton className="size-full" />
       ) : state === 'failed' ? (
         <Skeleton role="img" aria-label={alt} className="size-full" />

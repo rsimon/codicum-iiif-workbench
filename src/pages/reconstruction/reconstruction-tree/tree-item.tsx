@@ -314,10 +314,11 @@ const TreeItemContent = (props: TreeItemContentProps) => {
 
   const sources = useAppStore(state => state.sources);
 
+  // Thumbnail size (Tailwind) is 36 x 44
   return (
     <div className="w-full flex gap-2 min-w-0 px-2 py-2 overflow-hidden">
       <LazyThumbnail
-        src={source.canvas.getThumbnailURL(80)}
+        canvas={source.canvas}
         alt={`${label} preview image`}
         className="w-9 h-11 shrink-0 rounded-xs shadow-xs object-cover ring-1 ring-foreground/20" />
 
