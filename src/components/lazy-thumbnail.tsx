@@ -43,7 +43,7 @@ const loadThumbnail = (canvas: CozyCanvas) => {
   if (existing) return existing;
 
   const load = limit(async () => {
-    const src = await getThumbnailURL(canvas, canvas.images, { size: 350 });
+    const src = await getThumbnailURL(canvas, canvas.images, { size: { w: 72, h: 88 }, fit: 'cover' });
     if (!src)
       throw new Error(`Failed to get thumbnail URL for canvas: ${canvas.id}`);
 
