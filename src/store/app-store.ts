@@ -55,6 +55,14 @@ interface AppStore {
 
 export type MoveDirection = 'up' | 'down' | 'top' | 'bottom';
 
+const sourceCanvasKey = (sourceManifestId: string, canvasId: string) =>
+  JSON.stringify([sourceManifestId, canvasId]);
+
+const getSourceCanvasKeys = (reconstruction: ReconstructionCanvas[]) =>
+  new Set(reconstruction.flatMap(canvas =>
+    canvas.type === 'original' ? [canvas.source] : canvas.sources
+  ).map(source => sourceCanvasKey(source.sourceManifestId, source.canvas.id)));
+
 export const useAppStore = create<AppStore>()(
   persist(
     set => ({
@@ -77,7 +85,7 @@ export const useAppStore = create<AppStore>()(
 
       addSourceCanvasToReconstruction: (sourceId, canvas) => set(({ reconstruction, sizes, baseURI }) => {
         // Don't re-add
-        if (reconstruction.find(r => r.id === canvas.id)) return {};
+        if (getSourceCanvasKeys(reconstruction).has(sourceCanvasKey(sourceId, canvas.id))) return {};
 
         return {
           reconstruction: [
@@ -104,7 +112,13 @@ export const useAppStore = create<AppStore>()(
       }),
 
       addSourceCanvasesToReconstruction: sources => set(({ reconstruction, sizes, baseURI }) => {
-        const toAdd = sources.filter(s => !reconstruction.some(r => r.id === s.canvas.id));
+        const existingSourceCanvases = getSourceCanvasKeys(reconstruction);
+        const toAdd = sources.filter(({ sourceId, canvas }) => {
+          const key = sourceCanvasKey(sourceId, canvas.id);
+          if (existingSourceCanvases.has(key)) return false;
+          existingSourceCanvases.add(key);
+          return true;
+        });
         if (toAdd.length === 0) return {};
 
         return {
