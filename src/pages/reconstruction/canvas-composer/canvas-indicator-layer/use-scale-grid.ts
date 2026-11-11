@@ -2,9 +2,24 @@ import { useCallback } from 'react';
 import type OpenSeadragon from 'openseadragon';
 import type { ComposerLayout } from '../../reconstruction-types';
 
-const TARGET_SPACING = 8;
+const TARGET_SPACING = 4;
 const MAJOR_LINE_EVERY = 10;
 const LABEL_EVERY = MAJOR_LINE_EVERY * 2;
+
+const getNiceLabelInterval = (minimum: number, baseInterval: number) => {
+  const scaledMinimum = minimum / baseInterval;
+  const magnitude = 10 ** Math.floor(Math.log10(scaledMinimum));
+  const fraction = scaledMinimum / magnitude;
+  const niceFraction = fraction <= 1
+    ? 1
+    : fraction <= 2
+      ? 2
+      : fraction <= 5
+        ? 5
+        : 10;
+
+  return niceFraction * magnitude * baseInterval;
+};
 
 export const useScaleGrid = (
   gridScale: ComposerLayout['gridScale'],
@@ -20,8 +35,12 @@ export const useScaleGrid = (
   const pixelsPerUnit = scaleX / gridScale.unitsPerOSDUnit;
   if (!Number.isFinite(pixelsPerUnit) || pixelsPerUnit <= 0) return;
 
-  const exponent = Math.max(-30, Math.min(40, Math.round(Math.log2(TARGET_SPACING / pixelsPerUnit))));
-  const step = 2 ** exponent;
+  const baseLabelInterval = gridScale.unit === 'px' ? 100 : 10;
+  const labelInterval = getNiceLabelInterval(
+    TARGET_SPACING * LABEL_EVERY / pixelsPerUnit,
+    baseLabelInterval
+  );
+  const step = labelInterval / LABEL_EVERY;
   const worldStep = step / gridScale.unitsPerOSDUnit;
   if (!Number.isFinite(worldStep) || worldStep <= 0) return;
 

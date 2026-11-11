@@ -5,6 +5,8 @@ export const ROW_GAP = 0.01;
 
 export const COLUMN_GAP = 0.01;
 
+const PIXEL_LAYOUT_MIN_GAP = 200;
+
 // Helper
 export interface LayoutRow {
 
@@ -49,7 +51,15 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
   const leftColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 0).map(size => size.width));
   
   const rightColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 1).map(size => size.width));
-  const desiredGap = maxWidth * COLUMN_GAP;
+  const desiredGap = usePhysicalSize
+    ? maxWidth * COLUMN_GAP
+    : Math.max(maxWidth * COLUMN_GAP, PIXEL_LAYOUT_MIN_GAP);
+  const rowGap = maxWidth > 0
+    ? (usePhysicalSize
+      ? maxWidth * ROW_GAP
+      : Math.max(maxWidth * ROW_GAP, PIXEL_LAYOUT_MIN_GAP)) / maxWidth
+    : ROW_GAP;
+  const rowLayoutSnapStep = usePhysicalSize ? LAYOUT_SNAP_STEP : PIXEL_LAYOUT_MIN_GAP;
   const rightColumnX = rightColumnWidth > 0
     ? maxWidth > 0
       ? snapUpToStep(leftColumnWidth * maxWidth + desiredGap, LAYOUT_SNAP_STEP) / maxWidth
@@ -103,9 +113,9 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
     layoutHeight = rowY + row.rowHeight;
 
     if (index < rows.length - 1) {
-      const nextRowStart = layoutHeight + ROW_GAP;
+      const nextRowStart = layoutHeight + rowGap;
       if (maxWidth > 0) {
-        rowY = snapUpToStep(nextRowStart * maxWidth, LAYOUT_SNAP_STEP) / maxWidth;
+        rowY = snapUpToStep(nextRowStart * maxWidth, rowLayoutSnapStep) / maxWidth;
       } else {
         rowY = nextRowStart;
       }
