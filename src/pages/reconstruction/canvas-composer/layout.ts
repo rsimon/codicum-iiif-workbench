@@ -14,6 +14,20 @@ export interface LayoutRow {
 
 }
 
+const roundUpToNiceValue = (value: number) => {
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  const fraction = value / magnitude;
+  const niceFraction = fraction <= 1
+    ? 1
+    : fraction <= 2
+      ? 2
+      : fraction <= 5
+        ? 5
+        : 10;
+
+  return niceFraction * magnitude;
+}
+
 export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): ComposerLayout => {
   const physicalUnits = new Set(reconstruction.map(canvas => canvas.physicalSize?.unit!).filter(Boolean));
 
@@ -38,7 +52,15 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
   const leftColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 0).map(size => size.width));
   
   const rightColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 1).map(size => size.width));
-  const rightColumnX = leftColumnWidth + COLUMN_GAP;
+  const desiredGap = maxWidth * COLUMN_GAP;
+  const rowStartIncrement = maxWidth > 0
+    ? roundUpToNiceValue(maxWidth * ROW_GAP / 50) * 10
+    : 10;
+  const rightColumnX = rightColumnWidth > 0
+    ? maxWidth > 0
+      ? Math.ceil((leftColumnWidth * maxWidth + desiredGap) / rowStartIncrement) * rowStartIncrement / maxWidth
+      : leftColumnWidth + COLUMN_GAP
+    : leftColumnWidth;
 
   const rows: LayoutRow[] = [];
 
@@ -55,14 +77,14 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
       items: [
         {
           reconstructionCanvasId: left.id,
-          x: (leftColumnWidth - leftSize.width) / 2,
+          x: 0,
           y: 0,
           width: leftSize.width,
           height: leftSize.height
         },
         ...(right && rightSize ? [{
           reconstructionCanvasId: right.id,
-          x: rightColumnX + (rightColumnWidth - rightSize.width) / 2,
+          x: rightColumnX,
           y: 0,
           width: rightSize.width,
           height: rightSize.height
@@ -72,18 +94,33 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
     });
   }
 
-  let currentY = 0;
-
   const items = [];
+  let rowY = 0;
+  let layoutHeight = 0;
 
-  for (const row of rows) {
+  for (const [index, row] of rows.entries()) {
     for (const item of row.items) {
       items.push({
         ...item,
-        y: currentY + (row.rowHeight - item.height) / 2
+        y: rowY
       });
     }
-    currentY += row.rowHeight + ROW_GAP;
+
+    layoutHeight = rowY + row.rowHeight;
+
+    if (index < rows.length - 1) {
+      const nextRowStart = layoutHeight + ROW_GAP;
+      if (maxWidth > 0) {
+        const rowStartInUnits = nextRowStart * maxWidth;
+        const incrementCount = rowStartInUnits / rowStartIncrement;
+        const roundedIncrementCount = Math.ceil(
+          incrementCount - Number.EPSILON * Math.max(1, Math.abs(incrementCount))
+        );
+        rowY = roundedIncrementCount * rowStartIncrement / maxWidth;
+      } else {
+        rowY = nextRowStart;
+      }
+    }
   }
 
   const physicalScale = unit && maxWidth > 0 ? { unit, physicalUnitsPerOSDUnit: maxWidth }: undefined;
@@ -91,7 +128,11 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
   return {
     items,
     physicalScale,
-    layoutWidth: Math.max(1, leftColumnWidth + (rightColumnWidth > 0 ? COLUMN_GAP + rightColumnWidth : 0)),
-    layoutHeight: Math.max(0, currentY - ROW_GAP)
+    gridScale: {
+      unit: unit ?? 'px',
+      unitsPerOSDUnit: maxWidth > 0 ? maxWidth : 1
+    },
+    layoutWidth: Math.max(1, rightColumnWidth > 0 ? rightColumnX + rightColumnWidth : leftColumnWidth),
+    layoutHeight: Math.max(0, layoutHeight)
   };
 }

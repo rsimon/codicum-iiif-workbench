@@ -7,6 +7,11 @@ export interface ComposerLayout {
 
   physicalScale?: PhysicalScale;
 
+  gridScale: {
+    unit: string;
+    unitsPerOSDUnit: number;
+  };
+
   layoutWidth: number;
 
   layoutHeight: number;
