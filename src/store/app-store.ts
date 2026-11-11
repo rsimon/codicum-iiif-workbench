@@ -4,6 +4,7 @@ import type { CozyCanvas, CozyManifest } from 'cozy-iiif';
 import type { PhysicalSize, ReconstructionCanvas, SourceManifest } from '@/types';
 import {
   appendEmptyCanvas,
+  buildReconstructionSourceIndex,
   insertCanvasesAtIndex,
   mergeInto,
   moveCanvas,
@@ -76,8 +77,10 @@ export const useAppStore = create<AppStore>()(
       }),
 
       addSourceCanvasToReconstruction: (sourceId, canvas) => set(({ reconstruction, sizes, baseURI }) => {
+        const lookup = buildReconstructionSourceIndex(reconstruction);
+
         // Don't re-add
-        if (reconstruction.find(r => r.id === canvas.id)) return {};
+        if (lookup.get(sourceId)?.has(canvas.id)) return {};
 
         return {
           reconstruction: [
@@ -104,7 +107,11 @@ export const useAppStore = create<AppStore>()(
       }),
 
       addSourceCanvasesToReconstruction: sources => set(({ reconstruction, sizes, baseURI }) => {
-        const toAdd = sources.filter(s => !reconstruction.some(r => r.id === s.canvas.id));
+        const lookup = buildReconstructionSourceIndex(reconstruction);
+
+        const toAdd = sources.filter(({ sourceId, canvas }) => {
+          return !(lookup.get(sourceId)?.has(canvas.id));
+        });
         if (toAdd.length === 0) return {};
 
         return {

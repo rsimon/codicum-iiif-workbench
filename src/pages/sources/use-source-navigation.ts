@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import type { CozyCanvas } from 'cozy-iiif';
 import { useAppStore } from '@/store/app-store';
+import { buildReconstructionSourceIndex } from '@/store/app-store-utils';
 import type { SourceManifest } from '@/types';
 import { useSelectedSource, useSourcesStore } from './sources-store';
 
@@ -23,19 +24,8 @@ export const useSourceNavigation = () => {
 
   // Map: canvasIds in reconstruction, by manifest ID
   const inReconstructionByManifest = useMemo(() => 
-    reconstruction
-      .reduce<Map<string, Set<string>>>((map, r) => {
-        const sources = r.type === 'original' ? [r.source] : r.sources;
-        
-        sources.forEach(s => {
-          const set = map.get(s.sourceManifestId) || new Set();
-          set.add(s.canvas.id);
-          map.set(s.sourceManifestId, set);
-        });
-
-        return map;
-      }, new Map())
-    , [reconstruction]);
+    buildReconstructionSourceIndex(reconstruction)
+  , [reconstruction]);
 
   const sourceCanvasesInReconstruction = useMemo(() =>
     [...inReconstructionByManifest.values()].reduce((total, r) => total + r.size, 0)

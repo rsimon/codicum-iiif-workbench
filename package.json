@@ -41,7 +41,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cn": "^0.5.2",
-    "cozy-iiif": "^1.0.0-beta.8",
+    "cozy-iiif": "^1.0.0-beta.9",
     "dequal": "^2.0.3",
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^1.72.0",
