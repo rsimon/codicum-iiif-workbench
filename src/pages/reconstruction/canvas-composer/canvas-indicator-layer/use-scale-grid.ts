@@ -70,8 +70,8 @@ export const useScaleGrid = (
 
     if (showLabels && index % LABEL_EVERY === 0) {
       const label = `${formatCoordinate.format(index * step)} ${gridScale.unit}`;
-      labelContext.lineWidth = 3;
-      labelContext.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      labelContext.lineWidth = 2;
+      labelContext.strokeStyle = 'rgba(255, 255, 255, 0.65)';
       labelContext.strokeText(label, screenX + 4, 4);
       labelContext.fillStyle = 'rgba(51, 65, 85, 0.8)';
       labelContext.fillText(label, screenX + 4, 4);
