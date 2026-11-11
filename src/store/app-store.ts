@@ -4,6 +4,7 @@ import type { CozyCanvas, CozyManifest } from 'cozy-iiif';
 import type { PhysicalSize, ReconstructionCanvas, SourceManifest } from '@/types';
 import {
   appendEmptyCanvas,
+  buildReconstructionSourceIndex,
   insertCanvasesAtIndex,
   mergeInto,
   moveCanvas,
@@ -55,14 +56,6 @@ interface AppStore {
 
 export type MoveDirection = 'up' | 'down' | 'top' | 'bottom';
 
-const sourceCanvasKey = (sourceManifestId: string, canvasId: string) =>
-  JSON.stringify([sourceManifestId, canvasId]);
-
-const getSourceCanvasKeys = (reconstruction: ReconstructionCanvas[]) =>
-  new Set(reconstruction.flatMap(canvas =>
-    canvas.type === 'original' ? [canvas.source] : canvas.sources
-  ).map(source => sourceCanvasKey(source.sourceManifestId, source.canvas.id)));
-
 export const useAppStore = create<AppStore>()(
   persist(
     set => ({
@@ -84,8 +77,10 @@ export const useAppStore = create<AppStore>()(
       }),
 
       addSourceCanvasToReconstruction: (sourceId, canvas) => set(({ reconstruction, sizes, baseURI }) => {
+        const lookup = buildReconstructionSourceIndex(reconstruction);
+
         // Don't re-add
-        if (getSourceCanvasKeys(reconstruction).has(sourceCanvasKey(sourceId, canvas.id))) return {};
+        if (lookup.get(sourceId)?.has(canvas.id)) return {};
 
         return {
           reconstruction: [
@@ -112,12 +107,10 @@ export const useAppStore = create<AppStore>()(
       }),
 
       addSourceCanvasesToReconstruction: sources => set(({ reconstruction, sizes, baseURI }) => {
-        const existingSourceCanvases = getSourceCanvasKeys(reconstruction);
+        const lookup = buildReconstructionSourceIndex(reconstruction);
+
         const toAdd = sources.filter(({ sourceId, canvas }) => {
-          const key = sourceCanvasKey(sourceId, canvas.id);
-          if (existingSourceCanvases.has(key)) return false;
-          existingSourceCanvases.add(key);
-          return true;
+          return !(lookup.get(sourceId)?.has(canvas.id));
         });
         if (toAdd.length === 0) return {};
 

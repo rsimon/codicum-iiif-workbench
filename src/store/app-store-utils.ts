@@ -63,6 +63,23 @@ export const removeCanvasFromReconstruction = (reconstruction: ReconstructionCan
     });
 }
 
+// Map: canvasIds in reconstruction, by manifest ID
+export const buildReconstructionSourceIndex = (
+  reconstruction: ReconstructionCanvas[]
+): Map<string, Set<string>> => reconstruction
+  .reduce<Map<string, Set<string>>>((map, r) => {
+    const sources = r.type === 'original' ? [r.source] : r.sources;
+    
+    sources.forEach(s => {
+      const set = map.get(s.sourceManifestId) || new Set();
+      set.add(s.canvas.id);
+      map.set(s.sourceManifestId, set);
+    });
+
+    return map;
+  }, new Map());
+
+
 // Removes a **source** canvas (also removing the corresponding reconstruction canvas
 // in case it contains only this source canvas
 export const removeSourceCanvasFromReconstruction = (
