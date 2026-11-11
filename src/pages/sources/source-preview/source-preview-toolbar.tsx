@@ -34,7 +34,7 @@ export const SourcePreviewToolbar = (props: SourcePreviewToolbarProps) => {
   const setSize = useAppStore(state => state.setSourcePhysicalSize);
 
   const addToReconstruction = useAppStore(state => state.addSourceCanvasToReconstruction);
-  const removeFromReconstruction = useAppStore(state => state.removeCanvasFromReconstruction);
+  const removeFromReconstruction = useAppStore(state => state.removeSourceCanvasFromReconstruction);
 
   const [showDimensionsDialog, setShowDimensionsDialog] = useState(false);
 
