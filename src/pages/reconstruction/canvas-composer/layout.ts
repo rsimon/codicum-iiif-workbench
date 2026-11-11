@@ -1,9 +1,9 @@
 import type { ReconstructionCanvas } from '@/types';
 import type { ComposerLayout, ComposerLayoutItem } from '../reconstruction-types';
 
-export const ROW_GAP = 0.25;
+export const ROW_GAP = 0.01;
 
-export const COLUMN_GAP = 0.25;
+export const COLUMN_GAP = 0.01;
 
 // Helper
 export interface LayoutRow {
@@ -14,18 +14,15 @@ export interface LayoutRow {
 
 }
 
-const roundUpToNiceValue = (value: number) => {
-  const magnitude = 10 ** Math.floor(Math.log10(value));
-  const fraction = value / magnitude;
-  const niceFraction = fraction <= 1
-    ? 1
-    : fraction <= 2
-      ? 2
-      : fraction <= 5
-        ? 5
-        : 10;
+const LAYOUT_SNAP_STEP = 10;
 
-  return niceFraction * magnitude;
+const snapUpToStep = (value: number, step: number) => {
+  const stepCount = value / step;
+  const roundedStepCount = Math.ceil(
+    stepCount - Number.EPSILON * Math.max(1, Math.abs(stepCount))
+  );
+
+  return roundedStepCount * step;
 }
 
 export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): ComposerLayout => {
@@ -53,12 +50,9 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
   
   const rightColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 1).map(size => size.width));
   const desiredGap = maxWidth * COLUMN_GAP;
-  const rowStartIncrement = maxWidth > 0
-    ? roundUpToNiceValue(maxWidth * ROW_GAP / 50) * 10
-    : 10;
   const rightColumnX = rightColumnWidth > 0
     ? maxWidth > 0
-      ? Math.ceil((leftColumnWidth * maxWidth + desiredGap) / rowStartIncrement) * rowStartIncrement / maxWidth
+      ? snapUpToStep(leftColumnWidth * maxWidth + desiredGap, LAYOUT_SNAP_STEP) / maxWidth
       : leftColumnWidth + COLUMN_GAP
     : leftColumnWidth;
 
@@ -111,12 +105,7 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
     if (index < rows.length - 1) {
       const nextRowStart = layoutHeight + ROW_GAP;
       if (maxWidth > 0) {
-        const rowStartInUnits = nextRowStart * maxWidth;
-        const incrementCount = rowStartInUnits / rowStartIncrement;
-        const roundedIncrementCount = Math.ceil(
-          incrementCount - Number.EPSILON * Math.max(1, Math.abs(incrementCount))
-        );
-        rowY = roundedIncrementCount * rowStartIncrement / maxWidth;
+        rowY = snapUpToStep(nextRowStart * maxWidth, LAYOUT_SNAP_STEP) / maxWidth;
       } else {
         rowY = nextRowStart;
       }

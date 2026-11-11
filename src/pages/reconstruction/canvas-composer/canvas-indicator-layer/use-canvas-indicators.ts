@@ -103,7 +103,7 @@ export const useCanvasIndicators = (props: UseCanvasIndicatorsProps) => {
       const screenWidth = item.width * scaleX;
       const screenHeight = springs.height.current.value * scaleY;
 
-      backgroundContext.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      backgroundContext.fillStyle = 'rgba(255, 255, 255, 1)';
       backgroundContext.fillRect(screenX, screenY, screenWidth, screenHeight);
 
       const isSelected = selectedIdsRef.current.has(canvasId);
