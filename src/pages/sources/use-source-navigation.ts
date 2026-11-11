@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import type { CozyCanvas } from 'cozy-iiif';
 import { useAppStore } from '@/store/app-store';
+import { buildReconstructionSourceIndex } from '@/store/app-store-utils';
 import type { SourceManifest } from '@/types';
 import { useSelectedSource, useSourcesStore } from './sources-store';
-import { buildReconstructionSourceIndex } from '@/store/app-store-utils';
 
 export interface FilteredSources {
 
