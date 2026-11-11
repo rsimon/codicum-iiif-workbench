@@ -79,7 +79,6 @@ export const buildReconstructionSourceIndex = (
     return map;
   }, new Map());
 
-
 // Removes a **source** canvas (also removing the corresponding reconstruction canvas
 // in case it contains only this source canvas
 export const removeSourceCanvasFromReconstruction = (
