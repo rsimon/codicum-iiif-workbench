@@ -49,11 +49,11 @@ export const LayoutGuidesLayer = (props: LayoutGuidesLayerProps) => {
     drawRef
   });
 
-  const drawScaleGrid = useScaleGrid(
-    props.layout.gridScale,
-    { x: selectedItem?.x ?? 0, y: selectedItem?.y ?? 0 },
-    props.showGridLabels ?? false
-  );
+  const drawScaleGrid = useScaleGrid({
+    gridScale: props.layout.gridScale,
+    origin: { x: selectedItem?.x ?? 0, y: selectedItem?.y ?? 0 },
+    showLabels: props.showGridLabels ?? false
+  });
 
   useEffect(() => {
     const backgroundCanvas = backgroundRef.current;
