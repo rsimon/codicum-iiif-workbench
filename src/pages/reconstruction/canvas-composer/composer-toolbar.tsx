@@ -39,6 +39,7 @@ export const ComposerToolbar = () => {
   const { isTapeMeasureEnabled, setEnableTapeMeasure } = useMeasurement();
 
   const reconstruction = useAppStore(state => state.reconstruction);
+  
   const hasPhysicalScale = layout.gridScale.type === 'physical';
 
   useEffect(() => {
