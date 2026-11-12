@@ -23,15 +23,14 @@ export const GridSettings = () => {
             tooltip="Grid settings" 
             aria-label="Grid settings"
             className="gap-px p-2">
-            <IconGrid4x4 className="size-5" strokeWidth={1.5} />
-            <IconChevronUp className="size-3.5" strokeWidth={1.5} />
+            <IconGrid4x4 className="size-4.5" strokeWidth={1.5} />
+            <IconChevronUp className="size-3 text-foreground/80" strokeWidth={1.5} />
           </ToolbarButton>
         } />
 
       <PopoverContent 
+        align="end"
         className="w-32 p-3 gap-3.5"
-        align="start"
-        alignOffset={-40}
         sideOffset={14}>
         <PopoverHeader className="sr-only">
           <PopoverTitle>Grid settings</PopoverTitle>
@@ -47,7 +46,7 @@ export const GridSettings = () => {
           <Switch
             id="composer-show-grid"
             size="sm"
-            className="text-xs"
+            className="data-checked:bg-foreground"
             checked={settings.showGrid}
             onCheckedChange={showGrid => change({ ...settings, showGrid })} />
         </div>
@@ -62,6 +61,7 @@ export const GridSettings = () => {
           <Switch
             id="composer-show-grid-labels"
             size="sm"
+            className="data-checked:bg-foreground"
             checked={settings.showLabels}
             onCheckedChange={showLabels => change({ ...settings, showLabels })} />
         </div>
