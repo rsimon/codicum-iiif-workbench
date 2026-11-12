@@ -40,7 +40,7 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
   scaleX: number,
   scaleY: number
 ) => {
-  const { gridScale, origin, settings } = props;
+  const { gridScale, origin, settings: { showLabels, showGrid } } = props;
 
   const pixelsPerUnit = scaleX / gridScale.unitsPerOSDUnit;
   if (!Number.isFinite(pixelsPerUnit) || pixelsPerUnit <= 0) return;
@@ -70,7 +70,7 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
 
   bg.lineWidth = 1;
 
-  if (settings.showLabels) {
+  if (showLabels) {
     fg.font = '10px ui-sans-serif, system-ui, sans-serif';
     fg.textBaseline = 'top';
   }
@@ -78,15 +78,18 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
   for (let index = firstX; index <= lastX; index++) {
     const worldX = origin.x + index * worldStep;
     const screenX = (worldX - bounds.x) * scaleX;
-    const isMajor = index % MAJOR_LINE_EVERY === 0;
 
-    bg.strokeStyle = isMajor ? 'rgba(71, 85, 105, 0.12)' : 'rgba(100, 116, 139, 0.06)';
-    bg.beginPath();
-    bg.moveTo(Math.round(screenX) + 0.5, 0);
-    bg.lineTo(Math.round(screenX) + 0.5, bounds.height * scaleY);
-    bg.stroke();
+    if (showGrid) {
+      const isMajor = index % MAJOR_LINE_EVERY === 0;
 
-    if (settings.showLabels && index % LABEL_EVERY === 0) {
+      bg.strokeStyle = isMajor ? 'rgba(71, 85, 105, 0.12)' : 'rgba(100, 116, 139, 0.06)';
+      bg.beginPath();
+      bg.moveTo(Math.round(screenX) + 0.5, 0);
+      bg.lineTo(Math.round(screenX) + 0.5, bounds.height * scaleY);
+      bg.stroke();
+    }
+
+    if (showLabels && index % LABEL_EVERY === 0) {
       const label = `${formatCoordinate.format(index * labelStep)} ${gridScale.unit}`;
 
       fg.lineWidth = 2;
@@ -101,15 +104,18 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
   for (let index = firstY; index <= lastY; index++) {
     const worldY = origin.y + index * worldStep;
     const screenY = (worldY - bounds.y) * scaleY;
-    const isMajor = index % MAJOR_LINE_EVERY === 0;
-    
-    bg.strokeStyle = isMajor ? 'rgba(71, 85, 105, 0.12)' : 'rgba(100, 116, 139, 0.06)';
-    bg.beginPath();
-    bg.moveTo(0, Math.round(screenY) + 0.5);
-    bg.lineTo(bounds.width * scaleX, Math.round(screenY) + 0.5);
-    bg.stroke();
 
-    if (settings.showLabels && index % LABEL_EVERY === 0) {
+    if (showGrid) {
+      const isMajor = index % MAJOR_LINE_EVERY === 0;
+      
+      bg.strokeStyle = isMajor ? 'rgba(71, 85, 105, 0.12)' : 'rgba(100, 116, 139, 0.06)';
+      bg.beginPath();
+      bg.moveTo(0, Math.round(screenY) + 0.5);
+      bg.lineTo(bounds.width * scaleX, Math.round(screenY) + 0.5);
+      bg.stroke();
+    }
+
+    if (showLabels && index % LABEL_EVERY === 0) {
       const label = `${formatCoordinate.format(index * labelStep)} ${gridScale.unit}`;
 
       fg.lineWidth = 3;
