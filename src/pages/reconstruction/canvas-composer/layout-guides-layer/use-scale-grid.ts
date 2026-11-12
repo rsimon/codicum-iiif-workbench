@@ -89,7 +89,7 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
       const label = `${formatCoordinate.format(index * labelStep)} ${gridScale.unit}`;
 
       fg.lineWidth = 2;
-      fg.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+      fg.strokeStyle = 'rgba(255, 255, 255, 0.7)';
       fg.strokeText(label, screenX + 4, 4);
       fg.fillStyle = 'rgba(51, 65, 85, 0.8)';
       fg.fillText(label, screenX + 4, 4);
@@ -110,9 +110,9 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
 
     if (showLabels && index % LABEL_EVERY === 0) {
       const label = `${formatCoordinate.format(index * labelStep)} ${gridScale.unit}`;
-      
+
       fg.lineWidth = 3;
-      fg.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      fg.strokeStyle = 'rgba(255, 255, 255, 0.7)';
       fg.strokeText(label, 4, screenY + 4);
       fg.fillStyle = 'rgba(51, 65, 85, 0.8)';
       fg.fillText(label, 4, screenY + 4);
