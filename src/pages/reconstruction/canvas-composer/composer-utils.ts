@@ -125,6 +125,7 @@ export const getImageAt = (
   imagesByCanvasId: Map<string, DraggableImage[]>
 ): DraggableImageSelection | undefined => {
   const reconstructionById = new Map(reconstruction.map(canvas => [canvas.id, canvas]));
+
   let bestHit: {
     item: ComposerLayoutItem;
     image: DraggableImage;
@@ -149,9 +150,8 @@ export const getImageAt = (
       const viewportR = viewportX + viewportW;
       const viewportB = viewportY + viewportW * aspect;
 
-      if (point.x < viewportX || point.x > viewportR || point.y < viewportY || point.y > viewportB) {
+      if (point.x < viewportX || point.x > viewportR || point.y < viewportY || point.y > viewportB)
         continue;
-      }
 
       const imageArea = image.width * image.width * aspect;
       const itemArea = item.width * item.height;
@@ -193,6 +193,7 @@ export const getTextAnnotationAt = (
   reconstruction: ReconstructionCanvas[]
 ): { canvas: ReconstructionCanvas; annotationId: string } | undefined => {
   const reconstructionById = new Map(reconstruction.map(canvas => [canvas.id, canvas]));
+
   let bestHit: {
     canvas: ReconstructionCanvas;
     annotationId: string;
@@ -214,14 +215,12 @@ export const getTextAnnotationAt = (
         continue;
       }
 
-      if (!bestHit || itemArea < bestHit.itemArea) {
+      if (!bestHit || itemArea < bestHit.itemArea)
         bestHit = { canvas, annotationId: annotation.id, itemArea };
-      }
     }
   }
 
-  if (!bestHit) return;
-  return { canvas: bestHit.canvas, annotationId: bestHit.annotationId };
+  return  bestHit ? { canvas: bestHit.canvas, annotationId: bestHit.annotationId } : undefined;
 }
 
 export const findSourceCanvasById = (
