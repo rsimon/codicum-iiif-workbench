@@ -12,7 +12,7 @@ import { ComposerToolbar } from './composer-toolbar';
 import { ImageBoundsEditor } from './image-bounds-editor';
 import { useComposerSelection } from './use-composer-selection';
 import { computeVisibleIds, useVisibleCanvases } from './use-visible-canvases';
-import { CanvasIndicatorLayer } from './canvas-indicator-layer';
+import { LayoutGuidesLayer } from './layout-guides-layer';
 import { TextAnnotationEditor } from './text-annotation-editor';
 import { usePrevious } from './use-previous';
 
@@ -165,7 +165,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
         : layout.layoutHeight;
 
       const aspectRatio = layout.layoutWidth / (initialHeight || 1);
-      const worldRect = new OpenSeadragon.Rect(-0.15, -0.12, 1.3 * layout.layoutWidth, 1.3 * layout.layoutWidth / aspectRatio);
+      const worldRect = new OpenSeadragon.Rect(-0.15, -0.25, 1.3 * layout.layoutWidth, 1.3 * layout.layoutWidth / aspectRatio);
       viewer.viewport.fitBounds(worldRect, true);
 
       firstRender.current = false;
@@ -352,12 +352,12 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
   }, [editMode]);
 
   return (
-    <div className="size-full select-none relative bg-neutral-100 bg-[radial-gradient(#e0e0e0_1px,transparent_1px)] bg-size-[16px_16px]
-      [&_.openseadragon-container]:z-10 shadow-[inset_0_0_80px_-5px_rgba(0,0,0,0.06)]">
+    <div className="size-full select-none relative bg-neutral-50
+      [&_.openseadragon-container]:z-10">
       <div ref={elementRef} className={cn('size-full leading-0 data-edit-text:cursor-crosshair', !isReady && 'invisible')}>
         {viewer && (
           <>
-            <CanvasIndicatorLayer
+            <LayoutGuidesLayer
               viewer={viewer}
               layout={layout}
               visibleIds={visibleIds} />
@@ -369,9 +369,12 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
                   {!isTapeMeasureEnabled && editMode !== 'TEXT' && (
                     <ImageBoundsEditor viewer={viewer}/>
                   )}
-                  <MeasurementTool
-                    viewer={viewer}
-                    physicalScale={layout.physicalScale}/>
+                  
+                  {layout.gridScale.type === 'physical' && (
+                    <MeasurementTool
+                      viewer={viewer}
+                      physicalScale={layout.gridScale} />
+                  )}
                 </>
               )}/>
               

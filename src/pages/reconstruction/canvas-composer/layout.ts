@@ -1,17 +1,33 @@
 import type { ReconstructionCanvas } from '@/types';
-import type { ComposerLayout, ComposerLayoutItem } from '../reconstruction-types';
+import type { ComposerLayout, ComposerLayoutItem, GridScale } from '../reconstruction-types';
 
-export const ROW_GAP = 0.25;
+// Vertical gap between rows, OSD units (1 OSD unit = width of widest canvas)
+export const ROW_GAP = 0.01;
 
-export const COLUMN_GAP = 0.25;
+// Horizontal gap between columns, OSD units
+export const COLUMN_GAP = 0.01;
 
-// Helper
-export interface LayoutRow {
+// Snap step: offsets are rounded up to a multiple of this
+const LAYOUT_SNAP_STEP = 10;
+
+// Minimum gap in pixel mode, in px (before snapping)
+const PIXEL_LAYOUT_MIN_GAP = 200;
+
+interface LayoutRow {
 
   items: ComposerLayoutItem[];
 
   rowHeight: number;
 
+}
+
+const snapUpToStep = (value: number, step: number) => {
+  const stepCount = value / step;
+
+  const roundedStepCount = Math.ceil(
+    stepCount - Number.EPSILON * Math.max(1, Math.abs(stepCount)));
+
+  return roundedStepCount * step;
 }
 
 export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): ComposerLayout => {
@@ -30,15 +46,37 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
   const maxWidth = Math.max(0, ...dimensions.map(size => size.width));
   
   const scale = maxWidth > 0 ? 1 / maxWidth : 1;
+
   const scaledDimensions = dimensions.map(size => ({
     width: size.width * scale,
     height: size.height * scale
   }));
 
-  const leftColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 0).map(size => size.width));
+  const leftColumnWidth = Math.max(
+    0, 
+    ...scaledDimensions.filter((_, index) => index % 2 === 0).map(size => size.width));
   
-  const rightColumnWidth = Math.max(0, ...scaledDimensions.filter((_, index) => index % 2 === 1).map(size => size.width));
-  const rightColumnX = leftColumnWidth + COLUMN_GAP;
+  const rightColumnWidth = Math.max(
+    0, 
+    ...scaledDimensions.filter((_, index) => index % 2 === 1).map(size => size.width));
+
+  const targetColGap = usePhysicalSize
+    ? maxWidth * COLUMN_GAP
+    : Math.max(maxWidth * COLUMN_GAP, PIXEL_LAYOUT_MIN_GAP);
+
+  const rowGap = maxWidth > 0
+    ? (usePhysicalSize
+      ? maxWidth * ROW_GAP
+      : Math.max(maxWidth * ROW_GAP, PIXEL_LAYOUT_MIN_GAP)) / maxWidth
+    : ROW_GAP;
+
+  const rowLayoutSnapStep = usePhysicalSize ? LAYOUT_SNAP_STEP : PIXEL_LAYOUT_MIN_GAP;
+
+  const rightColumnX = rightColumnWidth > 0
+    ? maxWidth > 0
+      ? snapUpToStep(leftColumnWidth * maxWidth + targetColGap, LAYOUT_SNAP_STEP) / maxWidth
+      : leftColumnWidth + COLUMN_GAP
+    : leftColumnWidth;
 
   const rows: LayoutRow[] = [];
 
@@ -55,14 +93,14 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
       items: [
         {
           reconstructionCanvasId: left.id,
-          x: (leftColumnWidth - leftSize.width) / 2,
+          x: 0,
           y: 0,
           width: leftSize.width,
           height: leftSize.height
         },
         ...(right && rightSize ? [{
           reconstructionCanvasId: right.id,
-          x: rightColumnX + (rightColumnWidth - rightSize.width) / 2,
+          x: rightColumnX,
           y: 0,
           width: rightSize.width,
           height: rightSize.height
@@ -72,26 +110,39 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
     });
   }
 
-  let currentY = 0;
-
   const items = [];
+  let rowY = 0;
+  let layoutHeight = 0;
 
-  for (const row of rows) {
+  for (const [index, row] of rows.entries()) {
     for (const item of row.items) {
       items.push({
         ...item,
-        y: currentY + (row.rowHeight - item.height) / 2
+        y: rowY
       });
     }
-    currentY += row.rowHeight + ROW_GAP;
+
+    layoutHeight = rowY + row.rowHeight;
+
+    if (index < rows.length - 1) {
+      const nextRowStart = layoutHeight + rowGap;
+      if (maxWidth > 0) {
+        rowY = snapUpToStep(nextRowStart * maxWidth, rowLayoutSnapStep) / maxWidth;
+      } else {
+        rowY = nextRowStart;
+      }
+    }
   }
 
-  const physicalScale = unit && maxWidth > 0 ? { unit, physicalUnitsPerOSDUnit: maxWidth }: undefined;
+  const gridScale: GridScale = unit && maxWidth > 0
+    ? { type: 'physical', unit, unitsPerOSDUnit: maxWidth }
+    : { type: 'pixels', unit: 'px', unitsPerOSDUnit: maxWidth > 0 ? maxWidth : 1 };
 
   return {
     items,
-    physicalScale,
-    layoutWidth: Math.max(1, leftColumnWidth + (rightColumnWidth > 0 ? COLUMN_GAP + rightColumnWidth : 0)),
-    layoutHeight: Math.max(0, currentY - ROW_GAP)
-  };
+    gridScale,
+    layoutWidth: Math.max(1, rightColumnWidth > 0 ? rightColumnX + rightColumnWidth : leftColumnWidth),
+    layoutHeight: Math.max(0, layoutHeight)
+  }
+
 }

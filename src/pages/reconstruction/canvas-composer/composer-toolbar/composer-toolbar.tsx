@@ -4,10 +4,11 @@ import { ToolbarToggle } from '@/components/toolbar-toggle';
 import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { Separator } from '@/shadcn/separator';
 import { useAppStore } from '@/store/app-store';
-import { redo, undo, useReconstructionHistory } from '../reconstruction-history';
-import { getCanvasImageKey } from '../reconstruction-utils';
-import { useComposerStore } from './composer-store';
-import { getFillSize, isSelectionFullSize } from './composer-utils';
+import { redo, undo, useReconstructionHistory } from '../../reconstruction-history';
+import { getCanvasImageKey } from '../../reconstruction-utils';
+import { useComposerStore } from '../composer-store';
+import { getFillSize, isSelectionFullSize } from '../composer-utils';
+import { GridSettings } from './grid-settings';
 import { 
   IconArrowBackUp, 
   IconArrowForwardUp, 
@@ -39,6 +40,8 @@ export const ComposerToolbar = () => {
   const { isTapeMeasureEnabled, setEnableTapeMeasure } = useMeasurement();
 
   const reconstruction = useAppStore(state => state.reconstruction);
+  
+  const hasPhysicalScale = layout.gridScale.type === 'physical';
 
   useEffect(() => {
     if (!isTapeMeasureEnabled) return;
@@ -53,9 +56,9 @@ export const ComposerToolbar = () => {
   }, [isTapeMeasureEnabled, setEnableTapeMeasure]);
 
   useEffect(() => {
-    if (!layout.physicalScale && isTapeMeasureEnabled)
+    if (!hasPhysicalScale && isTapeMeasureEnabled)
       setEnableTapeMeasure(false);
-  }, [layout.physicalScale, isTapeMeasureEnabled, setEnableTapeMeasure]);
+  }, [hasPhysicalScale, isTapeMeasureEnabled, setEnableTapeMeasure]);
 
   const isFullSize = selectedImage 
     ? isSelectionFullSize(selectedImage, reconstruction) 
@@ -133,13 +136,6 @@ export const ComposerToolbar = () => {
           <IconCrop className="size-5.5" strokeWidth={1.6} />
         </ToolbarToggle>
 
-        <ToolbarToggle
-          tooltip="Create text annotation"
-          onClick={onToggleText}
-          aria-pressed={editMode === 'TEXT'}>
-          <IconTextResize className="size-6" strokeWidth={1.5} />
-        </ToolbarToggle>
-
         <ToolbarButton
           disabled={!selectedImage || isFullSize}
           tooltip="Adjust image size to fill canvas"
@@ -148,12 +144,23 @@ export const ComposerToolbar = () => {
         </ToolbarButton>
 
         <ToolbarToggle
-          disabled={!layout.physicalScale}
+          tooltip="Create text annotation"
+          onClick={onToggleText}
+          aria-pressed={editMode === 'TEXT'}>
+          <IconTextResize className="size-6" strokeWidth={1.5} />
+        </ToolbarToggle>
+
+        <ToolbarToggle
+          disabled={!hasPhysicalScale}
           tooltip="Measure physical distance"
           pressed={isTapeMeasureEnabled}
           onPressedChange={pressed => setEnableTapeMeasure(pressed, { showLabel: true })}>
           <IconRulerMeasure className="size-5" strokeWidth={1.5} />
         </ToolbarToggle>
+
+        <Separator orientation="vertical" />
+
+        <GridSettings />
 
         <Separator orientation="vertical" />
 

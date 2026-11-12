@@ -17,6 +17,14 @@ import type {
 
 export type EditMode = 'RESIZE' | 'CROP' | 'TEXT';
 
+export interface GridSettings {
+
+  showGrid: boolean;
+
+  showLabels: boolean;
+
+}
+
 export interface ComposerState {
 
   viewer?: Viewer;
@@ -40,6 +48,8 @@ export interface ComposerState {
 
   editMode: EditMode;
 
+  gridSettings: GridSettings;
+
   isUserEdit: boolean;
 
   setViewer(viewer?: Viewer): void;
@@ -51,6 +61,8 @@ export interface ComposerState {
   setSelectedTextAnnotation(selectedTextAnnotation?: TextAnnotationSelection): void;
 
   setEditMode(mode: EditMode): void;
+
+  setGridSettings(settings: GridSettings): void;
 
   setIsUserEdit(isDraggingImage: boolean): void;
 
@@ -82,6 +94,8 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
   editMode: 'RESIZE',
 
+  gridSettings: { showGrid: true, showLabels: true },
+
   isUserEdit: false,
 
   setViewer: viewer => set({ viewer }),
@@ -93,6 +107,8 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
   setSelectedTextAnnotation: selectedTextAnnotation => set({ selectedTextAnnotation, selectedImage: undefined }),
 
   setEditMode: editMode => set({ editMode }),
+
+  setGridSettings: gridSettings => set({ gridSettings }), 
 
   setIsUserEdit: isUserEdit => set({ isUserEdit }),
 

@@ -5,13 +5,17 @@ export interface ComposerLayout {
 
   items: ComposerLayoutItem[];
 
-  physicalScale?: PhysicalScale;
+  gridScale: GridScale;
 
   layoutWidth: number;
 
   layoutHeight: number;
 
 }
+
+export type GridScale =
+  | { type: 'physical' } & PhysicalScale
+  | { type: 'pixels'; unit: 'px'; unitsPerOSDUnit: number };
 
 export interface ComposerLayoutItem {
 
