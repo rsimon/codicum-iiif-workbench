@@ -12,7 +12,7 @@ export interface ComposerLayout {
 
 }
 
-type GridScale =
+export type GridScale =
   | { type: 'physical'; unit: string; unitsPerOSDUnit: number }
   | { type: 'pixels'; unit: 'px'; unitsPerOSDUnit: number };
 

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import type OpenSeadragon from 'openseadragon';
-import type { ComposerLayout } from '../../reconstruction-types';
+import type { GridScale } from '../../reconstruction-types';
 
 const TARGET_SPACING = 4;
 const MAJOR_LINE_EVERY = 10;
@@ -24,7 +24,7 @@ const getGoodLabelInterval = (minimum: number, baseInterval: number) => {
 
 interface UseScaleGridProps {
 
-  gridScale: ComposerLayout['gridScale'];
+  gridScale: GridScale;
 
   origin: { x: number; y: number },
 
