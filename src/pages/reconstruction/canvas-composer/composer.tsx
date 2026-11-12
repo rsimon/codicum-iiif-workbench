@@ -12,7 +12,7 @@ import { ComposerToolbar } from './composer-toolbar';
 import { ImageBoundsEditor } from './image-bounds-editor';
 import { useComposerSelection } from './use-composer-selection';
 import { computeVisibleIds, useVisibleCanvases } from './use-visible-canvases';
-import { CanvasIndicatorLayer } from './canvas-indicator-layer';
+import { LayoutGuidesLayer } from './layout-guides-layer';
 import { TextAnnotationEditor } from './text-annotation-editor';
 import { usePrevious } from './use-previous';
 
@@ -359,7 +359,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
       <div ref={elementRef} className={cn('size-full leading-0 data-edit-text:cursor-crosshair', !isReady && 'invisible')}>
         {viewer && (
           <>
-            <CanvasIndicatorLayer
+            <LayoutGuidesLayer
               viewer={viewer}
               layout={layout}
               visibleIds={visibleIds}

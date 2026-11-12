@@ -4,7 +4,7 @@ import { useReconstructionStore } from '../../reconstruction-store';
 import type { ComposerLayout, ComposerLayoutItem } from '../../reconstruction-types';
 import { OSD_ANIMATION_TIME, OSD_SPRING_STIFFNESS } from '../composer';
 
-interface UseCanvasIndicatorsProps {
+interface UseCanvasOutlinesProps {
 
   layout: ComposerLayout;
 
@@ -36,7 +36,7 @@ const createSprings = (item: ComposerLayoutItem): ItemSprings => {
   };
 }
 
-export const useCanvasIndicators = (props: UseCanvasIndicatorsProps) => {
+export const useCanvasOutlines = (props: UseCanvasOutlinesProps) => {
   const springsById = useRef<Map<string, ItemSprings>>(new Map());
   const itemsById = useRef<Map<string, ComposerLayoutItem>>(new Map());
   const visibleIdsRef = useRef(props.visibleIds);
