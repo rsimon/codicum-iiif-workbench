@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { IconPlus } from '@tabler/icons-react';
+import { Virtuoso } from 'react-virtuoso';
+import type { VirtuosoHandle } from 'react-virtuoso';
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
 import { monitorForElements, dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { extractInstruction } from '@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item';
@@ -49,7 +51,7 @@ export const ReconstructionTree = () => {
 
   const { extractChild, mergeInto, reorderRoot } = useDragAndDrop();
 
-  const listRef = useRef<HTMLUListElement>(null);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [fallback, setFallback] = useState<FallbackDropTarget | null>(null);
 
   const [viewportEl, setViewportEl] = useState<HTMLDivElement | null>(null);
@@ -58,9 +60,17 @@ export const ReconstructionTree = () => {
   useEffect(() => {
     if (selection.length !== 1) return;
 
-    const el = listRef.current?.querySelector(`[data-canvas-id="${selection[0].id}"]`);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [selection]);
+    const index = canvases.findIndex(canvas => canvas.id === selection[0].id);
+    if (index === -1) return;
+
+    const el = Array.from(viewportEl?.querySelectorAll<HTMLElement>('[data-canvas-id]') ?? [])
+      .find(element => element.dataset.canvasId === selection[0].id);
+
+    if (el)
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    else
+      virtuosoRef.current?.scrollToIndex({ index, behavior: 'smooth' });
+  }, [selection, canvases, viewportEl]);
 
   useEffect(() => {
     if (!viewportEl) return;
@@ -82,7 +92,7 @@ export const ReconstructionTree = () => {
   }, [viewportEl]);
 
   useEffect(() => {
-    const element = listRef.current;
+    const element = viewportEl;
     if (!element) return;
 
     return combine(
@@ -158,7 +168,7 @@ export const ReconstructionTree = () => {
       dropTargetForElements({
         element,
         getData: ({ input }) => {
-          const items = Array.from(element.children).slice(0, canvases.length) as HTMLElement[];
+          const items = Array.from(element.querySelectorAll<HTMLElement>('[data-canvas-id]'));
           if (items.length === 0) return {};
 
           const boundaryIndex = items.findIndex(el => {
@@ -167,8 +177,18 @@ export const ReconstructionTree = () => {
           });
 
           return boundaryIndex === -1
-            ? { kind: 'list-fallback', id: canvases[items.length - 1].id, index: items.length - 1, edge: 'bottom' }
-            : { kind: 'list-fallback', id: canvases[boundaryIndex].id, index: boundaryIndex, edge: 'top' };
+            ? {
+              kind: 'list-fallback',
+              id: items[items.length - 1].dataset.canvasId,
+              index: Number(items[items.length - 1].dataset.canvasIndex),
+              edge: 'bottom'
+            }
+            : {
+              kind: 'list-fallback',
+              id: items[boundaryIndex].dataset.canvasId,
+              index: Number(items[boundaryIndex].dataset.canvasIndex),
+              edge: 'top'
+            };
         },
         onDrag: ({ self, location }) => {
           // Only pin when no more specific (card-level) drop target is under
@@ -180,7 +200,7 @@ export const ReconstructionTree = () => {
         onDrop: () => setFallback(null)
       })
     );
-  }, [canvases, onChange, insertCanvasesAtIndex, mergeCanvases, extractChild, mergeInto, reorderRoot]);
+  }, [viewportEl, canvases, onChange, insertCanvasesAtIndex, mergeCanvases, extractChild, mergeInto, reorderRoot]);
 
   return (
     <div className="flex flex-col h-full bg-neutral-50">
@@ -189,28 +209,38 @@ export const ReconstructionTree = () => {
       <ScrollArea 
         className="grow min-h-0" 
         viewportRef={setViewportEl}>
-        <ul ref={listRef} className="h-full flex flex-col gap-1.5 p-2.5">
-          {canvases.map((item, index) => (
-            <ReconstructionTreeItem
-              key={item.id}
-              item={item}
-              selectedItems={selection}
-              index={index}
-              isSelected={selection.some(s => s.id === item.id)}
-              onSelect={event => onSelect(index, event)}
-              pinnedEdge={fallback?.index === index ? fallback.edge : undefined} />
-          ))}
-
-          <li>
-            <button 
-              className="mt-0.5 flex gap-2 text-muted-foreground/60 text-sm items-center w-full
-                cursor-pointer rounded-md justify-center p-4 border border-neutral-400/50
-                border-dashed hover:bg-neutral-200/50 hover:text-muted-foreground hover:border-neutral-400/80"
-              onClick={() => withHistory(() => appendEmpty())}>
-              <IconPlus className="size-4" /> Add empty canvas
-            </button>
-          </li>
-        </ul>
+        <Virtuoso
+          ref={virtuosoRef}
+          customScrollParent={viewportEl ?? undefined}
+          totalCount={canvases.length}
+          computeItemKey={index => canvases[index].id}
+          itemContent={index => {
+            const item = canvases[index];
+            return (
+              <div className={`px-2.5 ${index === 0 ? 'pt-2.5' : ''} pb-1.5`}>
+                <ReconstructionTreeItem
+                  item={item}
+                  selectedItems={selection}
+                  index={index}
+                  isSelected={selection.some(s => s.id === item.id)}
+                  onSelect={event => onSelect(index, event)}
+                  pinnedEdge={fallback?.index === index ? fallback.edge : undefined} />
+              </div>
+            )
+          }}
+          components={{
+            Footer: () => (
+              <div className="p-2.5 pt-1">
+                <button
+                  className="mt-0.5 flex gap-2 text-muted-foreground/60 text-sm items-center w-full
+                    cursor-pointer rounded-md justify-center p-4 border border-neutral-400/50
+                    border-dashed hover:bg-neutral-200/50 hover:text-muted-foreground hover:border-neutral-400/80"
+                  onClick={() => withHistory(() => appendEmpty())}>
+                  <IconPlus className="size-4" /> Add empty canvas
+                </button>
+              </div>
+            )
+          }} />
       </ScrollArea>
     </div>
   )
