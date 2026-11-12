@@ -27,12 +27,15 @@ export const ComposerSelectionControl = (props: ComposerSelectionControlProps) =
   const selection = useReconstructionStore(state => state.selection);
   const selectedImage = useComposerStore(state => state.selectedImage);
 
+  const { showLabels } = useComposerStore(state => state.settings);
+
   const onClick = () => props.onChangeSidebarOpen(!props.isSidebarOpen);
 
   return selection.length === 1 ? (
     <div className={cn(
-      'absolute top-3 right-3 z-50 transition-opacity',
-      props.isSidebarOpen ? 'opacity-0 pointer-events-none' : undefined
+      'absolute right-3 z-50 transition-opacity',
+      props.isSidebarOpen ? 'opacity-0 pointer-events-none' : undefined,
+      showLabels ? 'top-5.5' : 'top-3.5'
     )}>
       {selectedImage ? (
         <ImageSelectionSummary
