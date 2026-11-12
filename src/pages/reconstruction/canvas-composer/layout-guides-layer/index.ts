@@ -1,1 +1,1 @@
-export * from './canvas-indicator-layer';
+export * from './layout-guides-layer';

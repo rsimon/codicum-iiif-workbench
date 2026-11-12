@@ -37,18 +37,23 @@ const createSprings = (item: ComposerLayoutItem): ItemSprings => {
 }
 
 export const useCanvasOutlines = (props: UseCanvasOutlinesProps) => {
-  const springsById = useRef<Map<string, ItemSprings>>(new Map());
+  const selection = useReconstructionStore(state => state.selection);
+
   const itemsById = useRef<Map<string, ComposerLayoutItem>>(new Map());
+
   const visibleIdsRef = useRef(props.visibleIds);
   const selectedIdsRef = useRef<Set<string>>(new Set());
 
-  const selection = useReconstructionStore(state => state.selection);
+  // One spring per reconstruction canvas
+  const springsById = useRef<Map<string, ItemSprings>>(new Map());
 
+  // Redraw when selection changes
   useEffect(() => {
     selectedIdsRef.current = new Set(selection.map(s => s.id));
     props.drawRef.current();
   }, [selection, props.drawRef]);
 
+  // Redraw when visible IDs change
   useEffect(() => {
     visibleIdsRef.current = props.visibleIds;
 
@@ -62,6 +67,7 @@ export const useCanvasOutlines = (props: UseCanvasOutlinesProps) => {
     props.drawRef.current();
   }, [props.visibleIds, props.drawRef]);
 
+  // Redraw when layout changes
   useEffect(() => {
     itemsById.current = new Map(props.layout.items.map(item => [item.reconstructionCanvasId, item]));
 
@@ -78,8 +84,8 @@ export const useCanvasOutlines = (props: UseCanvasOutlinesProps) => {
   }, [props.layout, props.drawRef]);
 
   return useCallback((
-    backgroundContext: CanvasRenderingContext2D,
-    foregroundContext: CanvasRenderingContext2D,
+    bg: CanvasRenderingContext2D,
+    fg: CanvasRenderingContext2D,
     bounds: Rect,
     scaleX: number,
     scaleY: number
@@ -103,14 +109,15 @@ export const useCanvasOutlines = (props: UseCanvasOutlinesProps) => {
       const screenWidth = item.width * scaleX;
       const screenHeight = springs.height.current.value * scaleY;
 
-      backgroundContext.fillStyle = 'rgba(255, 255, 255, 1)';
-      backgroundContext.fillRect(screenX, screenY, screenWidth, screenHeight);
+      bg.fillStyle = 'rgba(255, 255, 255, 1)';
+      bg.fillRect(screenX, screenY, screenWidth, screenHeight);
 
       const isSelected = selectedIdsRef.current.has(canvasId);
 
-      foregroundContext.strokeStyle = isSelected ? SELECTED_STROKE : DEFAULT_STROKE;
-      foregroundContext.lineWidth = isSelected ? 2 : 1;
-      foregroundContext.strokeRect(screenX, screenY, screenWidth, screenHeight);
+      fg.strokeStyle = isSelected ? SELECTED_STROKE : DEFAULT_STROKE;
+      fg.lineWidth = isSelected ? 2 : 1;
+      fg.strokeRect(screenX, screenY, screenWidth, screenHeight);
     }
   }, []);
+  
 }
