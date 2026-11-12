@@ -4,10 +4,10 @@ import { ToolbarToggle } from '@/components/toolbar-toggle';
 import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { Separator } from '@/shadcn/separator';
 import { useAppStore } from '@/store/app-store';
-import { redo, undo, useReconstructionHistory } from '../reconstruction-history';
-import { getCanvasImageKey } from '../reconstruction-utils';
-import { useComposerStore } from './composer-store';
-import { getFillSize, isSelectionFullSize } from './composer-utils';
+import { redo, undo, useReconstructionHistory } from '../../reconstruction-history';
+import { getCanvasImageKey } from '../../reconstruction-utils';
+import { useComposerStore } from '../composer-store';
+import { getFillSize, isSelectionFullSize } from '../composer-utils';
 import { 
   IconArrowBackUp, 
   IconArrowForwardUp, 
