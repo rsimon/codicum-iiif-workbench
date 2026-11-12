@@ -1,4 +1,5 @@
 import type { Bounds, CozyImageResource } from 'cozy-iiif';
+import type { PhysicalScale } from '@/types';
 
 export interface ComposerLayout {
 
@@ -13,7 +14,7 @@ export interface ComposerLayout {
 }
 
 export type GridScale =
-  | { type: 'physical'; unit: string; unitsPerOSDUnit: number }
+  | { type: 'physical' } & PhysicalScale
   | { type: 'pixels'; unit: 'px'; unitsPerOSDUnit: number };
 
 export interface ComposerLayoutItem {

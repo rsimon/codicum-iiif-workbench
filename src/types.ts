@@ -37,7 +37,7 @@ export interface PhysicalScale {
 
   unit: string;
 
-  physicalUnitsPerOSDUnit: number;
+  unitsPerOSDUnit: number;
 
 }
 

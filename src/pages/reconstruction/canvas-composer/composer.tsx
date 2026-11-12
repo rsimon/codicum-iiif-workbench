@@ -372,12 +372,12 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
                   {!isTapeMeasureEnabled && editMode !== 'TEXT' && (
                     <ImageBoundsEditor viewer={viewer}/>
                   )}
-                  <MeasurementTool
-                    viewer={viewer}
-                    physicalScale={layout.gridScale.type === 'physical' ? {
-                      unit: layout.gridScale.unit,
-                      physicalUnitsPerOSDUnit: layout.gridScale.unitsPerOSDUnit
-                    } : undefined}/>
+                  
+                  {layout.gridScale.type === 'physical' && (
+                    <MeasurementTool
+                      viewer={viewer}
+                      physicalScale={layout.gridScale} />
+                  )}
                 </>
               )}/>
               
