@@ -49,8 +49,6 @@ interface CanvasComposerProps {
 
   onChangeSidebarOpen(open: boolean): void;
 
-  showGridLabels?: boolean;
-
 }
 
 export const CanvasComposer = (props: CanvasComposerProps) => {
@@ -362,8 +360,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
             <LayoutGuidesLayer
               viewer={viewer}
               layout={layout}
-              visibleIds={visibleIds}
-              showGridLabels={props.showGridLabels ?? true} />
+              visibleIds={visibleIds} />
 
             <ViewerSvgOverlay
               viewer={viewer}

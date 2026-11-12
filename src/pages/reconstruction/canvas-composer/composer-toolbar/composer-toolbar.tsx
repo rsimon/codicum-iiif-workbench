@@ -8,6 +8,7 @@ import { redo, undo, useReconstructionHistory } from '../../reconstruction-histo
 import { getCanvasImageKey } from '../../reconstruction-utils';
 import { useComposerStore } from '../composer-store';
 import { getFillSize, isSelectionFullSize } from '../composer-utils';
+import { GridSettings } from './grid-settings';
 import { 
   IconArrowBackUp, 
   IconArrowForwardUp, 
@@ -156,6 +157,8 @@ export const ComposerToolbar = () => {
           onPressedChange={pressed => setEnableTapeMeasure(pressed, { showLabel: true })}>
           <IconRulerMeasure className="size-5" strokeWidth={1.5} />
         </ToolbarToggle>
+
+        <GridSettings />
 
         <Separator orientation="vertical" />
 

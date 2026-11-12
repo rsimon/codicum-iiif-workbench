@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type OpenSeadragon from 'openseadragon';
 import type { GridScale } from '../../reconstruction-types';
+import type { GridSettings } from '../composer-store';
 
 const TARGET_SPACING = 4;
 const MAJOR_LINE_EVERY = 10;
@@ -28,7 +29,7 @@ interface UseScaleGridProps {
 
   origin: { x: number; y: number },
 
-  showLabels: boolean;
+  settings: GridSettings;
 
 }
 
@@ -39,7 +40,7 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
   scaleX: number,
   scaleY: number
 ) => {
-  const { gridScale, origin, showLabels } = props;
+  const { gridScale, origin, settings } = props;
 
   const pixelsPerUnit = scaleX / gridScale.unitsPerOSDUnit;
   if (!Number.isFinite(pixelsPerUnit) || pixelsPerUnit <= 0) return;
@@ -69,7 +70,7 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
 
   bg.lineWidth = 1;
 
-  if (showLabels) {
+  if (settings.showLabels) {
     fg.font = '10px ui-sans-serif, system-ui, sans-serif';
     fg.textBaseline = 'top';
   }
@@ -85,7 +86,7 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
     bg.lineTo(Math.round(screenX) + 0.5, bounds.height * scaleY);
     bg.stroke();
 
-    if (showLabels && index % LABEL_EVERY === 0) {
+    if (settings.showLabels && index % LABEL_EVERY === 0) {
       const label = `${formatCoordinate.format(index * labelStep)} ${gridScale.unit}`;
 
       fg.lineWidth = 2;
@@ -108,7 +109,7 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
     bg.lineTo(bounds.width * scaleX, Math.round(screenY) + 0.5);
     bg.stroke();
 
-    if (showLabels && index % LABEL_EVERY === 0) {
+    if (settings.showLabels && index % LABEL_EVERY === 0) {
       const label = `${formatCoordinate.format(index * labelStep)} ${gridScale.unit}`;
 
       fg.lineWidth = 3;
@@ -128,5 +129,5 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
   props.gridScale.unitsPerOSDUnit, 
   props.origin.x, 
   props.origin.y, 
-  props.showLabels
+  props.settings
 ]);

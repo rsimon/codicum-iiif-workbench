@@ -4,6 +4,7 @@ import { useReconstructionStore } from '../../reconstruction-store';
 import type { ComposerLayout } from '../../reconstruction-types';
 import { useCanvasOutlines } from './use-canvas-outlines';
 import { useScaleGrid } from './use-scale-grid';
+import { useComposerStore } from '../composer-store';
 
 interface LayoutGuidesLayerProps {
 
@@ -12,10 +13,6 @@ interface LayoutGuidesLayerProps {
   layout: ComposerLayout;
 
   visibleIds: Set<string>;
-
-  showGrid?: boolean;
-
-  showGridLabels?: boolean;
 
 }
 
@@ -31,6 +28,8 @@ const setCanvasSize = (canvas: HTMLCanvasElement, width: number, height: number)
 
 export const LayoutGuidesLayer = (props: LayoutGuidesLayerProps) => {
   const { viewer } = props;
+
+  const gridSettings = useComposerStore(state => state.gridSettings);
 
   const selection = useReconstructionStore(state => state.selection);
   const selectedItem = props.layout.items.find(item =>
@@ -52,7 +51,7 @@ export const LayoutGuidesLayer = (props: LayoutGuidesLayerProps) => {
   const drawScaleGrid = useScaleGrid({
     gridScale: props.layout.gridScale,
     origin: { x: selectedItem?.x ?? 0, y: selectedItem?.y ?? 0 },
-    showLabels: props.showGridLabels ?? false
+    settings: gridSettings
   });
 
   useEffect(() => {
