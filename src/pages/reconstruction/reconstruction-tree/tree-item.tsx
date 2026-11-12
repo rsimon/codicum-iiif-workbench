@@ -336,7 +336,7 @@ const TreeItemContent = (props: TreeItemContentProps) => {
           </div>
         )}
 
-        <span className="text-muted-foreground text-xs">
+        <span className="text-muted-foreground text-xs whitespace-nowrap truncate">
           {sources.find(s => s.manifest.id === source.sourceManifestId)?.manifest.getLabel()}
         </span>
       </div>
