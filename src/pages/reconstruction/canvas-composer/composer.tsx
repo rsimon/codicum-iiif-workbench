@@ -352,8 +352,7 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
   }, [editMode]);
 
   return (
-    <div className="size-full select-none relative bg-neutral-50
-      [&_.openseadragon-container]:z-10 shadow-[inset_0_0_80px_-5px_rgba(0,0,0,0.06)]">
+    <div className="size-full select-none relative [&_.openseadragon-container]:z-10 shadow-[inset_0_0_40px_-5px_rgba(0,0,0,0.06)]">
       <div ref={elementRef} className={cn('size-full leading-0 data-edit-text:cursor-crosshair', !isReady && 'invisible')}>
         {viewer && (
           <>

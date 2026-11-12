@@ -108,7 +108,7 @@ export const SourcePreview = (props: SourcePreviewProps) => {
       if (cancelled) return;
 
       const aspectRatio = selectedCanvas!.width / selectedCanvas!.height;
-      const canvasRect = new OpenSeadragon.Rect(-0.15, -0.12, 1.3, 1.3 / aspectRatio);
+      const canvasRect = new OpenSeadragon.Rect(-0.15, -0.05, 1.3, 1.25 / aspectRatio);
       viewer.viewport.fitBounds(canvasRect, true);
     });
 
@@ -121,8 +121,8 @@ export const SourcePreview = (props: SourcePreviewProps) => {
   return (
     <ViewerContext.Provider value={viewer}>
       <div 
-        className="size-full relative bg-neutral-50 [&>.openseadragon-container]:z-10 
-          shadow-[inset_0_0_80px_-5px_rgba(0,0,0,0.06)] bg-[radial-gradient(#e0e0e0_1px,transparent_1px)] bg-size-[16px_16px]">
+        className="size-full relative [&>.openseadragon-container]:z-10 
+          shadow-[inset_0_0_40px_-5px_rgba(0,0,0,0.06)] bg-[radial-gradient(#e0e0e0_1px,transparent_1px)] bg-size-[16px_16px]">
         <div 
           ref={elementRef} 
           className="size-full"
