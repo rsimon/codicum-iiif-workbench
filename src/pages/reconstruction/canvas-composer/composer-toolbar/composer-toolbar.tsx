@@ -136,13 +136,6 @@ export const ComposerToolbar = () => {
           <IconCrop className="size-5.5" strokeWidth={1.6} />
         </ToolbarToggle>
 
-        <ToolbarToggle
-          tooltip="Create text annotation"
-          onClick={onToggleText}
-          aria-pressed={editMode === 'TEXT'}>
-          <IconTextResize className="size-6" strokeWidth={1.5} />
-        </ToolbarToggle>
-
         <ToolbarButton
           disabled={!selectedImage || isFullSize}
           tooltip="Adjust image size to fill canvas"
@@ -151,12 +144,21 @@ export const ComposerToolbar = () => {
         </ToolbarButton>
 
         <ToolbarToggle
+          tooltip="Create text annotation"
+          onClick={onToggleText}
+          aria-pressed={editMode === 'TEXT'}>
+          <IconTextResize className="size-6" strokeWidth={1.5} />
+        </ToolbarToggle>
+
+        <ToolbarToggle
           disabled={!hasPhysicalScale}
           tooltip="Measure physical distance"
           pressed={isTapeMeasureEnabled}
           onPressedChange={pressed => setEnableTapeMeasure(pressed, { showLabel: true })}>
           <IconRulerMeasure className="size-5" strokeWidth={1.5} />
         </ToolbarToggle>
+
+        <Separator orientation="vertical" />
 
         <GridSettings />
 

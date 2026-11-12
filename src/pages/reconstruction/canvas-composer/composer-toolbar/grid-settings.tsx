@@ -1,4 +1,4 @@
-import { IconGridDots } from '@tabler/icons-react';
+import { IconChevronUp, IconGrid4x4 } from '@tabler/icons-react';
 import { ToolbarButton } from '@/components/toolbar-button';
 import { Label } from '@/shadcn/label';
 import { Switch } from '@/shadcn/switch';
@@ -19,24 +19,46 @@ export const GridSettings = () => {
     <Popover>
       <PopoverTrigger
         render={
-          <ToolbarButton tooltip="Grid settings" aria-label="Grid settings">
-            <IconGridDots className="size-5" strokeWidth={1.5} />
+          <ToolbarButton 
+            tooltip="Grid settings" 
+            aria-label="Grid settings"
+            className="gap-px p-2">
+            <IconGrid4x4 className="size-5" strokeWidth={1.5} />
+            <IconChevronUp className="size-3.5" strokeWidth={1.5} />
           </ToolbarButton>
         } />
-      <PopoverContent align="end" className="w-56 gap-3">
-        <PopoverHeader>
+
+      <PopoverContent 
+        className="w-32 p-3 gap-3.5"
+        align="start"
+        alignOffset={-40}
+        sideOffset={14}>
+        <PopoverHeader className="sr-only">
           <PopoverTitle>Grid settings</PopoverTitle>
         </PopoverHeader>
-        <div className="flex items-center justify-between gap-4">
-          <Label htmlFor="composer-show-grid">Show grid</Label>
+
+        <div className="flex items-center justify-between gap-2">
+          <Label 
+            htmlFor="composer-show-grid"
+            className="font-normal tracking-wide grow">
+            Grid
+          </Label>
+
           <Switch
             id="composer-show-grid"
             size="sm"
+            className="text-xs"
             checked={settings.showGrid}
             onCheckedChange={showGrid => change({ ...settings, showGrid })} />
         </div>
-        <div className="flex items-center justify-between gap-4">
-          <Label htmlFor="composer-show-grid-labels">Show grid labels</Label>
+
+        <div className="flex items-center justify-between gap-2">
+          <Label 
+            htmlFor="composer-show-grid-labels"
+            className="font-normal tracking-wide grow">
+            Labels
+          </Label>
+
           <Switch
             id="composer-show-grid-labels"
             size="sm"
