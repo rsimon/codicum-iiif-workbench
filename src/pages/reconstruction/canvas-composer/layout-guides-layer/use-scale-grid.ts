@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type OpenSeadragon from 'openseadragon';
 import type { GridScale } from '../../reconstruction-types';
-import type { GridSettings } from '../composer-store';
+import type { ComposerSettings } from '../composer-store';
 
 const TARGET_SPACING = 4;
 const MAJOR_LINE_EVERY = 10;
@@ -29,7 +29,7 @@ interface UseScaleGridProps {
 
   origin: { x: number; y: number },
 
-  settings: GridSettings;
+  settings: ComposerSettings;
 
 }
 

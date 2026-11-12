@@ -12,8 +12,8 @@ import {
 } from '@/shadcn/popover';
 
 export const GridSettings = () => {
-  const settings = useComposerStore(state => state.gridSettings);
-  const change = useComposerStore(state => state.setGridSettings);
+  const settings = useComposerStore(state => state.settings);
+  const change = useComposerStore(state => state.setSettings);
 
   return (
     <Popover>

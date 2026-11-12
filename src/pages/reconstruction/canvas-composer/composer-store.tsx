@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { createStore } from 'zustand/vanilla';
 import { Viewer, TiledImage } from 'openseadragon';
 import { dequal } from 'dequal/lite';
 import { withViewTransition } from '@/shadcn/utils';
@@ -17,13 +19,20 @@ import type {
 
 export type EditMode = 'RESIZE' | 'CROP' | 'TEXT';
 
-export interface GridSettings {
+export interface ComposerSettings {
 
   showGrid: boolean;
 
   showLabels: boolean;
 
 }
+
+const composerSettingsStore = createStore<ComposerSettings>()(
+  persist(
+    () => ({ showGrid: true, showLabels: true } as ComposerSettings),
+    { name: 'iiif-workbench-composer-settings' }
+  )
+);
 
 export interface ComposerState {
 
@@ -45,10 +54,10 @@ export interface ComposerState {
   selectedImage?: DraggableImageSelection;
 
   selectedTextAnnotation?: TextAnnotationSelection;
-
+  
   editMode: EditMode;
 
-  gridSettings: GridSettings;
+  settings: ComposerSettings;
 
   isUserEdit: boolean;
 
@@ -62,7 +71,7 @@ export interface ComposerState {
 
   setEditMode(mode: EditMode): void;
 
-  setGridSettings(settings: GridSettings): void;
+  setSettings(settings: ComposerSettings): void;
 
   setIsUserEdit(isDraggingImage: boolean): void;
 
@@ -94,7 +103,7 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
   editMode: 'RESIZE',
 
-  gridSettings: { showGrid: true, showLabels: true },
+  settings: composerSettingsStore.getState() || { showGrid: true, showLabels: true },
 
   isUserEdit: false,
 
@@ -108,7 +117,10 @@ export const useComposerStore = create<ComposerState>((set, get) => ({
 
   setEditMode: editMode => set({ editMode }),
 
-  setGridSettings: gridSettings => set({ gridSettings }), 
+  setSettings: settings => {
+    set({ settings });
+    composerSettingsStore.setState(settings);
+  },
 
   setIsUserEdit: isUserEdit => set({ isUserEdit }),
 

@@ -29,7 +29,7 @@ const setCanvasSize = (canvas: HTMLCanvasElement, width: number, height: number)
 export const LayoutGuidesLayer = (props: LayoutGuidesLayerProps) => {
   const { viewer } = props;
 
-  const gridSettings = useComposerStore(state => state.gridSettings);
+  const gridSettings = useComposerStore(state => state.settings);
 
   const selection = useReconstructionStore(state => state.selection);
   const selectedItem = props.layout.items.find(item =>
