@@ -81,6 +81,9 @@ export const TextAnnotationEditor = (props: TextAnnotationEditorProps) => {
     .map(item => {
       const canvas = reconstruction.find(candidate => candidate.id === item.reconstructionCanvasId);
       if (!canvas) return null;
+      
+      const annotations = (canvas.annotations ?? []);
+      if (annotations.length === 0) return null;
  
       return (
         <ItemAnnotationLayer
