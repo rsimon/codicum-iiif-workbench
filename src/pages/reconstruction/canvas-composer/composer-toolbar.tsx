@@ -39,6 +39,7 @@ export const ComposerToolbar = () => {
   const { isTapeMeasureEnabled, setEnableTapeMeasure } = useMeasurement();
 
   const reconstruction = useAppStore(state => state.reconstruction);
+  const hasPhysicalScale = layout.gridScale.type === 'physical';
 
   useEffect(() => {
     if (!isTapeMeasureEnabled) return;
@@ -53,9 +54,9 @@ export const ComposerToolbar = () => {
   }, [isTapeMeasureEnabled, setEnableTapeMeasure]);
 
   useEffect(() => {
-    if (!layout.physicalScale && isTapeMeasureEnabled)
+    if (!hasPhysicalScale && isTapeMeasureEnabled)
       setEnableTapeMeasure(false);
-  }, [layout.physicalScale, isTapeMeasureEnabled, setEnableTapeMeasure]);
+  }, [hasPhysicalScale, isTapeMeasureEnabled, setEnableTapeMeasure]);
 
   const isFullSize = selectedImage 
     ? isSelectionFullSize(selectedImage, reconstruction) 
@@ -148,7 +149,7 @@ export const ComposerToolbar = () => {
         </ToolbarButton>
 
         <ToolbarToggle
-          disabled={!layout.physicalScale}
+          disabled={!hasPhysicalScale}
           tooltip="Measure physical distance"
           pressed={isTapeMeasureEnabled}
           onPressedChange={pressed => setEnableTapeMeasure(pressed, { showLabel: true })}>

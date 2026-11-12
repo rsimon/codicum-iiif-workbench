@@ -374,7 +374,10 @@ export const CanvasComposer = (props: CanvasComposerProps) => {
                   )}
                   <MeasurementTool
                     viewer={viewer}
-                    physicalScale={layout.physicalScale}/>
+                    physicalScale={layout.gridScale.type === 'physical' ? {
+                      unit: layout.gridScale.unit,
+                      physicalUnitsPerOSDUnit: layout.gridScale.unitsPerOSDUnit
+                    } : undefined}/>
                 </>
               )}/>
               

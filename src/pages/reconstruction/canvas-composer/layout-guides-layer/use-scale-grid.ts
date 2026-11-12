@@ -45,7 +45,7 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
   if (!Number.isFinite(pixelsPerUnit) || pixelsPerUnit <= 0) return;
 
   // Purely cosmetic: 'px' needs bigger interval to look good
-  const baseLabelInterval = gridScale.unit === 'px' ? 100 : 10;
+  const baseLabelInterval = gridScale.type === 'pixels' ? 100 : 10;
 
   const labelInterval = getGoodLabelInterval(
     TARGET_SPACING * LABEL_EVERY / pixelsPerUnit,
@@ -123,6 +123,7 @@ export const useScaleGrid = (props: UseScaleGridProps) => useCallback((
   bg.restore();
   fg.restore();
 }, [
+  props.gridScale.type,
   props.gridScale.unit, 
   props.gridScale.unitsPerOSDUnit, 
   props.origin.x, 

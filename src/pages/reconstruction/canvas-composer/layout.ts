@@ -122,15 +122,11 @@ export const TwoColumnLayout = (reconstruction: ReconstructionCanvas[]): Compose
     }
   }
 
-  const physicalScale = unit && maxWidth > 0 ? { unit, physicalUnitsPerOSDUnit: maxWidth }: undefined;
-
   return {
     items,
-    physicalScale,
-    gridScale: {
-      unit: unit ?? 'px',
-      unitsPerOSDUnit: maxWidth > 0 ? maxWidth : 1
-    },
+    gridScale: unit && maxWidth > 0
+      ? { type: 'physical', unit, unitsPerOSDUnit: maxWidth }
+      : { type: 'pixels', unit: 'px', unitsPerOSDUnit: maxWidth > 0 ? maxWidth : 1 },
     layoutWidth: Math.max(1, rightColumnWidth > 0 ? rightColumnX + rightColumnWidth : leftColumnWidth),
     layoutHeight: Math.max(0, layoutHeight)
   };
