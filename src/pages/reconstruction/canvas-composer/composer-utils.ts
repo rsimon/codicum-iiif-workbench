@@ -124,37 +124,50 @@ export const getImageAt = (
   reconstruction: ReconstructionCanvas[],
   imagesByCanvasId: Map<string, DraggableImage[]>
 ): DraggableImageSelection | undefined => {
-  const item = getItemAt(point, layout);
-  if (!item) return;
-  
-  const rc = reconstruction.find(r => r.id === item.reconstructionCanvasId);
+  const reconstructionById = new Map(reconstruction.map(canvas => [canvas.id, canvas]));
+  let bestHit: {
+    item: ComposerLayoutItem;
+    image: DraggableImage;
+    itemArea: number;
+    imageArea: number;
+  } | undefined;
+
+  for (const item of layout.items) {
+    const canvas = reconstructionById.get(item.reconstructionCanvasId);
+    if (!canvas) continue;
+
+    const canvasScale = item.width / canvas.width;
+    const images = imagesByCanvasId.get(item.reconstructionCanvasId) ?? [];
+
+    for (const image of images) {
+      const bounds = image.crop ?? getImageBounds(image.resource);
+      const aspect = bounds.h / bounds.w;
+
+      const viewportX = item.x + image.x * canvasScale;
+      const viewportY = item.y + image.y * canvasScale;
+      const viewportW = image.width * canvasScale;
+      const viewportR = viewportX + viewportW;
+      const viewportB = viewportY + viewportW * aspect;
+
+      if (point.x < viewportX || point.x > viewportR || point.y < viewportY || point.y > viewportB) {
+        continue;
+      }
+
+      const imageArea = image.width * image.width * aspect;
+      const itemArea = item.width * item.height;
+
+      if (!bestHit || itemArea < bestHit.itemArea ||
+        (itemArea === bestHit.itemArea && imageArea < bestHit.imageArea)) {
+        bestHit = { item, image, itemArea, imageArea };
+      }
+    }
+  }
+
+  if (!bestHit) return;
+
+  const { item, image: hit } = bestHit;
+  const rc = reconstructionById.get(item.reconstructionCanvasId);
   if (!rc) return;
-
-  const images = imagesByCanvasId.get(item.reconstructionCanvasId) ?? [];
-  const canvasScale = item.width / rc.width;
-
-  const hit = images.filter(image => {
-    // Image size is in pixel!
-    const bounds = image.crop ?? getImageBounds(image.resource);
-    const aspect = bounds.h / bounds.w;
-
-    const viewportX = item.x + image.x * canvasScale;
-    const viewportY = item.y + image.y * canvasScale;
-    const viewportW = image.width * canvasScale;
-
-    const viewportR = viewportX + viewportW;
-    const viewportB = viewportY + viewportW * aspect;
-
-    return point.x >= viewportX && point.x <= viewportR && point.y >= viewportY && point.y <= viewportB;
-  }).sort((a, b) => {
-    const boundsA = a.crop ?? getImageBounds(a.resource);
-    const boundsB = b.crop ?? getImageBounds(b.resource);
-    const areaA = a.width * a.width * boundsA.h / boundsA.w;
-    const areaB = b.width * b.width * boundsB.h / boundsB.w;
-    return areaA - areaB;
-  })[0];
-
-  if (!hit) return;
 
   const sourceCanvas = rc.type === 'original'
     ? rc.source
@@ -172,6 +185,43 @@ export const getImageAt = (
   // allow changing association for this hit if it's the only image in its canvas
   const canChangeItem = hit ? sourceCanvas.canvas.images.length === 1 : false;
   return { item, image: hit, canChangeItem };
+}
+
+export const getTextAnnotationAt = (
+  point: Point,
+  layout: ComposerLayout,
+  reconstruction: ReconstructionCanvas[]
+): { canvas: ReconstructionCanvas; annotationId: string } | undefined => {
+  const reconstructionById = new Map(reconstruction.map(canvas => [canvas.id, canvas]));
+  let bestHit: {
+    canvas: ReconstructionCanvas;
+    annotationId: string;
+    itemArea: number;
+  } | undefined;
+
+  for (const item of layout.items) {
+    const canvas = reconstructionById.get(item.reconstructionCanvasId);
+    if (!canvas) continue;
+
+    const scale = item.width / canvas.width;
+    const x = (point.x - item.x) / scale;
+    const y = (point.y - item.y) / scale;
+    const itemArea = item.width * item.height;
+
+    for (const annotation of canvas.annotations ?? []) {
+      if (x < annotation.x || x > annotation.x + annotation.width ||
+        y < annotation.y || y > annotation.y + annotation.height) {
+        continue;
+      }
+
+      if (!bestHit || itemArea < bestHit.itemArea) {
+        bestHit = { canvas, annotationId: annotation.id, itemArea };
+      }
+    }
+  }
+
+  if (!bestHit) return;
+  return { canvas: bestHit.canvas, annotationId: bestHit.annotationId };
 }
 
 export const findSourceCanvasById = (

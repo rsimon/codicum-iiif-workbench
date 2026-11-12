@@ -3,7 +3,7 @@ import { Point, type CanvasClickEvent, type Viewer } from 'openseadragon';
 import { useAppStore } from '@/store/app-store';
 import { useReconstructionStore } from '../reconstruction-store';
 import type { ComposerLayout } from '../reconstruction-types';
-import { getImageAt, getItemAt } from './composer-utils';
+import { getImageAt, getItemAt, getTextAnnotationAt } from './composer-utils';
 import { useComposerStore } from './composer-store';
 
 export const useComposerSelection = (
@@ -72,37 +72,45 @@ export const useComposerSelection = (
       const { metaKey } = evt.originalEvent as PointerEvent;
 
       const point = viewer.viewport.viewerElementToViewportCoordinates(evt.position);
-      const item = getItemAt(point, layout);
 
-      if (item) {
-        // Snapshot read (prevents re-running the effect)
+      if (!metaKey) {
         const { reconstruction } = useAppStore.getState();
-        
+
+        const annotation = getTextAnnotationAt(point, layout, reconstruction);
+        if (annotation) {
+          setSelectedTextAnnotation({
+            canvasId: annotation.canvas.id,
+            annotationId: annotation.annotationId
+          });
+          setSelectedItems([annotation.canvas]);
+          return;
+        }
+
+        const hit = getImageAt(
+          point,
+          layout,
+          reconstruction,
+          useComposerStore.getState().imagesByCanvasId
+        );
+
+        if (hit) {
+          const canvas = reconstruction.find(r => r.id === hit.item.reconstructionCanvasId);
+          if (!canvas) return;
+
+          setSelectedTextAnnotation();
+          setSelectedItems(current => {
+            setSelectedImage(hit);
+            return current.length === 1 && current[0].id === canvas.id ? current : [canvas];
+          });
+          return;
+        }
+      }
+
+      const item = getItemAt(point, layout);
+      if (item) {
+        const { reconstruction } = useAppStore.getState();
         const canvas = reconstruction.find(r => r.id === item.reconstructionCanvasId);
         if (!canvas) return;
-
-        if (!metaKey) {
-          const scale = item.width / canvas.width;
-          const x = (point.x - item.x) / scale;
-          const y = (point.y - item.y) / scale;
-          
-          const annotation = (canvas.annotations ?? []).find(annotation =>
-            x >= annotation.x &&
-            x <= annotation.x + annotation.width &&
-            y >= annotation.y &&
-            y <= annotation.y + annotation.height
-          );
-
-          if (annotation) {
-            setSelectedTextAnnotation({
-              canvasId: canvas.id,
-              annotationId: annotation.id
-            });
-            
-            setSelectedItems([canvas]);
-            return;
-          }
-        }
 
         setSelectedTextAnnotation();
 
@@ -110,15 +118,8 @@ export const useComposerSelection = (
           setSelectedImage();
           setSelectedItems(current => [...current, canvas]);
         } else {
-          const hit = getImageAt(
-            point,
-            layout,
-            reconstruction,
-            useComposerStore.getState().imagesByCanvasId
-          );
-
           setSelectedItems(current => {
-            setSelectedImage(hit);
+            setSelectedImage();
             return current.length === 1 && current[0].id === canvas.id ? current : [canvas];
           });
         }
