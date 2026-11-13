@@ -1,4 +1,4 @@
-import { Cozy, type CozyCanvas, type CozyManifest } from 'cozy-iiif';
+import { Cozy, type Bounds, type CozyCanvas, type CozyManifest } from 'cozy-iiif';
 import { reorder } from '@atlaskit/pragmatic-drag-and-drop/reorder';
 import type { ReconstructionCanvas, SourceCanvas } from '@/types';
 import type { MoveDirection } from './app-store';
@@ -26,34 +26,34 @@ export const parseManifest = (source: unknown): CozyManifest => {
 }
 
 const rescaleSourceCanvas = (source: SourceCanvas, factor: number): SourceCanvas => {
-  const targetsByBody = new Map<object, { x: number; y: number; w: number; h: number }>();
+  const targetsByBody = new Map<object, Bounds>();
+
   source.canvas.images.forEach(image => {
     if (image.target) targetsByBody.set(image.source, image.target);
   });
 
-  const rawCanvas = {
+  const rescaled = {
     ...source.canvas.source,
     items: source.canvas.source.items?.map(page => ({
       ...page,
       items: page.items?.map(annotation => {
         const bodies = Array.isArray(annotation.body) ? annotation.body : [annotation.body];
-        const target = bodies
+        
+        const t = bodies
           .map(body => body && typeof body === 'object' ? targetsByBody.get(body) : undefined)
           .find(Boolean);
-        if (!target) return annotation;
 
-        const { x, y, w, h } = target;
-        return {
+        return t ? {
           ...annotation,
-          target: `${source.canvas.id}#xywh=${x * factor},${y * factor},${w * factor},${h * factor}`
-        };
+          target: `${source.canvas.id}#xywh=${t.x * factor},${t.y * factor},${t.w * factor},${t.h * factor}`
+        } : annotation;
       })
     }))
   };
 
   return {
     ...source,
-    canvas: parseCanvas(rawCanvas)
+    canvas: parseCanvas(rescaled)
   };
 }
 
