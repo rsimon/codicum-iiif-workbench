@@ -225,11 +225,8 @@ export const mergeInto = (
   if (toMerge.length < 2) return current;
 
   const [destination, ...others] = toMerge;
-
-  const mergedIds = new Set(others.map(r => r.id));
   
   const units = new Set(current.map(r => r.physicalSize?.unit).filter(Boolean));
-
   const usePhysicalSize = current.length > 0 &&
     units.size === 1 &&
     current.every(r => r.physicalSize);
@@ -239,6 +236,7 @@ export const mergeInto = (
 
     const fromPxPerUnit = from.width / from.physicalSize.width;
     const toPxPerUnit = to.width / to.physicalSize.width;
+
     return toPxPerUnit / fromPxPerUnit;
   }
 
@@ -252,7 +250,7 @@ export const mergeInto = (
 
   const annotationsToMerge = toMerge.flatMap(r => r.annotations ?? []);
     
-  return removeCanvasFromReconstruction(current, [...mergedIds])
+  return removeCanvasFromReconstruction(current, others.map(r => r.id))
     .map(r => { 
       if (r.id === destination.id) {
         if (r.type === 'composite') {
