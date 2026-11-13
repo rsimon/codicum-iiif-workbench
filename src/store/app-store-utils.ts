@@ -1,6 +1,6 @@
-import { Cozy, type CozyCanvas, type CozyManifest } from 'cozy-iiif';
+import { Cozy, type Bounds, type CozyCanvas, type CozyManifest } from 'cozy-iiif';
 import { reorder } from '@atlaskit/pragmatic-drag-and-drop/reorder';
-import type { SourceCanvas, ReconstructionCanvas } from '@/types';
+import type { ReconstructionCanvas, SourceCanvas } from '@/types';
 import type { MoveDirection } from './app-store';
 
 export const parseCanvas = (source: unknown): CozyCanvas => {
@@ -23,6 +23,53 @@ export const parseManifest = (source: unknown): CozyManifest => {
   }
 
   return parsed.resource;
+}
+
+export const toFragmentTarget = (canvas: CozyCanvas, bounds?: { x: number; y: number; w: number; h: number }) => {
+  if (!bounds) return canvas.id;
+  const x = Math.round(bounds.x);
+  const y = Math.round(bounds.y);
+  const w = Math.round(bounds.w);
+  const h = Math.round(bounds.h);
+  const isFullSize = x === 0 && y === 0 && w === canvas.width && h === canvas.height;
+  return isFullSize ? canvas.id : `${canvas.id}#xywh=${x},${y},${w},${h}`;
+}
+
+const rescaleSourceCanvas = (source: SourceCanvas, factor: number): SourceCanvas => {
+  const targetsByBody = new Map<object, Bounds>();
+
+  source.canvas.images.forEach(image => {
+    if (image.target) targetsByBody.set(image.source, image.target);
+  });
+
+  const rescaled = {
+    ...source.canvas.source,
+    items: source.canvas.source.items?.map(page => ({
+      ...page,
+      items: page.items?.map(annotation => {
+        const bodies = Array.isArray(annotation.body) ? annotation.body : [annotation.body];
+
+        const t = bodies
+          .map(body => body && typeof body === 'object' ? targetsByBody.get(body) : undefined)
+          .find(Boolean);
+
+        return t ? {
+          ...annotation,
+          target: toFragmentTarget(source.canvas, { 
+            x: t.x * factor, 
+            y: t.y * factor,
+            w: t.w * factor, 
+            h: t.h * factor 
+          })
+        } : annotation;
+      })
+    }))
+  };
+
+  return {
+    ...source,
+    canvas: parseCanvas(rescaled)
+  };
 }
 
 export const parseNumber = (s: string): number | undefined => {
@@ -178,11 +225,29 @@ export const mergeInto = (
   if (toMerge.length < 2) return current;
 
   const [destination, ...others] = toMerge;
-
-  const sourcesToMerge = toMerge.reduce<SourceCanvas[]>((all, r) =>
-    r.type === 'original' ? [...all, r.source] : [...all, ...r.sources]
-  , []);
   
+  const units = new Set(current.map(r => r.physicalSize?.unit).filter(Boolean));
+  const usePhysicalSize = current.length > 0 &&
+    units.size === 1 &&
+    current.every(r => r.physicalSize);
+
+  const getRescaleFactor = (from: ReconstructionCanvas, to: ReconstructionCanvas) => {
+    if (!usePhysicalSize || !from.physicalSize || !to.physicalSize) return 1;
+
+    const fromPxPerUnit = from.width / from.physicalSize.width;
+    const toPxPerUnit = to.width / to.physicalSize.width;
+
+    return toPxPerUnit / fromPxPerUnit;
+  }
+
+  const sourcesOf = (r: ReconstructionCanvas) =>
+    r.type === 'original' ? [r.source] : r.sources;
+
+  const sourcesToMerge = toMerge.flatMap(r => {
+    const factor = getRescaleFactor(r, destination);
+    return sourcesOf(r).map(source => rescaleSourceCanvas(source, factor));
+  }, []);
+
   const annotationsToMerge = toMerge.flatMap(r => r.annotations ?? []);
     
   return removeCanvasFromReconstruction(current, others.map(r => r.id))
