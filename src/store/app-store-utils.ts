@@ -1,6 +1,6 @@
 import { Cozy, type CozyCanvas, type CozyManifest } from 'cozy-iiif';
 import { reorder } from '@atlaskit/pragmatic-drag-and-drop/reorder';
-import type { SourceCanvas, ReconstructionCanvas } from '@/types';
+import type { ReconstructionCanvas, SourceCanvas } from '@/types';
 import type { MoveDirection } from './app-store';
 
 export const parseCanvas = (source: unknown): CozyCanvas => {
@@ -23,6 +23,38 @@ export const parseManifest = (source: unknown): CozyManifest => {
   }
 
   return parsed.resource;
+}
+
+const rescaleSourceCanvas = (source: SourceCanvas, factor: number): SourceCanvas => {
+  const targetsByBody = new Map<object, { x: number; y: number; w: number; h: number }>();
+  source.canvas.images.forEach(image => {
+    if (image.target) targetsByBody.set(image.source, image.target);
+  });
+
+  const rawCanvas = {
+    ...source.canvas.source,
+    items: source.canvas.source.items?.map(page => ({
+      ...page,
+      items: page.items?.map(annotation => {
+        const bodies = Array.isArray(annotation.body) ? annotation.body : [annotation.body];
+        const target = bodies
+          .map(body => body && typeof body === 'object' ? targetsByBody.get(body) : undefined)
+          .find(Boolean);
+        if (!target) return annotation;
+
+        const { x, y, w, h } = target;
+        return {
+          ...annotation,
+          target: `${source.canvas.id}#xywh=${x * factor},${y * factor},${w * factor},${h * factor}`
+        };
+      })
+    }))
+  };
+
+  return {
+    ...source,
+    canvas: parseCanvas(rawCanvas)
+  };
 }
 
 export const parseNumber = (s: string): number | undefined => {
@@ -179,13 +211,31 @@ export const mergeInto = (
 
   const [destination, ...others] = toMerge;
 
-  const sourcesToMerge = toMerge.reduce<SourceCanvas[]>((all, r) =>
-    r.type === 'original' ? [...all, r.source] : [...all, ...r.sources]
-  , []);
-  
+  const mergedIds = new Set(others.map(r => r.id));
+  const units = new Set(current.map(r => r.physicalSize?.unit).filter(Boolean));
+  const usePhysicalSize = current.length > 0 &&
+    units.size === 1 &&
+    current.every(r => r.physicalSize);
+
+  const getRescaleFactor = (from: ReconstructionCanvas, to: ReconstructionCanvas) => {
+    if (!usePhysicalSize || !from.physicalSize || !to.physicalSize) return 1;
+
+    const fromPxPerUnit = from.width / from.physicalSize.width;
+    const toPxPerUnit = to.width / to.physicalSize.width;
+    return toPxPerUnit / fromPxPerUnit;
+  }
+
+  const sourcesOf = (r: ReconstructionCanvas) =>
+    r.type === 'original' ? [r.source] : r.sources;
+
+  const sourcesToMerge = toMerge.flatMap(r => {
+    const factor = getRescaleFactor(r, destination);
+    return sourcesOf(r).map(source => rescaleSourceCanvas(source, factor));
+  }, []);
+
   const annotationsToMerge = toMerge.flatMap(r => r.annotations ?? []);
     
-  return removeCanvasFromReconstruction(current, others.map(r => r.id))
+  return removeCanvasFromReconstruction(current, [...mergedIds])
     .map(r => { 
       if (r.id === destination.id) {
         if (r.type === 'composite') {
