@@ -170,6 +170,12 @@
   margin: 0;
 }
 
+.text-annotation-content a {
+  color: oklch(48.8% 0.243 264.376);
+  pointer-events: auto;
+  text-decoration: underline;
+}
+
 .text-annotation-content sup,
 .text-annotation-content sub {
   line-height: 0;

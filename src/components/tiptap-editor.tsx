@@ -5,6 +5,7 @@ import Bold from '@tiptap/extension-bold';
 import Document from '@tiptap/extension-document';
 import HardBreak from '@tiptap/extension-hard-break';
 import Italic from '@tiptap/extension-italic';
+import Link from '@tiptap/extension-link';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import TextAlign from '@tiptap/extension-text-align'
@@ -17,6 +18,13 @@ export const SCHEMA_EXTENSIONS = [
   FontSize,
   HardBreak,
   Italic,
+  Link.configure({
+    autolink: true,
+    defaultProtocol: 'https',
+    markdownLinks: true,
+    openOnClick: true,
+    protocols: ['http', 'https', 'mailto']
+  }),
   Paragraph, 
   Text, 
   TextAlign.configure({
