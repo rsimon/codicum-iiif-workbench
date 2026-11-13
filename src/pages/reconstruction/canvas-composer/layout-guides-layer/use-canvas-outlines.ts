@@ -77,14 +77,19 @@ export const useCanvasOutlines = (props: UseCanvasOutlinesProps) => {
       const springs = springsById.current.get(item.reconstructionCanvasId);
       if (!springs) continue;
 
-      if (isUserEdit) {
-        springs.x.resetTo(item.x);
-        springs.y.resetTo(item.y);
-        springs.height.resetTo(item.height);
-      } else {
-        springs.x.springTo(item.x);
-        springs.y.springTo(item.y);
-        springs.height.springTo(item.height);
+      if (springs.x.target.value !== item.x) {
+        if (isUserEdit) springs.x.resetTo(item.x);
+        else springs.x.springTo(item.x);
+      }
+
+      if (springs.y.target.value !== item.y) {
+        if (isUserEdit) springs.y.resetTo(item.y);
+        else springs.y.springTo(item.y);
+      }
+      
+      if (springs.height.target.value !== item.height) {
+        if (isUserEdit) springs.height.resetTo(item.height);
+        else springs.height.springTo(item.height);
       }
     }
 
