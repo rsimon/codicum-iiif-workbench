@@ -49,6 +49,7 @@
     "openseadragon": "^5.0.1",
     "p-limit": "^7.3.3",
     "p-throttle": "^8.1.1",
+    "pdiiif": "^0.2.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-dropzone": "^20.2.0",

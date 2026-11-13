@@ -21,6 +21,7 @@ import {
   TabsList,
   TabsTrigger
 } from '@/shadcn/tabs';
+import { exportPDF } from './export-pdf';
 
 interface ExportReconstructionDialogProps {
 
@@ -84,6 +85,11 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
     
     URL.revokeObjectURL(url);
   };
+
+  const onExportPDF = async () => {
+    if (!generatedManifest) return;
+    await exportPDF(generatedManifest);
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -192,6 +198,12 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
               variant="ghost" 
               onClick={() => onOpenChange(false)}>
               Cancel
+            </Button>
+
+            <Button 
+              onClick={onExportPDF}
+              variant="outline">
+              Export PDF
             </Button>
 
             <Button onClick={onDownload}>
