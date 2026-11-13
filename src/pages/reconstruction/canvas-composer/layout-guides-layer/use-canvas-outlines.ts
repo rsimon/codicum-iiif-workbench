@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { Spring, type Rect } from 'openseadragon';
 import { useReconstructionStore } from '../../reconstruction-store';
+import { useComposerStore } from '../composer-store';
 import type { ComposerLayout, ComposerLayoutItem } from '../../reconstruction-types';
 import { OSD_ANIMATION_TIME, OSD_SPRING_STIFFNESS } from '../composer';
 
@@ -38,6 +39,7 @@ const createSprings = (item: ComposerLayoutItem): ItemSprings => {
 
 export const useCanvasOutlines = (props: UseCanvasOutlinesProps) => {
   const selection = useReconstructionStore(state => state.selection);
+  const isUserEdit = useComposerStore(state => state.isUserEdit);
 
   const itemsById = useRef<Map<string, ComposerLayoutItem>>(new Map());
 
@@ -75,13 +77,24 @@ export const useCanvasOutlines = (props: UseCanvasOutlinesProps) => {
       const springs = springsById.current.get(item.reconstructionCanvasId);
       if (!springs) continue;
 
-      if (springs.x.target.value !== item.x) springs.x.springTo(item.x);
-      if (springs.y.target.value !== item.y) springs.y.springTo(item.y);
-      if (springs.height.target.value !== item.height) springs.height.springTo(item.height);
+      if (springs.x.target.value !== item.x) {
+        if (isUserEdit) springs.x.resetTo(item.x);
+        else springs.x.springTo(item.x);
+      }
+
+      if (springs.y.target.value !== item.y) {
+        if (isUserEdit) springs.y.resetTo(item.y);
+        else springs.y.springTo(item.y);
+      }
+      
+      if (springs.height.target.value !== item.height) {
+        if (isUserEdit) springs.height.resetTo(item.height);
+        else springs.height.springTo(item.height);
+      }
     }
 
     props.drawRef.current();
-  }, [props.layout, props.drawRef]);
+  }, [props.layout, props.drawRef, isUserEdit]);
 
   return useCallback((
     bg: CanvasRenderingContext2D,

@@ -34,12 +34,17 @@ export const SingleSelection = (props: SingleSelectionProps) => {
   const setIsUserEdit = useComposerStore(state => state.setIsUserEdit);
 
   const onResizeCanvasPx = (newWidth: number, newHeight: number) => {
-    if (newWidth === Math.round(width) && newHeight === Math.round(height)) return;
+    if (newWidth === Math.round(width) && newHeight === Math.round(height)) return;    
+    setIsUserEdit(true);
     withHistory(() => resizeCanvas(canvas.id, newWidth, newHeight));
+    requestAnimationFrame(() => setIsUserEdit(false));
   }
 
-  const onResizeCanvasPhys = (size: PhysicalSize) =>
+  const onResizeCanvasPhys = (size: PhysicalSize) => {
+    setIsUserEdit(true);
     withHistory(() => setPhysicalSize(canvas.id, size));
+    requestAnimationFrame(() => setIsUserEdit(false));
+  }
 
   const onChangeImagePosition = (x: number, y: number, width: number) => {
     if (!selectedImage) return;
