@@ -1,6 +1,6 @@
 import type { Point } from 'openseadragon';
-import type { CozyCanvas, CozyImageResource } from 'cozy-iiif';
-import { parseCanvas } from '@/store/app-store-utils';
+import type { CozyImageResource } from 'cozy-iiif';
+import { parseCanvas, toFragmentTarget } from '@/store/app-store-utils';
 import type { ReconstructionCanvas, SourceCanvas } from '@/types';
 import type { ComposerLayout, ComposerLayoutItem, DraggableImage, DraggableImageSelection } from '../reconstruction-types';
 import { getCanvasImageKey } from '../reconstruction-utils';
@@ -325,16 +325,6 @@ export const applyEdits = (
         return unchanged ? r : { ...r, sources: nextSources };
       }
     });
-}
-
-const toFragmentTarget = (canvas: CozyCanvas, bounds?: { x: number; y: number; w: number; h: number }) => {
-  if (!bounds) return canvas.id;
-  const x = Math.round(bounds.x);
-  const y = Math.round(bounds.y);
-  const w = Math.round(bounds.w);
-  const h = Math.round(bounds.h);
-  const isFullSize = x === 0 && y === 0 && w === canvas.width && h === canvas.height;
-  return isFullSize ? canvas.id : `${canvas.id}#xywh=${x},${y},${w},${h}`;
 }
 
 const toAnnotationBodyItem = (image: DraggableImage) => {

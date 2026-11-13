@@ -25,6 +25,16 @@ export const parseManifest = (source: unknown): CozyManifest => {
   return parsed.resource;
 }
 
+export const toFragmentTarget = (canvas: CozyCanvas, bounds?: { x: number; y: number; w: number; h: number }) => {
+  if (!bounds) return canvas.id;
+  const x = Math.round(bounds.x);
+  const y = Math.round(bounds.y);
+  const w = Math.round(bounds.w);
+  const h = Math.round(bounds.h);
+  const isFullSize = x === 0 && y === 0 && w === canvas.width && h === canvas.height;
+  return isFullSize ? canvas.id : `${canvas.id}#xywh=${x},${y},${w},${h}`;
+}
+
 const rescaleSourceCanvas = (source: SourceCanvas, factor: number): SourceCanvas => {
   const targetsByBody = new Map<object, Bounds>();
 
@@ -38,14 +48,19 @@ const rescaleSourceCanvas = (source: SourceCanvas, factor: number): SourceCanvas
       ...page,
       items: page.items?.map(annotation => {
         const bodies = Array.isArray(annotation.body) ? annotation.body : [annotation.body];
-        
+
         const t = bodies
           .map(body => body && typeof body === 'object' ? targetsByBody.get(body) : undefined)
           .find(Boolean);
 
         return t ? {
           ...annotation,
-          target: `${source.canvas.id}#xywh=${t.x * factor},${t.y * factor},${t.w * factor},${t.h * factor}`
+          target: toFragmentTarget(source.canvas, { 
+            x: t.x * factor, 
+            y: t.y * factor,
+            w: t.w * factor, 
+            h: t.h * factor 
+          })
         } : annotation;
       })
     }))
@@ -212,7 +227,9 @@ export const mergeInto = (
   const [destination, ...others] = toMerge;
 
   const mergedIds = new Set(others.map(r => r.id));
+  
   const units = new Set(current.map(r => r.physicalSize?.unit).filter(Boolean));
+
   const usePhysicalSize = current.length > 0 &&
     units.size === 1 &&
     current.every(r => r.physicalSize);
