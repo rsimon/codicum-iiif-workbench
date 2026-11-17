@@ -30,7 +30,7 @@ interface OpenReconstructionDialogProps {
 
   onOpenChange(open: boolean): void;
 
-  onImportInstead(): void;
+  onImportInstead(url: string): void;
 
 }
 
@@ -115,7 +115,8 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
   }
 
   const onImportAsSource = () => {
-
+    onOpenChange(false);
+    props.onImportInstead(url);
   }
 
   return (

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IconLoader2, IconPhotoPlus, IconStack2 } from '@tabler/icons-react';
 import { IconAlertCircle } from '@tabler/icons-react';
 import pThrottle from 'p-throttle';
@@ -27,6 +27,8 @@ interface ImportSourceDialogProps {
 
   open: boolean;
 
+  withURL? : string;
+
   onOpenChange: (open: boolean) => void;
 
 }
@@ -42,11 +44,18 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
 
   const addSource = useAppStore(state => state.addSource);
 
-  const [url, setUrl] = useState('');
-  const [step, setStep] = useState<DialogStep>({ phase: 'input' });
+  const [url, setUrl] = useState(props.withURL || '');
+
+  const [step, setStep] = useState<DialogStep>(
+    props.withURL ? { phase: 'crawling', foundCount: 0 } : { phase: 'input' });
+
   const [error, setError] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (props.open && props.withURL) onImport();
+  }, [props.open, props.withURL]);
 
   const goToSourcesTab = () => {
     if (location !== '/sources')

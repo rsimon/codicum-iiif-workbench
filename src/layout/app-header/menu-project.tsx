@@ -16,15 +16,25 @@ import {
 } from '@/shadcn/dropdown-menu';
 
 export const Project = () => {
-  const reset  = useAppStore(state => state.resetAll);
+  const reset = useAppStore(state => state.resetAll);
 
   const [_, navigate] = useLocation();
 
-  const [showOpenReconstructionDialog, setShowOpenReconstructionDialog] = useState(false);
+  const [showOpenReconstructionDialog, _setShowOpenReconstructionDialog] = useState(false);
   const [showExportReconstructionDialog, setShowExportReconstructionDialog] = useState(false);
   const [showImportSourceDialog, setShowImportSourceDialog] = useState(false);
 
+  // Alternative import path: if the user tries to open a regular manifest as a
+  // reconstruction, and then decides to import as a source instead
+  const [importInstead, setImportInstead] = useState<string | undefined>();
+
   const confirm = useConfirm();
+
+  // Reset 'import source' URL any time the 'open reconstruction' dialog is opened/closed
+  const setShowOpenReconstructionDialog = (open: boolean) => {
+    setImportInstead(undefined);
+    setShowOpenReconstructionDialog(open);
+  }
 
   const onReset = () => {
     confirm({
@@ -38,6 +48,12 @@ export const Project = () => {
         navigate('/sources');
       }
     });
+  }
+
+  const onImportInstead = (url: string) => {
+    setShowOpenReconstructionDialog(false);
+    setImportInstead(url);
+    setShowImportSourceDialog(true);
   }
 
   return (
@@ -86,10 +102,7 @@ export const Project = () => {
       <OpenReconstructionDialog
         open={showOpenReconstructionDialog}
         onOpenChange={setShowOpenReconstructionDialog}
-        onImportInstead={() => {
-          setShowOpenReconstructionDialog(false);
-          setShowImportSourceDialog(true);
-        }} />
+        onImportInstead={onImportInstead} />
 
       <ExportReconstructionDialog
         open={showExportReconstructionDialog}
@@ -97,7 +110,8 @@ export const Project = () => {
 
       <ImportSourceDialog
         open={showImportSourceDialog}
-        onOpenChange={setShowImportSourceDialog} />
+        onOpenChange={setShowImportSourceDialog}
+        withURL={importInstead} />
     </>
   )
 
