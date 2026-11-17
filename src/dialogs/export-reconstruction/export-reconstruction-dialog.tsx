@@ -194,10 +194,12 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
               Cancel
             </Button>
 
-            <Button onClick={onDownload}>
+            <Button 
+              className="pr-3"
+              onClick={onDownload}>
               <Download 
                 aria-hidden
-                className="mr-2 h-4 w-4" />
+                className="mr-1 size-4" />
               Download JSON
             </Button>
           </div>
