@@ -56,7 +56,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       navigate('/reconstruction');
       props.onOpenChange(false);
     } catch (error) {
-      setError(error as Error)
+      setError(error instanceof Error ? error : new Error('Could not load reconstruction from file'));
     } finally {
       setFetching(false);
     }
@@ -108,7 +108,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       navigate('/reconstruction');
       props.onOpenChange(false);
     } catch (error) {
-      setError(error as Error);
+      setError(error instanceof Error ? error : new Error('Could not load reconstruction from URL'));
     } finally {
       setFetching(false);
     }
