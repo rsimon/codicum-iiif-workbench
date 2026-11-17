@@ -6,7 +6,7 @@ export const EmptyReconstructionTree = () => {
 
   return (
     <div className="grow flex flex-col gap-8 items-center justify-center text-sm">
-      <div className="space-y-2 flex flex-col items-center pb-12">
+      <div className="space-y-2 flex flex-col items-center pb-16">
         <IconBook
           className="size-20 opacity-80 text-muted-foreground"
           stroke={0.8} />
