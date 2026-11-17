@@ -20,9 +20,9 @@ export const Project = () => {
 
   const [_, navigate] = useLocation();
 
-  const [showOpenReconstructionDialog, _setShowOpenReconstructionDialog] = useState(false);
+  const [showOpenReconstructionDialog, _setShowOpenReconstructionDialogState] = useState(false);
   const [showExportReconstructionDialog, setShowExportReconstructionDialog] = useState(false);
-  const [showImportSourceDialog, setShowImportSourceDialog] = useState(false);
+  const [showImportSourceDialog, _setShowImportSourceDialogState] = useState(false);
 
   // Alternative import path: if the user tries to open a regular manifest as a
   // reconstruction, and then decides to import as a source instead
@@ -33,7 +33,13 @@ export const Project = () => {
   // Reset 'import source' URL any time the 'open reconstruction' dialog is opened/closed
   const setShowOpenReconstructionDialog = (open: boolean) => {
     setImportInstead(undefined);
-    setShowOpenReconstructionDialog(open);
+    _setShowOpenReconstructionDialogState(open);
+  }
+
+  const setShowImportSourceDialog = (open: boolean) => {
+    if (!open)
+      setImportInstead(undefined);
+    _setShowImportSourceDialogState(open);
   }
 
   const onReset = () => {

@@ -44,7 +44,7 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
 
   const addSource = useAppStore(state => state.addSource);
 
-  const [url, setUrl] = useState(props.withURL || '');
+  const [url, setUrl] = useState('');
 
   const [step, setStep] = useState<DialogStep>(
     props.withURL ? { phase: 'crawling', foundCount: 0 } : { phase: 'input' });
@@ -54,7 +54,7 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (props.open && props.withURL) onImport();
+    if (props.open && props.withURL) onImport(props.withURL);
   }, [props.open, props.withURL]);
 
   const goToSourcesTab = () => {
@@ -75,12 +75,13 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
     props.onOpenChange(open);
   }
 
-  const onImport = async () => {
-    if (!url.trim()) {
+  const onImport = async (withUrl = url) => {
+    if (!withUrl.trim()) {
       setError('Please enter a manifest URL');
       return;
     }
     
+    setUrl(withUrl);
     setError(null);
     setStep({ phase: 'crawling', foundCount: 0 });
 
@@ -88,7 +89,7 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
     abortRef.current = abort;
   
     try {
-      const result = await Cozy.parseURL(url);
+      const result = await Cozy.parseURL(withUrl);
 
       if (abort.signal.aborted) return;
 
@@ -96,7 +97,7 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
         throw new Error('Not a valid IIIF presentation or collection manifest');
 
       if (result.type === 'manifest') {
-        addSource(url, result.resource);
+        addSource(withUrl, result.resource);
         resetDialog();
 
         goToSourcesTab();
@@ -275,7 +276,7 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
               
               <Button 
                 className="tracking-wide"
-                onClick={onImport}>
+                onClick={() => onImport()}>
                 Import
               </Button>
             </>
