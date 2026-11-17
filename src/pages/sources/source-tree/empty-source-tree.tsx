@@ -13,7 +13,7 @@ interface EmptySourceTreeProps {
 export const EmptySourceTree = (props: EmptySourceTreeProps) => {
   
   return (
-    <div className="grow flex flex-col gap-6 items-center justify-center p-6 text-sm">
+    <div className="grow flex flex-col gap-8 items-center justify-center p-6 text-sm">
       <div className="flex flex-col items-center">
         <IconBooks
           className="size-20 text-muted-foreground opacity-80"

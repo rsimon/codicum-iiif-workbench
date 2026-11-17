@@ -160,7 +160,11 @@ export const SourceTree = () => {
 
       <OpenReconstructionDialog
         open={showOpenReconstructionDialog}
-        onOpenChange={setShowOpenReconstructionDialog} />
+        onOpenChange={setShowOpenReconstructionDialog}
+        onImportInstead={() => {
+          setShowOpenReconstructionDialog(false);
+          setShowImportSourceDialog(true);
+        }} />
     </div>
 
   )

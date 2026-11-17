@@ -85,7 +85,11 @@ export const Project = () => {
 
       <OpenReconstructionDialog
         open={showOpenReconstructionDialog}
-        onOpenChange={setShowOpenReconstructionDialog} />
+        onOpenChange={setShowOpenReconstructionDialog}
+        onImportInstead={() => {
+          setShowOpenReconstructionDialog(false);
+          setShowImportSourceDialog(true);
+        }} />
 
       <ExportReconstructionDialog
         open={showExportReconstructionDialog}

@@ -10,7 +10,12 @@ import { Label } from '@/shadcn/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/tabs';
 import { cn } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
-import { loadReconstructionFromJSON, loadReconstructionFromURL } from '@/store/load-reconstruction';
+import {
+  isLoadReconstructionError,
+  loadReconstructionFromJSON,
+  loadReconstructionFromURL,
+  type LoadReconstructionError
+} from '@/store/load-reconstruction';
 import { 
   Dialog, 
   DialogContent, 
@@ -24,8 +29,15 @@ interface OpenReconstructionDialogProps {
 
   open: boolean;
 
-  onOpenChange: (open: boolean) => void;
+  onOpenChange(open: boolean): void;
 
+  onImportInstead(): void;
+
+}
+
+type OpenReconstructionError = LoadReconstructionError | {
+  type: 'input-error' | 'unexpected-error';
+  message: string;
 }
 
 export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) => {
@@ -36,7 +48,8 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
   const [url, setUrl] = useState('');
   const [tab, setTab] = useState<'url' | 'file'>('url');
   const [fetching, setFetching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [error, setError] = useState<OpenReconstructionError | null>(null);
 
   const onFileImport = async (selectedFile: File) => {
     setError(null);
@@ -49,7 +62,12 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       navigate('/reconstruction');
       props.onOpenChange(false);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not load reconstruction');
+      setError(isLoadReconstructionError(error)
+        ? error
+        : {
+            type: 'unexpected-error',
+            message: error instanceof Error ? error.message : 'Could not load reconstruction'
+          });
     } finally {
       setFetching(false);
     }
@@ -66,7 +84,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       if (selectedFile) void onFileImport(selectedFile);
     },
     onDropRejected: () => {
-      setError('Please choose a JSON file');
+      setError({ type: 'input-error', message: 'Please choose a JSON file' });
     },
   });
 
@@ -88,7 +106,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
 
   const onURLImport = async () => {
     if (!url.trim()) {
-      setError('Please enter a manifest URL');
+      setError({ type: 'input-error', message: 'Please enter a manifest URL' });
       return;
     }
 
@@ -101,7 +119,12 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       navigate('/reconstruction');
       props.onOpenChange(false);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not load reconstruction');
+      setError(isLoadReconstructionError(error)
+        ? error
+        : {
+            type: 'unexpected-error',
+            message: error instanceof Error ? error.message : 'Could not load reconstruction'
+          });
     } finally {
       setFetching(false);
     }
@@ -189,7 +212,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
                   variant="destructive"
                   className="rounded">
                   <IconAlertCircle className="size-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>{error.message}</AlertDescription>
                 </Alert>
               )}
             </>
@@ -197,6 +220,17 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
         </div>
 
         <DialogFooter>
+          {error?.type === 'NOT_A_RECONSTRUCTION' && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                onOpenChange(false);
+                props.onImportInstead();
+              }}>
+              Import as source instead
+            </Button>
+          )}
+
           <Button
             variant="ghost"
             className="tracking-wide"
