@@ -1,6 +1,6 @@
 
 import { Link } from 'wouter';
-import { IconArrowRight, IconBook } from '@tabler/icons-react';
+import { IconArrowLeft, IconBook } from '@tabler/icons-react';
 
 export const EmptyReconstructionTree = () => {
 
@@ -22,7 +22,7 @@ export const EmptyReconstructionTree = () => {
             active:not-aria-[haspopup]:translate-y-px [&_svg]:pointer-events-none [&_svg]:shrink-0 
             [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/80
             h-10 gap-1.5 px-6">
-          Back to Sources <IconArrowRight className="size-5" />
+          <IconArrowLeft className="size-5" /> Back to Sources
         </Link>
       </div>
     </div>
