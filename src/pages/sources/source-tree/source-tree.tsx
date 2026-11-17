@@ -8,14 +8,13 @@ import { Button } from '@/shadcn/button';
 import { ScrollArea } from '@/shadcn/scroll-area';
 import { TooltipProvider } from '@/shadcn/tooltip';
 import { cn } from '@/shadcn/utils';
-import { ImportSourceDialog } from '@/dialogs/import-source';
+import { PairedImportDialogs } from '@/dialogs/paired-import';
 import { useAppStore } from '@/store/app-store';
 import { useSourcesStore } from '../sources-store';
 import { EmptySourceTree } from './empty-source-tree';
 import { CanvasTreeItem, ManifestTreeItem } from './source-tree-item';
 import { SourceTreeToolbar } from './source-tree-toolbar';
 import { useSourceNavigation } from '../use-source-navigation';
-import { OpenReconstructionDialog } from '@/dialogs/open-reconstruction';
 
 export const SourceTree = () => {
   const sources = useAppStore(state => state.sources);
@@ -29,33 +28,8 @@ export const SourceTree = () => {
   const selection = useSourcesStore(state => state.selection);
   const setSelection = useSourcesStore(state => state.setSelection);
 
-  const [showImportSourceDialog, _setShowImportSourceDialog] = useState(false);
-  const [showOpenReconstructionDialog, _setShowOpenReconstructionDialog] = useState(false);
-
-  // Alternative import path: if the user tries to open a regular manifest as a
-  // reconstruction, and then decides to import as a source instead
-  const [importSourceInstead, setImportSourceInstead] = useState<string | undefined>();
-
-  // Vice versa: if the user tries to import a source that's actually a project,
-  // and then decides to open the project
-  const [openProjectInstead, setOpenProjectInstead] = useState<string | undefined>();
-
-  const setShowImportSourceDialog = (open: boolean) => {
-    if (!open)
-      setImportSourceInstead(undefined);
-    _setShowImportSourceDialog(open);
-  }
-
-  const setShowOpenReconstructionDialog = (open: boolean) => {
-    if (open)
-      // Reset 'import as source instead' on open
-      setImportSourceInstead(undefined);
-    else 
-      // Reset 'open as project' otherwise
-      setOpenProjectInstead(undefined);
-
-    _setShowOpenReconstructionDialog(open);
-  }
+  const [showImportSourceDialog, setShowImportSourceDialog] = useState(false);
+  const [showOpenReconstructionDialog, setShowOpenReconstructionDialog] = useState(false);
 
   const [viewportEl, setViewportEl] = useState<HTMLDivElement | null>(null);
 
@@ -121,18 +95,6 @@ export const SourceTree = () => {
     )
   }
 
-  const onImportSourceInstead = (url: string) => {
-    setImportSourceInstead(url);
-    setShowOpenReconstructionDialog(false);
-    setShowImportSourceDialog(true);
-  }
-
-  const onOpenProjectInstead = (url: string) => {
-    setShowImportSourceDialog(false);
-    setOpenProjectInstead(url);
-    setShowOpenReconstructionDialog(true);
-  }
-
   const canContinue = sourceCanvasesInReconstruction > 0;
 
   return (
@@ -194,17 +156,11 @@ export const SourceTree = () => {
         </>
       )}
 
-      <ImportSourceDialog 
-        open={showImportSourceDialog} 
-        onOpenChange={setShowImportSourceDialog} 
-        onOpenReconstructionInstead={onOpenProjectInstead}
-        withURL={importSourceInstead} />
-
-      <OpenReconstructionDialog
-        open={showOpenReconstructionDialog}
-        onOpenChange={setShowOpenReconstructionDialog}
-        onImportSourceInstead={onImportSourceInstead} 
-        withURL={openProjectInstead} />
+      <PairedImportDialogs
+        openImportSource={showImportSourceDialog}
+        onImportSourceOpenChange={setShowImportSourceDialog}
+        openReconstruction={showOpenReconstructionDialog}
+        onReconstructionOpenChange={setShowOpenReconstructionDialog} />
     </div>
 
   )
