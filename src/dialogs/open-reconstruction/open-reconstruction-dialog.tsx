@@ -13,8 +13,7 @@ import { useAppStore } from '@/store/app-store';
 import {
   isLoadReconstructionError,
   loadReconstructionFromJSON,
-  loadReconstructionFromURL,
-  type LoadReconstructionError
+  loadReconstructionFromURL
 } from '@/store/load-reconstruction';
 import { 
   Dialog, 
@@ -35,11 +34,6 @@ interface OpenReconstructionDialogProps {
 
 }
 
-type OpenReconstructionError = LoadReconstructionError | {
-  type: 'input-error' | 'unexpected-error';
-  message: string;
-}
-
 export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) => {
   const loadProject = useAppStore(state => state.loadProject);
 
@@ -49,7 +43,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
   const [tab, setTab] = useState<'url' | 'file'>('url');
   const [fetching, setFetching] = useState(false);
 
-  const [error, setError] = useState<OpenReconstructionError | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const onFileImport = async (selectedFile: File) => {
     setError(null);
@@ -62,12 +56,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       navigate('/reconstruction');
       props.onOpenChange(false);
     } catch (error) {
-      setError(isLoadReconstructionError(error)
-        ? error
-        : {
-            type: 'unexpected-error',
-            message: error instanceof Error ? error.message : 'Could not load reconstruction'
-          });
+      setError(error as Error)
     } finally {
       setFetching(false);
     }
@@ -84,7 +73,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       if (selectedFile) void onFileImport(selectedFile);
     },
     onDropRejected: () => {
-      setError({ type: 'input-error', message: 'Please choose a JSON file' });
+      setError(new Error('Please choose a JSON file'));
     },
   });
 
@@ -106,7 +95,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
 
   const onURLImport = async () => {
     if (!url.trim()) {
-      setError({ type: 'input-error', message: 'Please enter a manifest URL' });
+      setError(new Error('Please enter a manifest URL'));
       return;
     }
 
@@ -119,12 +108,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       navigate('/reconstruction');
       props.onOpenChange(false);
     } catch (error) {
-      setError(isLoadReconstructionError(error)
-        ? error
-        : {
-            type: 'unexpected-error',
-            message: error instanceof Error ? error.message : 'Could not load reconstruction'
-          });
+      setError(error as Error);
     } finally {
       setFetching(false);
     }
@@ -220,7 +204,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
         </div>
 
         <DialogFooter>
-          {error?.type === 'NOT_A_RECONSTRUCTION' && (
+          {isLoadReconstructionError(error) && error.type === 'NOT_A_RECONSTRUCTION' && (
             <Button
               variant="outline"
               onClick={() => {
