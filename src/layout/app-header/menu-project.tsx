@@ -36,23 +36,23 @@ export const Project = () => {
 
   // Reset 'import source' URL any time the 'open reconstruction' dialog is opened/closed
   const setShowOpenReconstructionDialog = (open: boolean) => {
-    if (!open)
-      // Reset 'open as project' on close
-      setOpenProjectInstead(undefined);
-    else 
-      // Reset 'import as source instead' otherwise
+    if (open)
+      // Reset 'import as source instead' on open
       setImportSourceInstead(undefined);
+    else 
+      // Reset 'open as project' otherwise
+      setOpenProjectInstead(undefined);
       
     _setShowOpenReconstructionDialogState(open);
   }
 
   const setShowImportSourceDialog = (open: boolean) => {
-    if (!open)
-      // Reset 'import as source' on close
-      setImportSourceInstead(undefined);
-    else 
-      // Reset 'open as project instead' otherwise
+    if (open)
+      // Reset 'open as project instead' on open
       setOpenProjectInstead(undefined);
+    else 
+      // Reset 'import as source' otherwise
+      setImportSourceInstead(undefined);
 
     _setShowImportSourceDialogState(open);
   }

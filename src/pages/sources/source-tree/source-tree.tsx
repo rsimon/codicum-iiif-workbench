@@ -34,17 +34,26 @@ export const SourceTree = () => {
 
   // Alternative import path: if the user tries to open a regular manifest as a
   // reconstruction, and then decides to import as a source instead
-  const [importAsSourceInstead, setImportAsSourceInstead] = useState<string | undefined>();
+  const [importSourceInstead, setImportSourceInstead] = useState<string | undefined>();
+
+  // Vice versa: if the user tries to import a source that's actually a project,
+  // and then decides to open the project
+  const [openProjectInstead, setOpenProjectInstead] = useState<string | undefined>();
 
   const setShowImportSourceDialog = (open: boolean) => {
     if (!open)
-      setImportAsSourceInstead(undefined);
+      setImportSourceInstead(undefined);
     _setShowImportSourceDialog(open);
   }
 
   const setShowOpenReconstructionDialog = (open: boolean) => {
     if (open)
-      setImportAsSourceInstead(undefined);
+      // Reset 'import as source instead' on open
+      setImportSourceInstead(undefined);
+    else 
+      // Reset 'open as project' otherwise
+      setOpenProjectInstead(undefined);
+
     _setShowOpenReconstructionDialog(open);
   }
 
@@ -112,10 +121,16 @@ export const SourceTree = () => {
     )
   }
 
-  const onImportAsSourceInstead = (url: string) => {
-    setImportAsSourceInstead(url);
+  const onImportSourceInstead = (url: string) => {
+    setImportSourceInstead(url);
     setShowOpenReconstructionDialog(false);
     setShowImportSourceDialog(true);
+  }
+
+  const onOpenProjectInstead = (url: string) => {
+    setShowImportSourceDialog(false);
+    setOpenProjectInstead(url);
+    setShowOpenReconstructionDialog(true);
   }
 
   const canContinue = sourceCanvasesInReconstruction > 0;
@@ -182,12 +197,14 @@ export const SourceTree = () => {
       <ImportSourceDialog 
         open={showImportSourceDialog} 
         onOpenChange={setShowImportSourceDialog} 
-        withURL={importAsSourceInstead} />
+        onOpenReconstructionInstead={onOpenProjectInstead}
+        withURL={importSourceInstead} />
 
       <OpenReconstructionDialog
         open={showOpenReconstructionDialog}
         onOpenChange={setShowOpenReconstructionDialog}
-        onImportInstead={onImportAsSourceInstead} />
+        onImportSourceInstead={onImportSourceInstead} 
+        withURL={openProjectInstead} />
     </div>
 
   )
