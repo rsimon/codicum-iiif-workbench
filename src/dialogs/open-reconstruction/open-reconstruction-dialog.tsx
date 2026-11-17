@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useDropzone } from 'react-dropzone';
 import { IconAlertCircle, IconLoader2 } from '@tabler/icons-react';
@@ -28,9 +28,11 @@ interface OpenReconstructionDialogProps {
 
   open: boolean;
 
+  withURL? : string;
+
   onOpenChange(open: boolean): void;
 
-  onImportInstead(url: string): void;
+  onImportSourceInstead(url: string): void;
 
 }
 
@@ -44,6 +46,10 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
   const [fetching, setFetching] = useState(false);
 
   const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    if (props.open && props.withURL) onURLImport(props.withURL);
+  }, [props.open, props.withURL]);
 
   const onFileImport = async (selectedFile: File) => {
     setError(null);
@@ -93,8 +99,8 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
     props.onOpenChange(open);
   }
 
-  const onURLImport = async () => {
-    if (!url.trim()) {
+  const onURLImport = async (withUrl = url) => {
+    if (!withUrl.trim()) {
       setError(new Error('Please enter a manifest URL'));
       return;
     }
@@ -103,7 +109,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
     setFetching(true);
 
     try {
-      const parsed = await loadReconstructionFromURL(url.trim());
+      const parsed = await loadReconstructionFromURL(withUrl.trim());
       loadProject(parsed.sources, parsed.reconstruction);
       navigate('/reconstruction');
       props.onOpenChange(false);
@@ -116,7 +122,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
 
   const onImportAsSource = () => {
     onOpenChange(false);
-    props.onImportInstead(url);
+    props.onImportSourceInstead(url);
   }
 
   return (
@@ -238,7 +244,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
             ) : (
               <Button
                 className="tracking-wide"
-                onClick={onURLImport}>
+                onClick={() => onURLImport()}>
                 Import
               </Button>
             )

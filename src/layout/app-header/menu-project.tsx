@@ -26,19 +26,34 @@ export const Project = () => {
 
   // Alternative import path: if the user tries to open a regular manifest as a
   // reconstruction, and then decides to import as a source instead
-  const [importInstead, setImportInstead] = useState<string | undefined>();
+  const [importSourceInstead, setImportSourceInstead] = useState<string | undefined>();
+
+  // Vice versa: if the user tries to import a source that's actually a project,
+  // and then decides to open the project
+  const [openProjectInstead, setOpenProjectInstead] = useState<string | undefined>();
 
   const confirm = useConfirm();
 
   // Reset 'import source' URL any time the 'open reconstruction' dialog is opened/closed
   const setShowOpenReconstructionDialog = (open: boolean) => {
-    setImportInstead(undefined);
+    if (!open)
+      // Reset 'open as project' on close
+      setOpenProjectInstead(undefined);
+    else 
+      // Reset 'import as source instead' otherwise
+      setImportSourceInstead(undefined);
+      
     _setShowOpenReconstructionDialogState(open);
   }
 
   const setShowImportSourceDialog = (open: boolean) => {
     if (!open)
-      setImportInstead(undefined);
+      // Reset 'import as source' on close
+      setImportSourceInstead(undefined);
+    else 
+      // Reset 'open as project instead' otherwise
+      setOpenProjectInstead(undefined);
+
     _setShowImportSourceDialogState(open);
   }
 
@@ -56,10 +71,16 @@ export const Project = () => {
     });
   }
 
-  const onImportInstead = (url: string) => {
+  const onImportSourceInstead = (url: string) => {
     setShowOpenReconstructionDialog(false);
-    setImportInstead(url);
+    setImportSourceInstead(url);
     setShowImportSourceDialog(true);
+  }
+
+  const onOpenProjectInstead = (url: string) => {
+    setShowImportSourceDialog(false);
+    setOpenProjectInstead(url);
+    setShowOpenReconstructionDialog(true);
   }
 
   return (
@@ -108,16 +129,18 @@ export const Project = () => {
       <OpenReconstructionDialog
         open={showOpenReconstructionDialog}
         onOpenChange={setShowOpenReconstructionDialog}
-        onImportInstead={onImportInstead} />
-
-      <ExportReconstructionDialog
-        open={showExportReconstructionDialog}
-        onOpenChange={setShowExportReconstructionDialog} />
+        onImportSourceInstead={onImportSourceInstead} 
+        withURL={openProjectInstead} />
 
       <ImportSourceDialog
         open={showImportSourceDialog}
         onOpenChange={setShowImportSourceDialog}
-        withURL={importInstead} />
+        onOpenReconstructionInstead={onOpenProjectInstead}
+        withURL={importSourceInstead} />
+
+      <ExportReconstructionDialog
+        open={showExportReconstructionDialog}
+        onOpenChange={setShowExportReconstructionDialog} />
     </>
   )
 

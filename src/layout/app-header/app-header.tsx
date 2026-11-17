@@ -10,8 +10,6 @@ interface NavItemProps {
   
   href: string;
 
-  className?: string;
-
   children: ReactNode;
 
 }
@@ -22,8 +20,7 @@ const NavItem = (props: NavItemProps) => {
   return (
     <div className={cn(
       'px-0.5 py-1.25 h-12 border-b-4 border-transparent',
-      location === props.href ? 'border-b-primary' : 'text-muted-foreground/80',
-      props.className
+      location === props.href ? 'border-b-primary' : 'text-muted-foreground/80'
     )}>
       <Link 
         href={props.href}
@@ -52,13 +49,12 @@ export const AppHeader = () => {
         </NavItem>
         
         <NavItem 
-          href="/reconstruction"
-          className="flex gap-1">
+          href="/reconstruction">
           <span>2. Reconstruct</span>
           {reconstruction.length > 0 && (
             <Badge 
               variant="secondary" 
-              className="font-normal">
+              className="font-normal ml-1">
               {reconstruction.length}
             </Badge>
           )}
