@@ -15,6 +15,7 @@ import { EmptySourceTree } from './empty-source-tree';
 import { CanvasTreeItem, ManifestTreeItem } from './source-tree-item';
 import { SourceTreeToolbar } from './source-tree-toolbar';
 import { useSourceNavigation } from '../use-source-navigation';
+import { OpenReconstructionDialog } from '@/dialogs/open-reconstruction';
 
 export const SourceTree = () => {
   const sources = useAppStore(state => state.sources);
@@ -29,6 +30,7 @@ export const SourceTree = () => {
   const setSelection = useSourcesStore(state => state.setSelection);
 
   const [showImportSourceDialog, setShowImportSourceDialog] = useState(false);
+  const [showOpenReconstructionDialog, setShowOpenReconstructionDialog] = useState(false);
 
   const [viewportEl, setViewportEl] = useState<HTMLDivElement | null>(null);
 
@@ -101,7 +103,8 @@ export const SourceTree = () => {
 
       {sources.length === 0 ? (
         <EmptySourceTree
-          onImport={() => setShowImportSourceDialog(true)} />
+          onImportSource={() => setShowImportSourceDialog(true)}
+          onOpenProject={() => setShowOpenReconstructionDialog(true)} />
       ) : (
         <>
           <ScrollArea className="grow min-h-0" viewportRef={setViewportEl}>
@@ -154,6 +157,10 @@ export const SourceTree = () => {
       <ImportSourceDialog 
         open={showImportSourceDialog} 
         onOpenChange={setShowImportSourceDialog} />
+
+      <OpenReconstructionDialog
+        open={showOpenReconstructionDialog}
+        onOpenChange={setShowOpenReconstructionDialog} />
     </div>
 
   )
