@@ -114,6 +114,10 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
     }
   }
 
+  const onImportAsSource = () => {
+
+  }
+
   return (
     <Dialog open={props.open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl gap-4">
@@ -196,7 +200,20 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
                   variant="destructive"
                   className="rounded">
                   <IconAlertCircle className="size-4" />
-                  <AlertDescription>{error.message}</AlertDescription>
+                  {isLoadReconstructionError(error) && error.type === 'NOT_A_RECONSTRUCTION' ? (
+                    <AlertDescription className="leading-relaxed">
+                      <h3 className="font-medium">
+                        Not a CODICUM project
+                      </h3>
+                      <p>
+                        This manifest appears to be a regular IIIF manifest. It cannot be 
+                        opened as a CODICUM project. Do you want to import it as a
+                        source instead?
+                      </p>
+                    </AlertDescription>
+                  ) : (
+                    <AlertDescription>{error.message}</AlertDescription>
+                  )}
                 </Alert>
               )}
             </>
@@ -204,17 +221,6 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
         </div>
 
         <DialogFooter>
-          {isLoadReconstructionError(error) && error.type === 'NOT_A_RECONSTRUCTION' && (
-            <Button
-              variant="outline"
-              onClick={() => {
-                onOpenChange(false);
-                props.onImportInstead();
-              }}>
-              Import as source instead
-            </Button>
-          )}
-
           <Button
             variant="ghost"
             className="tracking-wide"
@@ -223,11 +229,18 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
           </Button>
               
           {tab === 'url' && (
-            <Button
-              className="tracking-wide"
-              onClick={onURLImport}>
-              Import
-            </Button>
+            isLoadReconstructionError(error) && error.type === 'NOT_A_RECONSTRUCTION' ? (
+              <Button
+                onClick={onImportAsSource}>
+                Yes, import as source
+              </Button>
+            ) : (
+              <Button
+                className="tracking-wide"
+                onClick={onURLImport}>
+                Import
+              </Button>
+            )
           )}
         </DialogFooter>
       </DialogContent>
