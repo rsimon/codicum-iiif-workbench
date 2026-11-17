@@ -46,7 +46,7 @@ export const ManifestTreeItem = (props: ManifestTreeItemProps) => {
 
   return (
     <div className="py-1 text-sm bg-white/80 backdrop-blur">
-      <div className="group flex pr-1.5 gap-1 rounded-md justify-between items-center">
+      <div className="group relative flex pr-1.5 gap-1 rounded-md justify-between items-center">
         <div
           className="flex gap-0.5 min-w-0 flex-1 items-center">
           <Button

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { IconUpload } from '@tabler/icons-react';
 import { useConfirm } from '@/dialogs/confirm';
-import { ImportSourceDialog } from '@/dialogs/import-source';
+import { PairedImportDialogs } from '@/dialogs/paired-import';
 import { Button } from '@/shadcn/button';
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from '@/shadcn/dialog';
 import { Checkbox } from '@/shadcn/checkbox';
@@ -37,6 +37,7 @@ export const Splash = () => {
   const reset = useAppStore(state => state.resetAll);
 
   const [showImportSourceDialog, setShowImportSourceDialog] = useState(false);
+  const [showOpenReconstructionDialog, setShowOpenReconstructionDialog] = useState(false);
 
   const confirm = useConfirm();
 
@@ -134,9 +135,11 @@ export const Splash = () => {
         </DialogContent>
       </Dialog>
 
-      <ImportSourceDialog 
-        open={showImportSourceDialog} 
-        onOpenChange={setShowImportSourceDialog} />
+      <PairedImportDialogs
+        openImportSource={showImportSourceDialog}
+        onImportSourceOpenChange={setShowImportSourceDialog}
+        openReconstruction={showOpenReconstructionDialog}
+        onReconstructionOpenChange={setShowOpenReconstructionDialog} />
     </>
   )
 

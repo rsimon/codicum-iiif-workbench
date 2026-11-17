@@ -34,7 +34,7 @@ export const SourceTreeItemActions = (props: SourceTreeItemActionsProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger 
-        className="hidden group-hover:flex data-popup-open:flex rounded-full p-1 text-muted-foreground/80 hover:text-foreground cursor-pointer">
+        className="invisible absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground/80 hover:text-foreground cursor-pointer group-hover:visible group-hover:static group-hover:top-auto group-hover:translate-y-0 data-popup-open:visible data-popup-open:static data-popup-open:top-auto data-popup-open:translate-y-0">
         <IconDots className="size-4" />
       </DropdownMenuTrigger>
 

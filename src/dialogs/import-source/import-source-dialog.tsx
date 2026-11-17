@@ -1,9 +1,9 @@
-import { useRef, useState } from 'react';
-import { IconLoader2, IconPhotoPlus, IconStack2 } from '@tabler/icons-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { IconAlertTriangle, IconLoader2, IconPhotoPlus, IconStack2 } from '@tabler/icons-react';
 import { IconAlertCircle } from '@tabler/icons-react';
 import pThrottle from 'p-throttle';
 import { useLocation } from 'wouter';
-import { Cozy, type CozyCollectionManifestItem } from 'cozy-iiif';
+import { Cozy, type CozyCollectionManifestItem, type CozyManifest } from 'cozy-iiif';
 import { Alert, AlertDescription } from '@/shadcn/alert';
 import { Button } from '@/shadcn/button';
 import { Input } from '@/shadcn/input';
@@ -23,16 +23,24 @@ const throttledParseURL = pThrottle({ limit: 2, interval: 1000 })(
   (url: string) => Cozy.parseURL(url)
 );
 
+const isMadeWithCODICUM = (manifest: CozyManifest) =>
+  manifest.getMetadata().some(m => m.label === 'Created with' && m.value.includes('CODICUM'));
+
 interface ImportSourceDialogProps {
 
   open: boolean;
 
+  withURL? : string;
+
   onOpenChange: (open: boolean) => void;
+
+  onOpenReconstructionInstead(url: string): void;
 
 }
 
 type DialogStep =
   | { phase: 'input' }
+  | { phase: 'prompt-open-as-reconstruction' }
   | { phase: 'crawling'; foundCount: number }
   | { phase: 'confirm'; manifests: CozyCollectionManifestItem[] }
   | { phase: 'bulk-import'; progress: number; total: number; current?: string };
@@ -43,10 +51,24 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
   const addSource = useAppStore(state => state.addSource);
 
   const [url, setUrl] = useState('');
-  const [step, setStep] = useState<DialogStep>({ phase: 'input' });
+
+  const [step, setStep] = useState<DialogStep>(
+    props.withURL ? { phase: 'crawling', foundCount: 0 } : { phase: 'input' });
+
   const [error, setError] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
+
+  const isProjectEmpty = useMemo(() => {
+    if (!props.open) return true;
+
+    const { reconstruction, sources } = useAppStore.getState();
+    return reconstruction.length === 0 && sources.length === 0;
+  }, [props.open]);
+
+  useEffect(() => {
+    if (props.open && props.withURL) onImport(props.withURL);
+  }, [props.open, props.withURL]);
 
   const goToSourcesTab = () => {
     if (location !== '/sources')
@@ -66,12 +88,13 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
     props.onOpenChange(open);
   }
 
-  const onImport = async () => {
-    if (!url.trim()) {
+  const onImport = async (withUrl = url) => {
+    if (!withUrl.trim()) {
       setError('Please enter a manifest URL');
       return;
     }
     
+    setUrl(withUrl);
     setError(null);
     setStep({ phase: 'crawling', foundCount: 0 });
 
@@ -79,7 +102,7 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
     abortRef.current = abort;
   
     try {
-      const result = await Cozy.parseURL(url);
+      const result = await Cozy.parseURL(withUrl);
 
       if (abort.signal.aborted) return;
 
@@ -87,7 +110,12 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
         throw new Error('Not a valid IIIF presentation or collection manifest');
 
       if (result.type === 'manifest') {
-        addSource(url, result.resource);
+        if (isMadeWithCODICUM(result.resource)) {
+          setStep({ phase: 'prompt-open-as-reconstruction' });
+          return;
+        }
+
+        addSource(withUrl, result.resource);
         resetDialog();
 
         goToSourcesTab();
@@ -164,17 +192,29 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
     abortRef.current = null;
     setError(null);
     setStep({ phase: 'input' });
-  };
+  }
+
+  const onOpenAsReconstruction = () => {
+    props.onOpenReconstructionInstead(url);
+    resetDialog();
+    props.onOpenChange(false);
+  }
   
   return (
     <Dialog 
       open={props.open} 
       onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg gap-1">
         <DialogHeader className="space-y-2">
           <DialogTitle className="flex items-center gap-2">
-            <IconPhotoPlus className="size-4" strokeWidth={2.25} />
-            Import IIIF Manifest
+            {step.phase === 'prompt-open-as-reconstruction' ? (
+              <span>This is a CODICUM project</span>
+            ) : (
+              <>
+                <IconPhotoPlus className="size-4" strokeWidth={2.25} />
+                Import IIIF Manifest
+              </>
+            )}
           </DialogTitle>
 
           <DialogDescription className="leading-relaxed">
@@ -183,11 +223,16 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
                 Enter the URL of a IIIF Presentation or Collection manifest to import it as
                 a source for your reconstruction.
               </span>
-            ) : (
+            ) : step.phase === 'crawling' ? (
               <span>
                 This URL points to a IIIF Collection manifest.
               </span>
-            )}
+            ) : step.phase === 'prompt-open-as-reconstruction' ? (
+              <span>
+                This manifest was saved with the CODICUM workbench and contains 
+                a reconstruction. <span className="text-foreground font-medium">Do you want to open it as a project instead?</span>
+              </span>
+            ) : null}
           </DialogDescription>
         </DialogHeader>
         
@@ -222,6 +267,18 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
                 )}
               </AlertDescription>
             </Alert>
+          ) : step.phase === 'prompt-open-as-reconstruction' ? (
+            isProjectEmpty ? null : (
+              <Alert 
+                variant="destructive"
+                className="border-destructive bg-destructive/5 leading-relaxed">
+                <IconAlertTriangle className="size-4" />
+                <AlertDescription>
+                  <span className="font-medium">Warning!</span> Opening a project replaces your current 
+                  workspace. Your current project will be reset. This cannot be undone.
+                </AlertDescription>
+              </Alert>
+            )
           ) : step.phase === 'confirm' ? (
             <Alert>
               <IconStack2 className="size-4" />
@@ -266,7 +323,7 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
               
               <Button 
                 className="tracking-wide"
-                onClick={onImport}>
+                onClick={() => onImport()}>
                 Import
               </Button>
             </>
@@ -282,9 +339,15 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
                 Back
               </Button>
 
-              <Button onClick={onConfirmCollectionImport}>
-                Import All
-              </Button>
+              {step.phase === 'prompt-open-as-reconstruction' ? (
+                <Button onClick={onOpenAsReconstruction}>
+                  Yes, open as project
+                </Button>
+              ) : (
+                <Button onClick={onConfirmCollectionImport}>
+                  Import All
+                </Button>
+              )}
             </>
           )}
         </DialogFooter>
