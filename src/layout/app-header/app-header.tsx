@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useLocation} from 'wouter';
 import { Badge } from '@/shadcn/badge';
 import { cn  } from '@/shadcn/utils';
@@ -38,10 +38,6 @@ const NavItem = (props: NavItemProps) => {
 export const AppHeader = () => {
   const reconstruction = useAppStore(state => state.reconstruction);
 
-  const sourceCanvasCount = useMemo(() => 
-    reconstruction.flatMap(s => s.type === 'original' ? s.source : s.sources).length
-  , [reconstruction]);
-
   return (
     <header className="flex justify-between items-center px-2.5 text-sm 
       relative z-10 shadow-[0_0_1px_rgba(0,0,0,0.5)]">
@@ -59,11 +55,13 @@ export const AppHeader = () => {
           href="/reconstruction"
           className="flex gap-1">
           <span>2. Reconstruct</span>
-          <Badge 
-            variant="secondary" 
-            className="font-normal">
-            {sourceCanvasCount}
-          </Badge>
+          {reconstruction.length > 0 && (
+            <Badge 
+              variant="secondary" 
+              className="font-normal">
+              {reconstruction.length}
+            </Badge>
+          )}
         </NavItem>
 
         <NavItem href="/preview">
