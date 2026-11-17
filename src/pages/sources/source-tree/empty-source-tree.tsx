@@ -63,7 +63,7 @@ export const EmptySourceTree = (props: EmptySourceTreeProps) => {
             </h2>
             
             <p className="text-muted-foreground">
-              Load a reconstruction created with the Codicum workbench.
+              Load a reconstruction created with the CODICUM workbench.
             </p>
           </div>
 

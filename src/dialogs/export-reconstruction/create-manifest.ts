@@ -31,7 +31,7 @@ export const createManifest = (
       },
       {
         label: { en: ['Created with'] },
-        value: { en: ['CODICUM Manuscript Workbench'] }
+        value: { en: ['Codicum Manuscript Workbench'] }
       },
       {
         label: { en: ['Source Manifests']},

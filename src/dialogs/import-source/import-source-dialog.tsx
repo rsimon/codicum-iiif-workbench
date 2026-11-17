@@ -24,7 +24,7 @@ const throttledParseURL = pThrottle({ limit: 2, interval: 1000 })(
 );
 
 const isMadeWithCODICUM = (manifest: CozyManifest) =>
-  manifest.getMetadata().some(m => m.label === 'Created with' && m.value.includes('CODICUM'));
+  manifest.getMetadata().some(m => m.label === 'Created with' && m.value.toLowerCase().includes('codicum'));
 
 interface ImportSourceDialogProps {
 
