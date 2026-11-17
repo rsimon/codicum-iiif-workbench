@@ -40,7 +40,7 @@ export const EmptySourceTree = (props: EmptySourceTreeProps) => {
             className="w-full mt-4 tracking-wide"
             size="lg"
             onClick={props.onImportSource}>
-            Import from URL...
+            Import IIIF source...
           </Button>
         </section>
 
@@ -72,7 +72,7 @@ export const EmptySourceTree = (props: EmptySourceTreeProps) => {
             variant="outline"
             size="lg"
             onClick={props.onOpenProject}>
-            Open project...
+            Open reconstruction...
           </Button>
         </section>
       </div>

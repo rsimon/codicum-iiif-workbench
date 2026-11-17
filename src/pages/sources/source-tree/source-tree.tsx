@@ -29,16 +29,33 @@ export const SourceTree = () => {
   const selection = useSourcesStore(state => state.selection);
   const setSelection = useSourcesStore(state => state.setSelection);
 
-  const [showImportSourceDialog, setShowImportSourceDialog] = useState(false);
-  const [showOpenReconstructionDialog, setShowOpenReconstructionDialog] = useState(false);
+  const [showImportSourceDialog, _setShowImportSourceDialog] = useState(false);
+  const [showOpenReconstructionDialog, _setShowOpenReconstructionDialog] = useState(false);
+
+  // Alternative import path: if the user tries to open a regular manifest as a
+  // reconstruction, and then decides to import as a source instead
+  const [importAsSourceInstead, setImportAsSourceInstead] = useState<string | undefined>();
+
+  const setShowImportSourceDialog = (open: boolean) => {
+    if (!open)
+      setImportAsSourceInstead(undefined);
+    _setShowImportSourceDialog(open);
+  }
+
+  const setShowOpenReconstructionDialog = (open: boolean) => {
+    if (open)
+      setImportAsSourceInstead(undefined);
+    _setShowOpenReconstructionDialog(open);
+  }
 
   const [viewportEl, setViewportEl] = useState<HTMLDivElement | null>(null);
 
   const { 
+    reconstruction,
     filteredSources,
     countCanvasesInReconstruction, 
     isInReconstruction,
-    sourceCanvasesInReconstruction
+    sourceCanvasesInReconstruction,
   } = useSourceNavigation();
 
   // No. of visible canvas rows per manifest
@@ -95,6 +112,12 @@ export const SourceTree = () => {
     )
   }
 
+  const onImportAsSourceInstead = (url: string) => {
+    setImportAsSourceInstead(url);
+    setShowOpenReconstructionDialog(false);
+    setShowImportSourceDialog(true);
+  }
+
   const canContinue = sourceCanvasesInReconstruction > 0;
 
   return (
@@ -138,17 +161,19 @@ export const SourceTree = () => {
                 canContinue ? undefined : 'pointer-events-none opacity-30'
               )}>
               <span className="truncate">Continue to Reconstruction</span>
-              <Badge 
-                className="bg-white/25">
-                {sourceCanvasesInReconstruction}
-              </Badge>
+              {reconstruction.length > 0 && (
+                <Badge 
+                  className="bg-white/25">
+                  {reconstruction.length}
+                </Badge>
+              )}
             </Link>
 
             <Button 
               className="w-full font-normal mt-1.5"
               variant="outline"
               onClick={() => setShowImportSourceDialog(true)}>
-              <IconUpload /> Import IIIF
+              <IconUpload /> Import IIIF source...
             </Button>
           </div>
         </>
@@ -156,15 +181,13 @@ export const SourceTree = () => {
 
       <ImportSourceDialog 
         open={showImportSourceDialog} 
-        onOpenChange={setShowImportSourceDialog} />
+        onOpenChange={setShowImportSourceDialog} 
+        withURL={importAsSourceInstead} />
 
       <OpenReconstructionDialog
         open={showOpenReconstructionDialog}
         onOpenChange={setShowOpenReconstructionDialog}
-        onImportInstead={() => {
-          setShowOpenReconstructionDialog(false);
-          setShowImportSourceDialog(true);
-        }} />
+        onImportInstead={onImportAsSourceInstead} />
     </div>
 
   )
