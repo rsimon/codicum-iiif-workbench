@@ -36,7 +36,6 @@ export const SingleSelection = (props: SingleSelectionProps) => {
   const onResizeCanvasPx = (newWidth: number, newHeight: number) => {
     if (newWidth === Math.round(width) && newHeight === Math.round(height)) return;    
     setIsUserEdit(true);
-
     withHistory(() => resizeCanvas(canvas.id, newWidth, newHeight));
     requestAnimationFrame(() => setIsUserEdit(false));
   }
