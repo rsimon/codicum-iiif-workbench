@@ -171,7 +171,7 @@ export const appendEmptyCanvas = (
   ]
 }
 
-export const resizeCanvas = (canvas: ReconstructionCanvas, width: number, height: number): ReconstructionCanvas => {
+export const resizeReconstructionCanvas = (canvas: ReconstructionCanvas, width: number, height: number): ReconstructionCanvas => {
   const updated = { 
     ...canvas, 
     width, 
@@ -179,10 +179,12 @@ export const resizeCanvas = (canvas: ReconstructionCanvas, width: number, height
   }
 
   if (canvas.physicalSize) {
+    const round = (num: number) => Math.round(1000 * num) / 1000;
+    
     const physicalScale = canvas.physicalSize.width / width;
     updated.physicalSize = {
-      width: width * physicalScale,
-      height: height * physicalScale,
+      width: round(width * physicalScale),
+      height: round(height * physicalScale),
       unit: canvas.physicalSize.unit
     }
   }
