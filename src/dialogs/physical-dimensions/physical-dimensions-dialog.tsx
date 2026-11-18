@@ -42,6 +42,9 @@ interface PhysicalDimensionsDialogProps {
 
 type PhysicalDimensionsDialogMode = 'FORM_INPUT' | 'MEASURE';
 
+// Shorthand
+const round = (num: number) => Math.round(1000 * num) / 1000;
+
 export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) => {
   const [mode, setMode] = useState<PhysicalDimensionsDialogMode>('FORM_INPUT');
 
@@ -54,6 +57,7 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
 
   const width = parseNumber(widthStr);
   const height = parseNumber(heightStr);
+
   const aspectRatio = props.canvasWidth / props.canvasHeight;
 
   const isValid = width !== undefined && height !== undefined && unit.trim();
@@ -71,12 +75,11 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
       setHeightStr('');
       setDistStr('');
     } else {
-      const physicalWidth = props.physicalSize.width;
-      setWidthStr(physicalWidth.toString());
-      setHeightStr((physicalWidth / aspectRatio).toString());
+      setWidthStr(props.physicalSize.width.toString());
+      setHeightStr(props.physicalSize.height.toString());
       setUnit(props.physicalSize.unit);
     }
-  }, [props.canvasLabel, props.open, props.physicalSize, aspectRatio]);
+  }, [props.open, props.physicalSize]);
 
   useEffect(() => {
     setEnableTapeMeasure(mode === 'MEASURE');
@@ -85,30 +88,25 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
       setHeightStr('');
       setDistStr('');
     } else {
-      const physicalWidth = props.physicalSize?.width;
-      setWidthStr(physicalWidth?.toString() || '');
-      setHeightStr(physicalWidth === undefined
-        ? ''
-        : (physicalWidth / aspectRatio).toString());
+      setWidthStr(props.physicalSize?.width.toString() || '');
+      setHeightStr(props.physicalSize?.height.toString() || '');
     }
-  }, [mode, props.physicalSize, aspectRatio]);
+  }, [mode, props.physicalSize]);
 
   const onWidthChanged = (value: string) => {
     setWidthStr(value);
 
     const physicalWidth = parseNumber(value);
-    if (physicalWidth !== undefined) {
-      setHeightStr((physicalWidth / aspectRatio).toString());
-    }
+    if (physicalWidth)
+      setHeightStr(round(physicalWidth / aspectRatio).toString());
   }
 
   const onHeightChanged = (value: string) => {
     setHeightStr(value);
 
     const physicalHeight = parseNumber(value);
-    if (physicalHeight !== undefined) {
-      setWidthStr((physicalHeight * aspectRatio).toString());
-    }
+    if (physicalHeight)
+      setWidthStr(round(physicalHeight * aspectRatio).toString());
   }
 
   const onDistanceChanged = (e: ChangeEvent<HTMLInputElement>) => {
@@ -118,8 +116,9 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
     const dist = parseNumber(value);
     if (dist !== undefined && tapeMeasureState.phase !== 'idle') {
       const physicalPerPixel = dist / measuredDistance;
-      const physicalWidth = props.canvasWidth * physicalPerPixel;
-      const physicalHeight = props.canvasHeight * physicalPerPixel;
+
+      const physicalWidth = round(props.canvasWidth * physicalPerPixel);
+      const physicalHeight = round(props.canvasHeight * physicalPerPixel);
 
       setWidthStr(physicalWidth.toString());
       setHeightStr(physicalHeight.toString());
