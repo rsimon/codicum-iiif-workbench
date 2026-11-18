@@ -171,6 +171,25 @@ export const appendEmptyCanvas = (
   ]
 }
 
+export const resizeCanvas = (canvas: ReconstructionCanvas, width: number, height: number): ReconstructionCanvas => {
+  const updated = { 
+    ...canvas, 
+    width, 
+    height
+  }
+
+  if (canvas.physicalSize) {
+    const physicalScale = canvas.physicalSize.width / width;
+    updated.physicalSize = {
+      width: width * physicalScale,
+      height: height * physicalScale,
+      unit: canvas.physicalSize.unit
+    }
+  }
+
+  return updated;
+}
+
 export const moveCanvas = (
   reconstruction: ReconstructionCanvas[],
   canvasId: string,

@@ -36,18 +36,8 @@ export const SingleSelection = (props: SingleSelectionProps) => {
   const onResizeCanvasPx = (newWidth: number, newHeight: number) => {
     if (newWidth === Math.round(width) && newHeight === Math.round(height)) return;    
     setIsUserEdit(true);
-    withHistory(() => {
-      resizeCanvas(canvas.id, newWidth, newHeight);
 
-      if (canvas.physicalSize) {
-        const physicalPerPixel = canvas.physicalSize.width / width;
-        setPhysicalSize(canvas.id, {
-          width: newWidth * physicalPerPixel,
-          height: newHeight * physicalPerPixel,
-          unit: canvas.physicalSize.unit
-        });
-      }
-    });
+    withHistory(() => resizeCanvas(canvas.id, newWidth, newHeight));
     requestAnimationFrame(() => setIsUserEdit(false));
   }
 

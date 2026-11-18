@@ -11,7 +11,8 @@ import {
   parseCanvas,
   parseManifest,
   removeCanvasFromReconstruction,
-  removeSourceCanvasFromReconstruction
+  removeSourceCanvasFromReconstruction,
+  resizeReconstructionCanvas
 } from './app-store-utils';
 
 interface AppStore {
@@ -212,7 +213,7 @@ export const useAppStore = create<AppStore>()(
       })),
       
       resizeCanvas: (canvasId, width, height) => set(({ reconstruction }) => ({
-        reconstruction: reconstruction.map(r => r.id === canvasId ? { ...r, width, height } : r)
+        reconstruction: reconstruction.map(r => r.id === canvasId ? resizeReconstructionCanvas(r, width, height) : r)
       })),
 
       updateReconstruction: reconstruction => set({ reconstruction }),
