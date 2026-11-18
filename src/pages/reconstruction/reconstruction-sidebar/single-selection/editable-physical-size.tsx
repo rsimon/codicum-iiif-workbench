@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from 'react';
-import type { PhysicalSize } from '@/types';
+import type { PhysicalSize, ReconstructionCanvas } from '@/types';
 import { parseNumber } from '@/store/app-store-utils';
 import { Input } from '@/shadcn/input';
 import { Field, FieldGroup, FieldLabel } from '@/shadcn/field';
@@ -8,7 +8,7 @@ import { IconPlus } from '@tabler/icons-react';
 
 interface EditablePhysicalSizeProps {
 
-  size?: PhysicalSize;
+  canvas: ReconstructionCanvas;
 
   onCommit(size?: PhysicalSize): void;
 
@@ -17,6 +17,9 @@ interface EditablePhysicalSizeProps {
 const formatPhysicalSize = (size: PhysicalSize): string =>
   `${size.width} × ${size.height} ${size.unit}`;
 
+// Shorthand
+const round = (num: number) => Math.round(1000 * num) / 1000;
+
 export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -24,15 +27,19 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
   const [heightStr, setHeightStr] = useState('');
   const [unitStr, setUnitStr] = useState('');
 
+  const size = props.canvas.physicalSize;
+
+  const aspectRatio = props.canvas.width / props.canvas.height;
+
   const groupRef = useRef<HTMLDivElement>(null);
   const widthRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isEditing) return;
 
-    setWidthStr(props.size ? String(props.size.width) : '');
-    setHeightStr(props.size ? String(props.size.height) : '');
-    setUnitStr(props.size?.unit ?? '');
+    setWidthStr(size ? String(size.width) : '');
+    setHeightStr(size ? String(size.height) : '');
+    setUnitStr(size?.unit ?? '');
 
     const frameId = requestAnimationFrame(() => {
       widthRef.current?.focus();
@@ -41,6 +48,22 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
 
     return () => cancelAnimationFrame(frameId);
   }, [isEditing]);
+
+  const onWidthChange = (value: string) => {
+    setWidthStr(value);
+
+    const width = parseNumber(value);
+    if (width) 
+      setHeightStr(round(width / aspectRatio).toString());
+  }
+
+  const onHeightChange = (value: string) => {
+    setHeightStr(value);
+
+    const height = parseNumber(value);
+    if (height) 
+      setWidthStr(round(height * aspectRatio).toString());
+  }
 
   const onCommit = () => {
     const w = parseNumber(widthStr);
@@ -58,9 +81,9 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
   }
 
   const onCancel = () => {
-    setWidthStr(props.size ? String(props.size.width) : '');
-    setHeightStr(props.size ? String(props.size.height) : '');
-    setUnitStr(props.size?.unit ?? '');
+    setWidthStr(size ? String(size.width) : '');
+    setHeightStr(size ? String(size.height) : '');
+    setUnitStr(size?.unit ?? '');
     setIsEditing(false);
   }
 
@@ -94,7 +117,7 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           ref={widthRef}
           placeholder="–"
           value={widthStr}
-          onChange={e => setWidthStr(e.target.value)}
+          onChange={e => onWidthChange(e.target.value)}
           onKeyDown={onKeyDown}
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[8ch]" />
       </Field>
@@ -109,7 +132,7 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           id="physical-height"
           placeholder="–"
           value={heightStr}
-          onChange={e => setHeightStr(e.target.value)}
+          onChange={e => onHeightChange(e.target.value)}
           onKeyDown={onKeyDown}
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[8ch]" />
       </Field>
@@ -127,12 +150,12 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[6ch]" />
       </Field>
     </FieldGroup>
-  ) : props.size ? (
+  ) : size ? (
     <button
       type="button"
       onClick={() => setIsEditing(true)}
       className="tabular-nums hover:text-foreground hover:underline underline-offset-2 decoration-dotted cursor-text text-sm">
-      {formatPhysicalSize(props.size)}
+      {formatPhysicalSize(size)}
     </button>
   ) : (
     <button
