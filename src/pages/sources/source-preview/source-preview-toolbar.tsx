@@ -36,7 +36,8 @@ export const SourcePreviewToolbar = (props: SourcePreviewToolbarProps) => {
   const addToReconstruction = useAppStore(state => state.addSourceCanvasToReconstruction);
   const removeFromReconstruction = useAppStore(state => state.removeSourceCanvasFromReconstruction);
 
-  const [showDimensionsDialog, setShowDimensionsDialog] = useState(false);
+  const showDimensionsDialog = useSourcesStore(state => state.showDimensionsDialog);
+  const setShowDimensionsDialog = useSourcesStore(state => state.setShowDimensionsDialog);
 
   const { setEnableTapeMeasure } = useMeasurement();
 
