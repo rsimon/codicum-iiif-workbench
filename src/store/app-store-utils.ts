@@ -179,9 +179,14 @@ export const resizeReconstructionCanvas = (canvas: ReconstructionCanvas, width: 
   }
 
   if (canvas.physicalSize) {
+    const widthChanged = width !== canvas.width;
+
     const round = (num: number) => Math.round(1000 * num) / 1000;
-    
-    const physicalScale = canvas.physicalSize.width / width;
+
+    const physicalScale = widthChanged
+      ? canvas.physicalSize.height / height
+      : canvas.physicalSize.width / width;
+
     updated.physicalSize = {
       width: round(width * physicalScale),
       height: round(height * physicalScale),
