@@ -84,12 +84,12 @@ const CanvasPhysicalSize = (props: CanvasPhysicalSizeProps) => {
   const size = useAppStore(state => state.sizes.get(props.canvas.id));
 
   return size ? (
-    <div className="flex gap-0.5 items-center tabular-nums">
+    <div className="flex gap-0.75 items-center tabular-nums">
       {size.width.toLocaleString()} × {size.height.toLocaleString()} {size.unit}
       <Button
         variant="ghost"
         size="icon-xs"
-        className="text-muted-foreground"
+        className="text-muted-foreground p-1  size-5.5 focus-visible:ring-2"
         onClick={props.onSetSize}>
         <IconPencil className="size-3.5 mb-0.5" />
       </Button>
@@ -98,7 +98,8 @@ const CanvasPhysicalSize = (props: CanvasPhysicalSizeProps) => {
     <button
       type="button"
       onClick={props.onSetSize}
-      className="text-primary mt-px flex gap-0.5 items-center hover:underline cursor-pointer underline-offset-2 decoration-dotted">
+      className="text-primary rounded mt-px pr-1.5 pl-0.5 -ml-0.5 flex gap-0.5 items-center hover:underline cursor-pointer underline-offset-2 decoration-dotted
+        outline-none border border-transparent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
       <IconPlus className="size-3.5" /> Set dimensions
     </button>
   )
