@@ -96,6 +96,8 @@ export const SingleSelection = (props: SingleSelectionProps) => {
 
           <EditablePhysicalSize
             size={canvas.physicalSize}
+            pixelWidth={width}
+            pixelHeight={height}
             onCommit={onResizeCanvasPhys} />
         </FieldSet>
       </FieldGroup>

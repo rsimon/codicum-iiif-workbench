@@ -10,6 +10,10 @@ interface EditablePhysicalSizeProps {
 
   size?: PhysicalSize;
 
+  pixelWidth: number;
+
+  pixelHeight: number;
+
   onCommit(size?: PhysicalSize): void;
 
 }
@@ -23,6 +27,9 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
   const [widthStr, setWidthStr] = useState('');
   const [heightStr, setHeightStr] = useState('');
   const [unitStr, setUnitStr] = useState('');
+  const [sizeSource, setSizeSource] = useState<'width' | 'height'>('width');
+
+  const aspectRatio = props.pixelWidth / props.pixelHeight;
 
   const groupRef = useRef<HTMLDivElement>(null);
   const widthRef = useRef<HTMLInputElement>(null);
@@ -31,8 +38,9 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
     if (!isEditing) return;
 
     setWidthStr(props.size ? String(props.size.width) : '');
-    setHeightStr(props.size ? String(props.size.height) : '');
+    setHeightStr(props.size ? String(props.size.width / aspectRatio) : '');
     setUnitStr(props.size?.unit ?? '');
+    setSizeSource('width');
 
     const frameId = requestAnimationFrame(() => {
       widthRef.current?.focus();
@@ -42,12 +50,30 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
     return () => cancelAnimationFrame(frameId);
   }, [isEditing]);
 
+  const onWidthChange = (value: string) => {
+    setWidthStr(value);
+    setSizeSource('width');
+
+    const width = parseNumber(value);
+    if (width !== undefined) setHeightStr(String(width / aspectRatio));
+  }
+
+  const onHeightChange = (value: string) => {
+    setHeightStr(value);
+    setSizeSource('height');
+
+    const height = parseNumber(value);
+    if (height !== undefined) setWidthStr(String(height * aspectRatio));
+  }
+
   const onCommit = () => {
-    const w = parseNumber(widthStr);
-    const h = parseNumber(heightStr);
+    let w = parseNumber(widthStr);
+    let h = parseNumber(heightStr);
     const unit = unitStr.trim();
 
     if (w && h && unit) {
+      if (sizeSource === 'width') h = w / aspectRatio;
+      else w = h * aspectRatio;
       props.onCommit({ width: w, height: h, unit });
     } else if (!widthStr.trim() && !heightStr.trim() && !unit) {
       // All fields cleared -- remove the physical size entirely.
@@ -94,7 +120,7 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           ref={widthRef}
           placeholder="–"
           value={widthStr}
-          onChange={e => setWidthStr(e.target.value)}
+          onChange={e => onWidthChange(e.target.value)}
           onKeyDown={onKeyDown}
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[8ch]" />
       </Field>
@@ -109,7 +135,7 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           id="physical-height"
           placeholder="–"
           value={heightStr}
-          onChange={e => setHeightStr(e.target.value)}
+          onChange={e => onHeightChange(e.target.value)}
           onKeyDown={onKeyDown}
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[8ch]" />
       </Field>
