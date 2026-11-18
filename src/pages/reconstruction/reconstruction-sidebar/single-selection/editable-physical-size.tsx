@@ -66,8 +66,8 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
   }
 
   const onCommit = () => {
-    let w = parseNumber(widthStr);
-    let h = parseNumber(heightStr);
+    const w = parseNumber(widthStr);
+    const h = parseNumber(heightStr);
     const unit = unitStr.trim();
 
     if (w && h && unit) {
