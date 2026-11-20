@@ -1,7 +1,7 @@
 import { ScrollArea } from '@/shadcn/scroll-area';
 import type { ReconstructionCanvas } from '@/types';
 import { usePreviewStore } from '../preview-store';
-import { MetadataSection } from '@/components/metadata-inspector';
+import { MetadataSection } from '@/components/metadata-section';
 import { IconAlignBoxRightTop, IconSquare } from '@tabler/icons-react';
 
 const getSources = (canvas?: ReconstructionCanvas) => {
@@ -33,9 +33,11 @@ export const PreviewMetadata = () => {
 
               {leftSources.map(source => (
                 <div key={source.canvas.id}>
-                  <MetadataSection
-                    label={source.canvas.getLabel()}
-                    metadata={source.canvas.getMetadata()} />
+                  <h3>
+                    {source.canvas.getLabel()}
+                  </h3>
+
+                  <MetadataSection metadata={source.canvas.getMetadata()} />
                 </div>
               ))}
             </div>
@@ -57,9 +59,11 @@ export const PreviewMetadata = () => {
 
               {rightSources.map(source => (
                 <div key={source.canvas.id}>
-                  <MetadataSection
-                    label={source.canvas.getLabel()}
-                    metadata={source.canvas.getMetadata()} />
+                  <h3>
+                    {source.canvas.getLabel()}
+                  </h3>
+
+                  <MetadataSection metadata={source.canvas.getMetadata()} />
                 </div>
               ))}
             </div>

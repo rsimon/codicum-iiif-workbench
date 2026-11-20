@@ -16,6 +16,41 @@ import type {
   TextAnnotation
 } from '@/types';
 
+export const LOAD_RECONSTRUCTION_ERROR_TYPES = [
+  'MANIFEST_LOAD_FAILED',
+  'MANIFEST_PARSE_FAILED',
+  'NOT_A_PRESENTATION_MANIFEST',
+  'NOT_A_RECONSTRUCTION',
+  'INVALID_RECONSTRUCTION'
+] as const;
+
+export type LoadReconstructionErrorType = typeof LOAD_RECONSTRUCTION_ERROR_TYPES[number];
+
+export interface LoadReconstructionError {
+
+  type: LoadReconstructionErrorType;
+
+  message: string;
+}
+
+export class ReconstructionLoadError extends Error implements LoadReconstructionError {
+
+  public readonly type: LoadReconstructionErrorType;
+
+  constructor(
+    type: LoadReconstructionErrorType,
+    message: string,
+    options?: ErrorOptions
+  ) {
+    super(message, options);
+    this.type = type;
+    this.name = 'ReconstructionLoadError';
+  }
+}
+
+export const isLoadReconstructionError = (error: unknown): error is ReconstructionLoadError =>
+  error instanceof ReconstructionLoadError;
+
 export interface ReconstructionParseResult {
 
   sources: SourceManifest[];
@@ -133,17 +168,35 @@ const parseReconstructionManifest = async (manifest: CozyManifest): Promise<Reco
     return isManifestsField;
   });
 
-  if (!field) 
-    throw new Error('Not a reconstruction');
+  if (!field)
+    throw new ReconstructionLoadError('NOT_A_RECONSTRUCTION', 'Not a reconstruction');
 
   // Fetch source manifests
   const sourceManifestURLs = field.value.en?.filter(Boolean).flatMap(str => str.split(',')) as string[];
+
   const sources = await sourceManifestURLs.reduce<Promise<SourceManifest[]>>((p, url) => p.then(sources => {
     return Cozy.parseURL(url).then(result => {
-      if (result.type !== 'manifest')
-        throw new Error(`Could not fetch manifest ${url}`);
+      if (result.type !== 'manifest') {
+        const message = result.type === 'error'
+          ? result.message
+          : `Could not fetch manifest ${url}`;
+        
+        throw new ReconstructionLoadError(
+          'MANIFEST_LOAD_FAILED',
+          `Could not load source manifest ${url}: ${message}`
+        );
+      }
 
       return [...sources, { manifest: result.resource, url }];
+    }).catch(error => {
+      if (isLoadReconstructionError(error))
+        throw error;
+
+      throw new ReconstructionLoadError(
+        'MANIFEST_LOAD_FAILED',
+        `Could not load source manifest ${url}`,
+        { cause: error }
+      );
     });
   }), Promise.resolve([]));
 
@@ -233,7 +286,10 @@ const parseReconstructionManifest = async (manifest: CozyManifest): Promise<Reco
   });
 
   if (reconstruction.some(rc => rc.type === 'original' && !rc.source))
-    throw new Error('Could not parse reconstruction manifest');
+    throw new ReconstructionLoadError(
+      'INVALID_RECONSTRUCTION',
+      'Could not match an original canvas to its source manifest'
+    );
 
   return {
     sources,
@@ -241,20 +297,59 @@ const parseReconstructionManifest = async (manifest: CozyManifest): Promise<Reco
   };
 }
 
-const loadResult = (result: CozyParseResult) => {
-  if (result.type === 'error')
-    throw new Error(result.message);
+const loadResult = async (result: CozyParseResult, fromURL: boolean): Promise<ReconstructionParseResult> => {
+  if (result.type === 'error') {
+    throw new ReconstructionLoadError(
+      fromURL ? 'MANIFEST_LOAD_FAILED' : 'MANIFEST_PARSE_FAILED',
+      result.message
+    );
+  }
 
   if (result.type !== 'manifest')
-    throw new Error('Not a presentation manifest');
+    throw new ReconstructionLoadError(
+      'NOT_A_PRESENTATION_MANIFEST',
+      'Not a presentation manifest'
+    );
 
-  return parseReconstructionManifest(result.resource);
+  try {
+    return await parseReconstructionManifest(result.resource);
+  } catch (error) {
+    if (isLoadReconstructionError(error))
+      throw error;
+
+    throw new ReconstructionLoadError(
+      'MANIFEST_PARSE_FAILED',
+      error instanceof Error ? error.message : 'Could not parse reconstruction manifest',
+      { cause: error }
+    );
+  }
 }
 
-export const loadReconstructionFromURL = async (url: string) => {
-  const result = await Cozy.parseURL(url);
-  return loadResult(result);
+export const loadReconstructionFromURL = async (url: string): Promise<ReconstructionParseResult> => {
+  let result: CozyParseResult;
+  try {
+    result = await Cozy.parseURL(url);
+  } catch (error) {
+    throw new ReconstructionLoadError(
+      'MANIFEST_LOAD_FAILED',
+      `Could not load manifest ${url}`,
+      { cause: error }
+    );
+  }
+  return loadResult(result, true);
 }
 
-export const loadReconstructionFromJSON = (json: any) =>
-  loadResult(Cozy.parse(json));
+export const loadReconstructionFromJSON = (json: unknown): Promise<ReconstructionParseResult> => {
+  try {
+    return loadResult(Cozy.parse(json), false);
+  } catch (error) {
+    if (isLoadReconstructionError(error))
+      throw error;
+
+    throw new ReconstructionLoadError(
+      'MANIFEST_PARSE_FAILED',
+      error instanceof Error ? error.message : 'Could not parse manifest JSON',
+      { cause: error }
+    );
+  }
+}

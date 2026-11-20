@@ -8,7 +8,7 @@ import { Button } from '@/shadcn/button';
 import { ScrollArea } from '@/shadcn/scroll-area';
 import { TooltipProvider } from '@/shadcn/tooltip';
 import { cn } from '@/shadcn/utils';
-import { ImportSourceDialog } from '@/dialogs/import-source';
+import { PairedImportDialogs } from '@/dialogs/paired-import';
 import { useAppStore } from '@/store/app-store';
 import { useSourcesStore } from '../sources-store';
 import { EmptySourceTree } from './empty-source-tree';
@@ -29,14 +29,16 @@ export const SourceTree = () => {
   const setSelection = useSourcesStore(state => state.setSelection);
 
   const [showImportSourceDialog, setShowImportSourceDialog] = useState(false);
+  const [showOpenReconstructionDialog, setShowOpenReconstructionDialog] = useState(false);
 
   const [viewportEl, setViewportEl] = useState<HTMLDivElement | null>(null);
 
   const { 
+    reconstruction,
     filteredSources,
     countCanvasesInReconstruction, 
     isInReconstruction,
-    sourceCanvasesInReconstruction
+    sourceCanvasesInReconstruction,
   } = useSourceNavigation();
 
   // No. of visible canvas rows per manifest
@@ -101,7 +103,8 @@ export const SourceTree = () => {
 
       {sources.length === 0 ? (
         <EmptySourceTree
-          onImport={() => setShowImportSourceDialog(true)} />
+          onImportSource={() => setShowImportSourceDialog(true)}
+          onOpenProject={() => setShowOpenReconstructionDialog(true)} />
       ) : (
         <>
           <ScrollArea className="grow min-h-0" viewportRef={setViewportEl}>
@@ -135,25 +138,29 @@ export const SourceTree = () => {
                 canContinue ? undefined : 'pointer-events-none opacity-30'
               )}>
               <span className="truncate">Continue to Reconstruction</span>
-              <Badge 
-                className="bg-white/25">
-                {sourceCanvasesInReconstruction}
-              </Badge>
+              {reconstruction.length > 0 && (
+                <Badge 
+                  className="bg-white/25">
+                  {reconstruction.length}
+                </Badge>
+              )}
             </Link>
 
             <Button 
               className="w-full font-normal mt-1.5"
               variant="outline"
               onClick={() => setShowImportSourceDialog(true)}>
-              <IconUpload /> Import IIIF
+              <IconUpload /> Import IIIF source...
             </Button>
           </div>
         </>
       )}
 
-      <ImportSourceDialog 
-        open={showImportSourceDialog} 
-        onOpenChange={setShowImportSourceDialog} />
+      <PairedImportDialogs
+        openImportSource={showImportSourceDialog}
+        onImportSourceOpenChange={setShowImportSourceDialog}
+        openReconstruction={showOpenReconstructionDialog}
+        onReconstructionOpenChange={setShowOpenReconstructionDialog} />
     </div>
 
   )

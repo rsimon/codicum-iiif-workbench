@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { IconDownload, IconFolderOpen, IconRestore, IconUpload } from '@tabler/icons-react';
+import { PairedImportDialogs } from '@/dialogs/paired-import';
 import { Button } from '@/shadcn/button';
 import { useAppStore } from '@/store/app-store';
 import { useConfirm } from '@/dialogs/confirm';
 import { ExportReconstructionDialog } from '@/dialogs/export-reconstruction';
-import { ImportSourceDialog } from '@/dialogs/import-source';
-import { OpenReconstructionDialog } from '@/dialogs/open-reconstruction';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,13 +15,13 @@ import {
 } from '@/shadcn/dropdown-menu';
 
 export const Project = () => {
-  const reset  = useAppStore(state => state.resetAll);
+  const reset = useAppStore(state => state.resetAll);
 
   const [_, navigate] = useLocation();
 
   const [showOpenReconstructionDialog, setShowOpenReconstructionDialog] = useState(false);
-  const [showExportReconstructionDialog, setShowExportReconstructionDialog] = useState(false);
   const [showImportSourceDialog, setShowImportSourceDialog] = useState(false);
+  const [showExportReconstructionDialog, setShowExportReconstructionDialog] = useState(false);
 
   const confirm = useConfirm();
 
@@ -83,17 +82,15 @@ export const Project = () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <OpenReconstructionDialog
-        open={showOpenReconstructionDialog}
-        onOpenChange={setShowOpenReconstructionDialog} />
+      <PairedImportDialogs
+        openImportSource={showImportSourceDialog}
+        onImportSourceOpenChange={setShowImportSourceDialog}
+        openReconstruction={showOpenReconstructionDialog}
+        onReconstructionOpenChange={setShowOpenReconstructionDialog} />
 
       <ExportReconstructionDialog
         open={showExportReconstructionDialog}
         onOpenChange={setShowExportReconstructionDialog} />
-
-      <ImportSourceDialog
-        open={showImportSourceDialog}
-        onOpenChange={setShowImportSourceDialog} />
     </>
   )
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useDropzone } from 'react-dropzone';
 import { IconAlertCircle, IconLoader2 } from '@tabler/icons-react';
@@ -10,7 +10,11 @@ import { Label } from '@/shadcn/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shadcn/tabs';
 import { cn } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
-import { loadReconstructionFromJSON, loadReconstructionFromURL } from '@/store/load-reconstruction';
+import {
+  isLoadReconstructionError,
+  loadReconstructionFromJSON,
+  loadReconstructionFromURL
+} from '@/store/load-reconstruction';
 import { 
   Dialog, 
   DialogContent, 
@@ -24,7 +28,11 @@ interface OpenReconstructionDialogProps {
 
   open: boolean;
 
-  onOpenChange: (open: boolean) => void;
+  withURL? : string;
+
+  onOpenChange(open: boolean): void;
+
+  onImportSourceInstead(url: string): void;
 
 }
 
@@ -36,7 +44,12 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
   const [url, setUrl] = useState('');
   const [tab, setTab] = useState<'url' | 'file'>('url');
   const [fetching, setFetching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    if (props.open && props.withURL) onURLImport(props.withURL);
+  }, [props.open, props.withURL]);
 
   const onFileImport = async (selectedFile: File) => {
     setError(null);
@@ -49,7 +62,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       navigate('/reconstruction');
       props.onOpenChange(false);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not load reconstruction');
+      setError(error instanceof Error ? error : new Error('Could not load reconstruction from file'));
     } finally {
       setFetching(false);
     }
@@ -66,7 +79,7 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
       if (selectedFile) void onFileImport(selectedFile);
     },
     onDropRejected: () => {
-      setError('Please choose a JSON file');
+      setError(new Error('Please choose a JSON file'));
     },
   });
 
@@ -86,9 +99,9 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
     props.onOpenChange(open);
   }
 
-  const onURLImport = async () => {
-    if (!url.trim()) {
-      setError('Please enter a manifest URL');
+  const onURLImport = async (withUrl = url) => {
+    if (!withUrl.trim()) {
+      setError(new Error('Please enter a manifest URL'));
       return;
     }
 
@@ -96,15 +109,20 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
     setFetching(true);
 
     try {
-      const parsed = await loadReconstructionFromURL(url.trim());
+      const parsed = await loadReconstructionFromURL(withUrl.trim());
       loadProject(parsed.sources, parsed.reconstruction);
       navigate('/reconstruction');
       props.onOpenChange(false);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not load reconstruction');
+      setError(error instanceof Error ? error : new Error('Could not load reconstruction from URL'));
     } finally {
       setFetching(false);
     }
+  }
+
+  const onImportAsSource = () => {
+    onOpenChange(false);
+    props.onImportSourceInstead(url);
   }
 
   return (
@@ -189,7 +207,20 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
                   variant="destructive"
                   className="rounded">
                   <IconAlertCircle className="size-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  {isLoadReconstructionError(error) && error.type === 'NOT_A_RECONSTRUCTION' ? (
+                    <AlertDescription className="leading-relaxed">
+                      <h3 className="font-medium">
+                        Not a CODICUM project
+                      </h3>
+                      <p>
+                        This manifest appears to be a regular IIIF manifest. It cannot be 
+                        opened as a CODICUM project. Do you want to import it as a
+                        source instead?
+                      </p>
+                    </AlertDescription>
+                  ) : (
+                    <AlertDescription>{error.message}</AlertDescription>
+                  )}
                 </Alert>
               )}
             </>
@@ -205,11 +236,18 @@ export const OpenReconstructionDialog = (props: OpenReconstructionDialogProps) =
           </Button>
               
           {tab === 'url' && (
-            <Button
-              className="tracking-wide"
-              onClick={onURLImport}>
-              Import
-            </Button>
+            isLoadReconstructionError(error) && error.type === 'NOT_A_RECONSTRUCTION' ? (
+              <Button
+                onClick={onImportAsSource}>
+                Yes, import as source
+              </Button>
+            ) : (
+              <Button
+                className="tracking-wide"
+                onClick={() => onURLImport()}>
+                Import
+              </Button>
+            )
           )}
         </DialogFooter>
       </DialogContent>

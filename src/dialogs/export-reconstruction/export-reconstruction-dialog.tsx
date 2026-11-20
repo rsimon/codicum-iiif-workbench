@@ -93,7 +93,7 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl gap-4">
+      <DialogContent className="w-fit sm:max-w-[calc(100%-2rem)] gap-4">
         <DialogHeader className="gap-2">
           <DialogTitle className="flex items-center gap-2">
             <IIIFIcon color className="size-6 mb-0.75" />
@@ -160,12 +160,12 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
             className="pt-4"
             tabIndex={-1}>
             <div className="relative rounded-md">
-              <div className="h-80 relative rounded-md overflow-hidden border border-input focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
+              <div className="relative h-80 w-156 max-w-[calc(100vw-5rem)] resize overflow-hidden rounded-md border border-input focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
                 <Textarea
                   readOnly
                   value={manifestJson}
                   aria-label="Manifest JSON"
-                  className="border-none size-full field-sizing-fixed wrap-anywhere font-mono text-sm! font-light" />
+                  className="border-none size-full resize-none field-sizing-fixed wrap-anywhere font-mono text-sm! font-light" />
               </div>
               
               <Button
@@ -206,10 +206,12 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
               Export PDF
             </Button>
 
-            <Button onClick={onDownload}>
+            <Button
+              className="pr-3"
+              onClick={onDownload}>
               <Download 
                 aria-hidden
-                className="mr-2 h-4 w-4" />
+                className="mr-1 size-4" />
               Download JSON
             </Button>
           </div>

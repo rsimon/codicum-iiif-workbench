@@ -17,13 +17,13 @@ import { useDragAndDrop } from './use-drag-and-drop';
 import type { DragPayload, FallbackDropTarget } from './use-drag-and-drop';
 import { ReconstructionTreeItem } from './tree-item';
 import { ReconstructionTreeToolbar } from './tree-toolbar';
+import { EmptyReconstructionTree } from './empty-reconstruction-tree';
 
 export const ReconstructionTree = () => {
   const canvases = useAppStore(state => state.reconstruction);
   const onChange = useAppStore(state => state.updateReconstruction);
   const insertCanvasesAtIndex = useAppStore(state => state.insertCanvasesAtIndex);
   const mergeCanvases = useAppStore(state => state.mergeCanvases);
-  const appendEmpty = useAppStore(state => state.appendEmptyCanvas);
 
   const selection = useReconstructionStore(state => state.selection) ?? [];
   const setSelection = useReconstructionStore(state => state.setSelection);
@@ -209,40 +209,56 @@ export const ReconstructionTree = () => {
       <ScrollArea 
         className="grow min-h-0" 
         viewportRef={setViewportEl}>
-        <Virtuoso
-          ref={virtuosoRef}
-          customScrollParent={viewportEl ?? undefined}
-          totalCount={canvases.length}
-          computeItemKey={index => canvases[index].id}
-          itemContent={index => {
-            const item = canvases[index];
-            return (
-              <div className={`px-2.5 ${index === 0 ? 'pt-2.5' : ''} pb-1.5`}>
-                <ReconstructionTreeItem
-                  item={item}
-                  selectedItems={selection}
-                  index={index}
-                  isSelected={selection.some(s => s.id === item.id)}
-                  onSelect={event => onSelect(index, event)}
-                  pinnedEdge={fallback?.index === index ? fallback.edge : undefined} />
-              </div>
-            )
-          }}
-          components={{
-            Footer: () => (
-              <div className="p-2.5 pt-1">
-                <button
-                  className="mt-0.5 flex gap-2 text-muted-foreground/60 text-sm items-center w-full
-                    cursor-pointer rounded-md justify-center p-4 border border-neutral-400/50
-                    border-dashed hover:bg-neutral-200/50 hover:text-muted-foreground hover:border-neutral-400/80"
-                  onClick={() => withHistory(() => appendEmpty())}>
-                  <IconPlus className="size-4" /> Add empty canvas
-                </button>
-              </div>
-            )
-          }} />
+        {canvases.length === 0 ? (
+          <div className="p-2 flex flex-col min-h-full">
+            <AddEmptyCanvasButton />
+            <EmptyReconstructionTree />
+          </div>
+        ) : (
+          <Virtuoso
+            ref={virtuosoRef}
+            customScrollParent={viewportEl ?? undefined}
+            totalCount={canvases.length}
+            computeItemKey={index => canvases[index].id}
+            itemContent={index => {
+              const item = canvases[index];
+              return (
+                <div className={`px-2.5 ${index === 0 ? 'pt-2.5' : ''} pb-1.5`}>
+                  <ReconstructionTreeItem
+                    item={item}
+                    selectedItems={selection}
+                    index={index}
+                    isSelected={selection.some(s => s.id === item.id)}
+                    onSelect={event => onSelect(index, event)}
+                    pinnedEdge={fallback?.index === index ? fallback.edge : undefined} />
+                </div>
+              )
+            }}
+            components={{
+              Footer: () => (
+                <div className="p-2.5 pt-1">
+                  <AddEmptyCanvasButton />
+                </div>
+              )
+            }} />
+          )}
       </ScrollArea>
     </div>
+  )
+
+}
+
+const AddEmptyCanvasButton = () => {
+  const appendEmpty = useAppStore(state => state.appendEmptyCanvas);
+
+  return (
+    <button
+      className="mt-0.5 flex gap-2 text-muted-foreground text-sm items-center w-full
+        cursor-pointer rounded-md justify-center p-4 border border-neutral-400
+        border-dashed hover:bg-neutral-200/50 hover:text-muted-foreground hover:border-neutral-400/80"
+      onClick={() => withHistory(() => appendEmpty())}>
+      <IconPlus className="size-4" /> Add empty canvas
+    </button>
   )
 
 }

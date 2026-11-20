@@ -80,7 +80,7 @@ export const SingleSelection = (props: SingleSelectionProps) => {
       <FieldGroup className="p-4 gap-4">
         <FieldSet className="gap-1 items-start space-y-0.5">
           <FieldLegend variant="label" className="data-[variant=label]:text-xs uppercase font-normal text-muted-foreground">
-            Image size
+            Pixel size
           </FieldLegend>
           
           <EditablePixelSize
@@ -95,7 +95,7 @@ export const SingleSelection = (props: SingleSelectionProps) => {
           </FieldLegend>
 
           <EditablePhysicalSize
-            size={canvas.physicalSize}
+            canvas={canvas}
             onCommit={onResizeCanvasPhys} />
         </FieldSet>
       </FieldGroup>

@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useLocation} from 'wouter';
 import { Badge } from '@/shadcn/badge';
 import { cn  } from '@/shadcn/utils';
@@ -10,8 +10,6 @@ interface NavItemProps {
   
   href: string;
 
-  className?: string;
-
   children: ReactNode;
 
 }
@@ -22,8 +20,7 @@ const NavItem = (props: NavItemProps) => {
   return (
     <div className={cn(
       'px-0.5 py-1.25 h-12 border-b-4 border-transparent',
-      location === props.href ? 'border-b-primary' : 'text-muted-foreground/80',
-      props.className
+      location === props.href ? 'border-b-primary' : 'text-muted-foreground/80'
     )}>
       <Link 
         href={props.href}
@@ -37,10 +34,6 @@ const NavItem = (props: NavItemProps) => {
 
 export const AppHeader = () => {
   const reconstruction = useAppStore(state => state.reconstruction);
-
-  const sourceCanvasCount = useMemo(() => 
-    reconstruction.flatMap(s => s.type === 'original' ? s.source : s.sources).length
-  , [reconstruction]);
 
   return (
     <header className="flex justify-between items-center px-2.5 text-sm 
@@ -56,14 +49,15 @@ export const AppHeader = () => {
         </NavItem>
         
         <NavItem 
-          href="/reconstruction"
-          className="flex gap-1">
+          href="/reconstruction">
           <span>2. Reconstruct</span>
-          <Badge 
-            variant="secondary" 
-            className="font-normal">
-            {sourceCanvasCount}
-          </Badge>
+          {reconstruction.length > 0 && (
+            <Badge 
+              variant="secondary" 
+              className="font-normal ml-1">
+              {reconstruction.length}
+            </Badge>
+          )}
         </NavItem>
 
         <NavItem href="/preview">

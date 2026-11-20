@@ -73,6 +73,7 @@ export const useSourceNavigation = () => {
   }, [visibleCanvases, currentSelectedIndex, setSelection]);
 
   return { 
+    reconstruction,
     currentSelectedIndex,
     filteredSources, 
     selectedCanvas,

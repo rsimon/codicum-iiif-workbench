@@ -30,6 +30,10 @@ export const createManifest = (
         value: { en: [ new Date().toISOString() ]},
       },
       {
+        label: { en: ['Created with'] },
+        value: { en: ['Codicum Manuscript Workbench'] }
+      },
+      {
         label: { en: ['Source Manifests']},
         value: { en: [sources.map(s => s.url).join(', ')]},
       },

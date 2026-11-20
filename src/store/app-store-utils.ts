@@ -171,6 +171,35 @@ export const appendEmptyCanvas = (
   ]
 }
 
+export const resizeReconstructionCanvas = (canvas: ReconstructionCanvas, width: number, height: number): ReconstructionCanvas => {
+  const updated = { 
+    ...canvas, 
+    width, 
+    height
+  }
+
+  if (canvas.physicalSize) {
+    const round = (num: number) => Math.round(1000 * num) / 1000;
+
+    // In a typical user scenario, only one axis changed. We want
+    // the resize to take into account the changing axis! E.g. if 
+    // the user changed px width, it's phys width that should also
+    // change.
+    const widthChanged = width !== canvas.width;
+    const physicalScale = widthChanged
+      ? canvas.physicalSize.height / height
+      : canvas.physicalSize.width / width;
+
+    updated.physicalSize = {
+      width: round(width * physicalScale),
+      height: round(height * physicalScale),
+      unit: canvas.physicalSize.unit
+    }
+  }
+
+  return updated;
+}
+
 export const moveCanvas = (
   reconstruction: ReconstructionCanvas[],
   canvasId: string,

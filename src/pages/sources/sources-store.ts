@@ -11,16 +11,19 @@ interface SourcesStore {
 
   showInReconstructionOnly: boolean;
 
+  showDimensionsDialog: boolean;
+
   // Actions: selection
   setSelection: (selection?: SourceSelection) => void;
 
-  // Actions: collapse/expand
+  // Actions: source tree
   collapseAll: () => void;
   expandAll: () => void;
   toggleSourceExpanded: (manifestId: string) => void;
-  
-  // Actions: view filtering
   setShowInReconstructionOnly: (showInReconstructionOnly: boolean) => void;
+
+  // Actions: physical dimensions dialog
+  setShowDimensionsDialog(show: boolean): void;
 
 }
 
@@ -40,7 +43,9 @@ export const useSourcesStore = create<SourcesStore>()(set => ({
 
   showInReconstructionOnly: false,
 
-  setSelection: selection => set(() => ({ selection })),
+  showDimensionsDialog: false,
+
+  setSelection: selection => set(() => ({ selection, showDimensionsDialog: false })),
 
   expandAll: () => set(() => ({ collapsed: new Set() })),
 
@@ -52,7 +57,9 @@ export const useSourcesStore = create<SourcesStore>()(set => ({
     collapsed: new Set([...collapsed, manifestId])
   }),
 
-  setShowInReconstructionOnly: showInReconstructionOnly => set({ showInReconstructionOnly  })
+  setShowInReconstructionOnly: showInReconstructionOnly => set({ showInReconstructionOnly  }),
+
+  setShowDimensionsDialog: showDimensionsDialog => set({ showDimensionsDialog })
 
 }));
 
