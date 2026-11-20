@@ -1,6 +1,6 @@
 import { Cozy, type Bounds, type CozyCanvas, type CozyManifest } from 'cozy-iiif';
 import { reorder } from '@atlaskit/pragmatic-drag-and-drop/reorder';
-import type { ReconstructionCanvas, SourceCanvas } from '@/types';
+import type { PhysicalSize, ReconstructionCanvas, SourceCanvas } from '@/types';
 import type { MoveDirection } from './app-store';
 
 export const parseCanvas = (source: unknown): CozyCanvas => {
@@ -195,6 +195,37 @@ export const resizeReconstructionCanvas = (canvas: ReconstructionCanvas, width: 
       height: round(height * physicalScale),
       unit: canvas.physicalSize.unit
     }
+  }
+
+  return updated;
+}
+
+export const setReconstructionCanvasPhysicalSize = (
+  canvas: ReconstructionCanvas, 
+  size?: PhysicalSize
+): ReconstructionCanvas => {
+  if (!size) {
+    const updated = {...canvas };
+    delete updated.physicalSize;
+    return updated;
+  } 
+
+  const updated = {
+    ...canvas,
+    physicalSize: size
+  };
+
+  if (!canvas.physicalSize || canvas.physicalSize.unit !== size.unit)
+    return updated;
+
+  // Sync pixel size (similar to sync in `resizeReconstructionCanvas`)
+  const widthChanged = size.width !== canvas.physicalSize.width;
+  if (widthChanged) {
+    const pxScale = size.width / canvas.physicalSize.width;
+    updated.width =  Math.round(canvas.width * pxScale);
+  } else {
+    const pxScale = size.height / canvas.physicalSize.height;
+    updated.height = Math.round(canvas.height * pxScale);
   }
 
   return updated;

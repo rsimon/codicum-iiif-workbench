@@ -17,9 +17,6 @@ interface EditablePhysicalSizeProps {
 const formatPhysicalSize = (size: PhysicalSize): string =>
   `${size.width} × ${size.height} ${size.unit}`;
 
-// Shorthand
-const round = (num: number) => Math.round(1000 * num) / 1000;
-
 export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -28,8 +25,6 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
   const [unitStr, setUnitStr] = useState('');
 
   const size = props.canvas.physicalSize;
-
-  const aspectRatio = props.canvas.width / props.canvas.height;
 
   const groupRef = useRef<HTMLDivElement>(null);
   const widthRef = useRef<HTMLInputElement>(null);
@@ -48,22 +43,6 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
 
     return () => cancelAnimationFrame(frameId);
   }, [isEditing]);
-
-  const onWidthChange = (value: string) => {
-    setWidthStr(value);
-
-    const width = parseNumber(value);
-    if (width) 
-      setHeightStr(round(width / aspectRatio).toString());
-  }
-
-  const onHeightChange = (value: string) => {
-    setHeightStr(value);
-
-    const height = parseNumber(value);
-    if (height) 
-      setWidthStr(round(height * aspectRatio).toString());
-  }
 
   const onCommit = () => {
     const w = parseNumber(widthStr);
@@ -117,7 +96,7 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           ref={widthRef}
           placeholder="–"
           value={widthStr}
-          onChange={e => onWidthChange(e.target.value)}
+          onChange={e => setWidthStr(e.target.value)}
           onKeyDown={onKeyDown}
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[8ch]" />
       </Field>
@@ -132,7 +111,7 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           id="physical-height"
           placeholder="–"
           value={heightStr}
-          onChange={e => onHeightChange(e.target.value)}
+          onChange={e => setHeightStr(e.target.value)}
           onKeyDown={onKeyDown}
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[8ch]" />
       </Field>
