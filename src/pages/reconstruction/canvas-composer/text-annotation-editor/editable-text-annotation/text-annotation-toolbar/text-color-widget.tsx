@@ -24,17 +24,19 @@ const normalizeHex = (input: string): string | undefined => {
   const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(input.trim());
   if (!match) return;
 
-  const hex =
-    match[1].length === 3
-      ? match[1].split('').map((c) => c + c).join('')
-      : match[1];
+  const hex = match[1].length === 3
+    ? match[1].split('').map((c) => c + c).join('')
+    : match[1];
 
   return `#${hex.toUpperCase()}`;
-};
+}
 
 interface TextColorWidgetProps {
+
   color?: string;
+
   onChange(color?: string): void;
+
 }
 
 export const TextColorWidget = (props: TextColorWidgetProps) => {
@@ -49,18 +51,18 @@ export const TextColorWidget = (props: TextColorWidgetProps) => {
     if (!value) return;
     setDraft(value);
     apply(value);
-  };
+  }
 
   const onHexChange = (value: string) => {
     setDraft(value);
     const normalized = normalizeHex(value);
     if (normalized) apply(normalized);
-  };
+  }
 
   const preview = normalizeHex(draft) ?? current;
 
   return (
-    <Popover onOpenChange={(open) => open && setDraft(current)}>
+    <Popover onOpenChange={open => open && setDraft(current)}>
       <PopoverTrigger
         render={
           <Toolbar.Button
@@ -87,7 +89,10 @@ export const TextColorWidget = (props: TextColorWidgetProps) => {
         className="w-34 p-3 gap-3"
         sideOffset={11}
         initialFocus={(type) => type === 'keyboard'}
-        finalFocus={(type) => type === 'keyboard'}>
+        finalFocus={(type) => type === 'keyboard'}
+        onKeyDown={evt => {
+          if (evt.key.startsWith('Arrow')) evt.stopPropagation();
+        }}>
         <RadioGroup
           aria-label="Preset colors"
           className="flex flex-row w-full justify-between p-0.5 pb-0 flex-wrap gap-2"
@@ -115,7 +120,7 @@ export const TextColorWidget = (props: TextColorWidgetProps) => {
           </InputGroupAddon>
 
           <InputGroupInput
-            aria-label="Hex color"
+            aria-label="Custom color"
             value={draft}
             maxLength={7}
             spellCheck={false}
