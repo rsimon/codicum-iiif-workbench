@@ -8,6 +8,7 @@ import { Separator } from '@/shadcn/separator';
 import { Toggle } from '@/shadcn/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/shadcn/toggle-group';
 import { useMousewheelForward } from '../../../use-mousewheel-forward';
+import { LinkButton } from '../link-editor';
 import { FontSizeWidget } from './font-size-widget';
 import { TextColorWidget } from './text-color-widget';
 import { 
@@ -49,8 +50,10 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
         fontSize: parseInt(
           editor.getAttributes('textStyle').fontSize || 
           getComputedStyle(editor.view.dom).fontSize),
+        hasSelection: !editor.state.selection.empty,
         isBold: Boolean(editor.isActive('bold')),
         isItalic: Boolean(editor.isActive('italic')),
+        isLink: Boolean(editor.isActive('link')),
         isUnderline: Boolean(editor.isActive('underline')),
         textAlign: (['left', 'center', 'right'] as const).find(a =>
           editor.isActive({ textAlign: a })
@@ -113,15 +116,20 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
             <IconUnderline className="size-3.5"  />
           </Toolbar.Button>
 
-        <Separator
-          className="mx-1"
-          orientation="vertical" />
-
         <TextColorWidget 
           color={state.textColor}
           onChange={c => c
             ? editor.chain().setColor(c).run()
             : editor.chain().unsetColor().run()} />
+          
+        <Separator
+          className="mx-1"
+          orientation="vertical" />
+
+        <LinkButton   
+          editor={editor} 
+          isLink={state.isLink} 
+          hasSelection={state.hasSelection} />
 
         <Separator
           className="mx-1"
