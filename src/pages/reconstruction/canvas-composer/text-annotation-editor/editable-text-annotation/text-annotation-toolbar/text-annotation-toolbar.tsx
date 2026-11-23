@@ -6,9 +6,10 @@ import { type Toggle as TogglePrimitive } from '@base-ui/react';
 import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { Toggle } from '@/shadcn/toggle';
+import { ToggleGroup, ToggleGroupItem } from '@/shadcn/toggle-group';
 import { useMousewheelForward } from '../../../use-mousewheel-forward';
 import { FontSizeWidget } from './font-size-widget';
-import { ToggleGroup, ToggleGroupItem } from '@/shadcn/toggle-group';
+import { TextColorWidget } from './text-color-widget';
 import { 
   IconAlignCenter,
   IconAlignLeft, 
@@ -45,15 +46,16 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
       if (!editor || !editor.isInitialized || editor.isDestroyed) return null;
 
       return {
-        isBold: Boolean(editor.isActive('bold')),
-        isItalic: Boolean(editor.isActive('italic')),
-        isUnderline: Boolean(editor.isActive('underline')),
         fontSize: parseInt(
           editor.getAttributes('textStyle').fontSize || 
           getComputedStyle(editor.view.dom).fontSize),
+        isBold: Boolean(editor.isActive('bold')),
+        isItalic: Boolean(editor.isActive('italic')),
+        isUnderline: Boolean(editor.isActive('underline')),
         textAlign: (['left', 'center', 'right'] as const).find(a =>
           editor.isActive({ textAlign: a })
-        ) ?? 'left'
+        ) ?? 'left',
+        textColor: editor.getAttributes('textStyle').color as string | undefined,
       }
     }
   });
@@ -110,6 +112,16 @@ export const TextAnnotationToolbar = (props: TextAnnotationToolbarProps) => {
           }>
             <IconUnderline className="size-3.5"  />
           </Toolbar.Button>
+
+        <Separator
+          className="mx-1"
+          orientation="vertical" />
+
+        <TextColorWidget 
+          color={state.textColor}
+          onChange={c => c
+            ? editor.chain().setColor(c).run()
+            : editor.chain().unsetColor().run()} />
 
         <Separator
           className="mx-1"
