@@ -9,11 +9,12 @@ import Link from '@tiptap/extension-link';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import TextAlign from '@tiptap/extension-text-align'
-import { TextStyle, FontSize } from '@tiptap/extension-text-style';
+import { Color, FontSize, TextStyle } from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline'
 
 export const SCHEMA_EXTENSIONS = [
   Bold, 
+  Color,
   Document, 
   FontSize,
   HardBreak,

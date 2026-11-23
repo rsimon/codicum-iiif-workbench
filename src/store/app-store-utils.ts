@@ -1,6 +1,6 @@
 import { Cozy, type Bounds, type CozyCanvas, type CozyManifest } from 'cozy-iiif';
 import { reorder } from '@atlaskit/pragmatic-drag-and-drop/reorder';
-import type { ReconstructionCanvas, SourceCanvas } from '@/types';
+import type { PhysicalSize, ReconstructionCanvas, SourceCanvas } from '@/types';
 import type { MoveDirection } from './app-store';
 
 export const parseCanvas = (source: unknown): CozyCanvas => {
@@ -171,32 +171,40 @@ export const appendEmptyCanvas = (
   ]
 }
 
-export const resizeReconstructionCanvas = (canvas: ReconstructionCanvas, width: number, height: number): ReconstructionCanvas => {
-  const updated = { 
-    ...canvas, 
-    width, 
-    height
-  }
+export const resizeReconstructionCanvas = (
+  canvas: ReconstructionCanvas, width: number, height: number
+): ReconstructionCanvas => {
+  const round = (n: number) => Math.round(1000 * n) / 1000;
 
-  if (canvas.physicalSize) {
-    const round = (num: number) => Math.round(1000 * num) / 1000;
+  const updated = { ...canvas, width, height };
+  const { physicalSize: phys } = canvas;
 
-    // In a typical user scenario, only one axis changed. We want
-    // the resize to take into account the changing axis! E.g. if 
-    // the user changed px width, it's phys width that should also
-    // change.
-    const widthChanged = width !== canvas.width;
-    const physicalScale = widthChanged
-      ? canvas.physicalSize.height / height
-      : canvas.physicalSize.width / width;
-
+  if (phys && canvas.width > 0 && canvas.height > 0) {
     updated.physicalSize = {
-      width: round(width * physicalScale),
-      height: round(height * physicalScale),
-      unit: canvas.physicalSize.unit
-    }
+      ...phys,
+      width: round(phys.width * width / canvas.width),
+      height: round(phys.height * height / canvas.height)
+    };
+  }
+  return updated;
+}
+
+export const setReconstructionCanvasPhysicalSize = (
+  canvas: ReconstructionCanvas, size?: PhysicalSize
+): ReconstructionCanvas => {
+  if (!size) {
+    const { physicalSize, ...rest } = canvas;
+    return rest;
   }
 
+  const phys = canvas.physicalSize;
+  const updated = { ...canvas, physicalSize: size };
+
+  if (!phys || phys.unit !== size.unit || phys.width <= 0 || phys.height <= 0)
+    return updated;
+
+  updated.width = Math.round(canvas.width * size.width / phys.width);
+  updated.height = Math.round(canvas.height * size.height / phys.height);
   return updated;
 }
 

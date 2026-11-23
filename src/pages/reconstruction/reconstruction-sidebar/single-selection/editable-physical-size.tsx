@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from 'react';
-import type { PhysicalSize, ReconstructionCanvas } from '@/types';
-import { parseNumber } from '@/store/app-store-utils';
-import { Input } from '@/shadcn/input';
-import { Field, FieldGroup, FieldLabel } from '@/shadcn/field';
-import { isBlurLeavingGroup } from '../reconstruction-sidebar-utils';
 import { IconPlus } from '@tabler/icons-react';
+import { getPPI } from '@/dialogs/physical-dimensions';
+import { Field, FieldGroup, FieldLabel } from '@/shadcn/field';
+import { Input } from '@/shadcn/input';
+import { parseNumber } from '@/store/app-store-utils';
+import type { PhysicalSize, ReconstructionCanvas } from '@/types';
+import { isBlurLeavingGroup } from '../reconstruction-sidebar-utils';
 
 interface EditablePhysicalSizeProps {
 
@@ -17,9 +18,6 @@ interface EditablePhysicalSizeProps {
 const formatPhysicalSize = (size: PhysicalSize): string =>
   `${size.width} × ${size.height} ${size.unit}`;
 
-// Shorthand
-const round = (num: number) => Math.round(1000 * num) / 1000;
-
 export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -28,8 +26,6 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
   const [unitStr, setUnitStr] = useState('');
 
   const size = props.canvas.physicalSize;
-
-  const aspectRatio = props.canvas.width / props.canvas.height;
 
   const groupRef = useRef<HTMLDivElement>(null);
   const widthRef = useRef<HTMLInputElement>(null);
@@ -48,22 +44,6 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
 
     return () => cancelAnimationFrame(frameId);
   }, [isEditing]);
-
-  const onWidthChange = (value: string) => {
-    setWidthStr(value);
-
-    const width = parseNumber(value);
-    if (width) 
-      setHeightStr(round(width / aspectRatio).toString());
-  }
-
-  const onHeightChange = (value: string) => {
-    setHeightStr(value);
-
-    const height = parseNumber(value);
-    if (height) 
-      setWidthStr(round(height * aspectRatio).toString());
-  }
 
   const onCommit = () => {
     const w = parseNumber(widthStr);
@@ -103,6 +83,8 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
     if (isBlurLeavingGroup(e, groupRef.current)) onCommit();
   }
 
+  const ppi = size ? getPPI(size, props.canvas) : undefined;
+
   return isEditing ? (
     <FieldGroup
       ref={groupRef}
@@ -117,7 +99,7 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           ref={widthRef}
           placeholder="–"
           value={widthStr}
-          onChange={e => onWidthChange(e.target.value)}
+          onChange={e => setWidthStr(e.target.value)}
           onKeyDown={onKeyDown}
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[8ch]" />
       </Field>
@@ -132,7 +114,7 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           id="physical-height"
           placeholder="–"
           value={heightStr}
-          onChange={e => onHeightChange(e.target.value)}
+          onChange={e => setHeightStr(e.target.value)}
           onKeyDown={onKeyDown}
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[8ch]" />
       </Field>
@@ -150,13 +132,21 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[6ch]" />
       </Field>
     </FieldGroup>
-  ) : size ? (
-    <button
-      type="button"
-      onClick={() => setIsEditing(true)}
-      className="tabular-nums hover:text-foreground hover:underline underline-offset-2 decoration-dotted cursor-text text-sm">
-      {formatPhysicalSize(size)}
-    </button>
+  ) : size? (
+    <div className="space-y-1">
+      <button
+        type="button"
+        onClick={() => setIsEditing(true)}
+        className="tabular-nums hover:text-foreground hover:underline underline-offset-2 decoration-dotted cursor-text text-sm">
+        {formatPhysicalSize(size)}
+      </button>
+
+      {ppi && (
+        <p className="text-xs text-muted-foreground">
+          ≈ {(Math.round(100 * ppi) / 100).toLocaleString()} ppi
+        </p>
+      )}
+    </div>
   ) : (
     <button
       type="button"

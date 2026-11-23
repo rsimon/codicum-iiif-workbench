@@ -77,7 +77,7 @@ export const SingleSelection = (props: SingleSelectionProps) => {
         </Button>
       </div>
 
-      <FieldGroup className="p-4 gap-4">
+      <FieldGroup className="p-4 gap-4 space-y-1">
         <FieldSet className="gap-1 items-start space-y-0.5">
           <FieldLegend variant="label" className="data-[variant=label]:text-xs uppercase font-normal text-muted-foreground">
             Pixel size
