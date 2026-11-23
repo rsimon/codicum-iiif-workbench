@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from 'react';
-import type { PhysicalSize, ReconstructionCanvas } from '@/types';
-import { parseNumber } from '@/store/app-store-utils';
-import { Input } from '@/shadcn/input';
-import { Field, FieldGroup, FieldLabel } from '@/shadcn/field';
-import { isBlurLeavingGroup } from '../reconstruction-sidebar-utils';
 import { IconPlus } from '@tabler/icons-react';
+import { getPPI } from '@/dialogs/physical-dimensions';
+import { Field, FieldGroup, FieldLabel } from '@/shadcn/field';
+import { Input } from '@/shadcn/input';
+import { parseNumber } from '@/store/app-store-utils';
+import type { PhysicalSize, ReconstructionCanvas } from '@/types';
+import { isBlurLeavingGroup } from '../reconstruction-sidebar-utils';
 
 interface EditablePhysicalSizeProps {
 
@@ -82,6 +83,8 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
     if (isBlurLeavingGroup(e, groupRef.current)) onCommit();
   }
 
+  const ppi = size ? getPPI(size, props.canvas) : undefined;
+
   return isEditing ? (
     <FieldGroup
       ref={groupRef}
@@ -129,13 +132,21 @@ export const EditablePhysicalSize = (props: EditablePhysicalSizeProps) => {
           className="tabular-nums shrink-0 h-7 p-1 field-sizing-content min-w-[4ch] max-w-[6ch]" />
       </Field>
     </FieldGroup>
-  ) : size ? (
-    <button
-      type="button"
-      onClick={() => setIsEditing(true)}
-      className="tabular-nums hover:text-foreground hover:underline underline-offset-2 decoration-dotted cursor-text text-sm">
-      {formatPhysicalSize(size)}
-    </button>
+  ) : size? (
+    <div className="space-y-1">
+      <button
+        type="button"
+        onClick={() => setIsEditing(true)}
+        className="tabular-nums hover:text-foreground hover:underline underline-offset-2 decoration-dotted cursor-text text-sm">
+        {formatPhysicalSize(size)}
+      </button>
+
+      {ppi && (
+        <p className="text-xs text-muted-foreground">
+          ≈ {(Math.round(100 * ppi) / 100).toLocaleString()} ppi
+        </p>
+      )}
+    </div>
   ) : (
     <button
       type="button"
