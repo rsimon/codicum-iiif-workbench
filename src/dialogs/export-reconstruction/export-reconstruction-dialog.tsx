@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Check, Copy, Download } from 'lucide-react';
-import { IconFileTypePdf } from '@tabler/icons-react';
+import { IconFileTypePdf, IconLoader2 } from '@tabler/icons-react';
 import { IIIFIcon } from '@/components/iiif-icon';
 import { Button } from '@/shadcn/button';
 import { Label } from '@/shadcn/label';
@@ -8,7 +8,7 @@ import { Input } from '@/shadcn/input';
 import { Textarea } from '@/shadcn/textarea';
 import { useAppStore } from '@/store/app-store';
 import { createManifest } from './create-manifest';
-import { exportPDF } from './export-pdf';
+import { useExportPDF } from './use-export-pdf';
 import { 
   Dialog, 
   DialogContent, 
@@ -43,6 +43,8 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
   const [description, setDescription] = useState('');
   const [attribution, setAttribution] = useState('');
   const [copied, setCopied] = useState(false);
+
+  const { exportPDF, processing } = useExportPDF();
 
   const generatedManifest = useMemo(() => {
     if (!open) return;
@@ -132,8 +134,7 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter a description for this reconstruction"
-                rows={3}
-              />
+                rows={3} />
             </div>
             
             <div className="space-y-2">
@@ -199,9 +200,15 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
               className="pr-3"
               variant="outline" 
               onClick={onExportPDF}>
-              <IconFileTypePdf 
-                aria-hidden
-                className="mr-1 size-4" /> Export PDF
+              <div className="flex w-5 justify-center items-center mb-px">
+                {processing ? (
+                  <IconLoader2 className="size-4 animate-spin" />
+                ) : (
+                  <IconFileTypePdf 
+                    aria-hidden
+                    className="size-4.5" />
+                )} 
+              </div> Export PDF
             </Button>
 
             <Button
