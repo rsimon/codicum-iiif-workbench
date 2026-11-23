@@ -98,7 +98,7 @@ export const TextColorWidget = (props: TextColorWidgetProps) => {
               key={preset.value}
               value={preset.value}
               aria-label={preset.name}
-              className="size-5 min-w-5 rounded-full p-0 shadow-none aria-checked:ring-2 aria-checked:ring-ring aria-checked:ring-offset-2 aria-checked:ring-offset-popover [&_[data-slot=radio-group-indicator]]:hidden"
+              className="size-5 min-w-5 rounded-full p-0 shadow-none aria-checked:ring-2 aria-checked:ring-ring aria-checked:ring-offset-2 aria-checked:ring-offset-popover **:data-[slot=radio-group-indicator]:hidden"
               style={{
                 backgroundColor: preset.value,
                 border: `1px solid color-mix(in oklch, ${preset.value} 80%, black)`
