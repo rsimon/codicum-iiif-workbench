@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
+import { IconLinkOff } from '@tabler/icons-react';
 import type { Editor } from '@tiptap/react';
 import { Button } from '@/shadcn/button';
 import { Input } from '@/shadcn/input';
@@ -78,25 +79,25 @@ export const LinkEditor = (props: LinkEditorProps) => {
 
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md gap-2">
+        <DialogHeader className="gap-2">
           <DialogTitle>Edit Link</DialogTitle>
           <DialogDescription>
             Enter the URL you want to link the selected text to.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center space-x-2 py-4">
+        <div className="space-y-2 py-4">
           <Input
             autoFocus
             value={url}
             onChange={onChange}
             onKeyDown={onKeydown}
-            className={showError ? 'border-destructive focus-visible:ring-destructive' : ''} />
+            className={isValid ? undefined : 'focus-visible:border-destructive focus-visible:ring-destructive/30'} />
 
           {showError && (
             <p className="text-xs text-destructive">
-              Please enter a valid URL (e.g., https://example.com)
+              Please enter a valid URL
             </p>
           )}
         </div>
@@ -104,18 +105,21 @@ export const LinkEditor = (props: LinkEditorProps) => {
         <DialogFooter className="flex justify-between sm:justify-between">
           <Button
             type="button"
-            variant="destructive"
+            variant="link"
             onClick={onRemove}
-            disabled={!props.editor?.isActive('link')}>
-            Remove Link
+            disabled={!props.editor?.isActive('link')}
+            className="font-normal px-0">
+            <IconLinkOff /> Remove Link
           </Button>
+
           <div className="flex space-x-2">
             <Button 
               type="button" 
-              variant="outline" 
+              variant="ghost" 
               onClick={() => props.onOpenChange(false)}>
               Cancel
             </Button>
+
             <Button 
               type="button" 
               onClick={onSave}>

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import type { Editor } from '@tiptap/react';
 import { Toolbar } from '@base-ui/react';
-import { Toggle } from '@/shadcn/toggle';
+import type { Editor } from '@tiptap/react';
 import { IconLink } from '@tabler/icons-react';
+import { Toggle } from '@/shadcn/toggle';
 import { LinkEditor } from './link-editor';
 
 interface LinkButtonProps {
@@ -28,13 +28,13 @@ export const LinkButton = (props: LinkButtonProps) => {
           <Toggle
             disabled={disabled}
             pressed={!disabled && showDialog}
-            className="rounded-sm size-7 min-w-7 aria-pressed:bg-accent aria-pressed:text-primary"
+            className="rounded-sm size-7 min-w-7 disabled:opacity-25 aria-pressed:bg-accent aria-pressed:text-primary"
             aria-label="Link"
             aria-haspopup="dialog"
             aria-expanded={showDialog !== null}
             onPressedChange={() => setShowDialog(!showDialog)} />
         }>
-        <IconLink className="size-3.5" />
+        <IconLink className="size-4.5" strokeWidth={1.6} />
       </Toolbar.Button>
 
       <LinkEditor 
