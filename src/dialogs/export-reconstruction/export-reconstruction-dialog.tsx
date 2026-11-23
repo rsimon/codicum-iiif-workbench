@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Check, Copy, Download } from 'lucide-react';
+import { IconFileTypePdf } from '@tabler/icons-react';
 import { IIIFIcon } from '@/components/iiif-icon';
 import { Button } from '@/shadcn/button';
 import { Label } from '@/shadcn/label';
@@ -7,6 +8,7 @@ import { Input } from '@/shadcn/input';
 import { Textarea } from '@/shadcn/textarea';
 import { useAppStore } from '@/store/app-store';
 import { createManifest } from './create-manifest';
+import { exportPDF } from './export-pdf';
 import { 
   Dialog, 
   DialogContent, 
@@ -21,7 +23,6 @@ import {
   TabsList,
   TabsTrigger
 } from '@/shadcn/tabs';
-import { exportPDF } from './export-pdf';
 
 interface ExportReconstructionDialogProps {
 
@@ -195,15 +196,12 @@ export const ExportReconstructionDialog = (props: ExportReconstructionDialogProp
         <DialogFooter className="block">
           <div className="flex gap-2 items-center justify-end">
             <Button 
-              variant="ghost" 
-              onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-
-            <Button 
-              onClick={onExportPDF}
-              variant="outline">
-              Export PDF
+              className="pr-3"
+              variant="outline" 
+              onClick={onExportPDF}>
+              <IconFileTypePdf 
+                aria-hidden
+                className="mr-1 size-4" /> Export PDF
             </Button>
 
             <Button
