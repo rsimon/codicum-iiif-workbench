@@ -1,20 +1,20 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'wouter';
-import { IconUpload } from '@tabler/icons-react';
 import { GroupedVirtuoso } from 'react-virtuoso';
+import { IconUpload } from '@tabler/icons-react';
 import type { CozyCanvas } from 'cozy-iiif';
+import { PairedImportDialogs } from '@/app/dialogs/paired-import';
 import { Badge } from '@/shadcn/badge';
 import { Button } from '@/shadcn/button';
 import { ScrollArea } from '@/shadcn/scroll-area';
 import { TooltipProvider } from '@/shadcn/tooltip';
 import { cn } from '@/shadcn/utils';
-import { PairedImportDialogs } from '@/app/dialogs/paired-import';
 import { useAppStore } from '@/store/app-store';
 import { useSourcesStore } from '../sources-store';
+import { useSourceNavigation } from '../use-source-navigation';
 import { EmptySourceTree } from './empty-source-tree';
 import { CanvasTreeItem, ManifestTreeItem } from './source-tree-item';
 import { SourceTreeToolbar } from './source-tree-toolbar';
-import { useSourceNavigation } from '../use-source-navigation';
 
 export const SourceTree = () => {
   const sources = useAppStore(state => state.sources);
