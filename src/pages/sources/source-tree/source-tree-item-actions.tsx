@@ -1,5 +1,5 @@
 import { IconCircleMinus, IconDots } from '@tabler/icons-react';
-import { useConfirm } from '@/dialogs/confirm';
+import { useConfirm } from '@/app/dialogs/confirm';
 import { useAppStore } from '@/store/app-store';
 import { 
   DropdownMenu, 

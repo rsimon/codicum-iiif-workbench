@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { IconDownload, IconFolderOpen, IconRestore, IconUpload } from '@tabler/icons-react';
-import { PairedImportDialogs } from '@/dialogs/paired-import';
 import { Button } from '@/shadcn/button';
 import { useAppStore } from '@/store/app-store';
-import { useConfirm } from '@/dialogs/confirm';
-import { ExportReconstructionDialog } from '@/dialogs/export-reconstruction';
+import { PairedImportDialogs } from '../dialogs/paired-import';
+import { useConfirm } from '../dialogs/confirm';
+import { ExportReconstructionDialog } from '../dialogs/export-reconstruction';
 import {
   DropdownMenu,
   DropdownMenuContent,

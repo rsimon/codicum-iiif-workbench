@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { CanvasClickEvent, Viewer } from 'openseadragon';
-import { useMeasurement } from '@/dialogs/physical-dimensions';
+import { useMeasurement } from '@/app/measurement-tool';
 import { useAppStore } from '@/store/app-store';
 import { useReconstructionStore } from '../../reconstruction-store';
 import type { ComposerLayout } from '../../reconstruction-types';

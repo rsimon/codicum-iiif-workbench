@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { IconDownload } from '@tabler/icons-react';
-import { ExportReconstructionDialog } from '@/dialogs/export-reconstruction';
+import { ExportReconstructionDialog } from '@/app/dialogs/export-reconstruction';
 import { Button } from '@/shadcn/button';
 import { ScrollArea } from '@/shadcn/scroll-area';
 import { cn } from '@/shadcn/utils';

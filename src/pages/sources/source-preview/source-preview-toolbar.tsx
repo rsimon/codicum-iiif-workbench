@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { IconCheck, IconDimensions, IconPlus, IconRulerMeasure } from '@tabler/icons-react';
 import type { CozyCanvas, CozyManifest } from 'cozy-iiif';
+import { PhysicalDimensionsDialog } from '@/app/dialogs/physical-dimensions';
+import { useMeasurement } from '@/app/measurement-tool';
 import { ToolbarToggle } from '@/components/toolbar-toggle';
 import { ViewerPaginationControl } from '@/components/viewer-pagination-control';
-import { PhysicalDimensionsDialog, useMeasurement } from '@/dialogs/physical-dimensions';
 import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { useAppStore } from '@/store/app-store';
@@ -88,9 +89,7 @@ export const SourcePreviewToolbar = (props: SourcePreviewToolbarProps) => {
         <Separator orientation="vertical" />
 
         <PhysicalDimensionsDialog
-          canvasLabel={props.selectedCanvas.getLabel()}
-          canvasWidth={props.selectedCanvas.width}
-          canvasHeight={props.selectedCanvas.height}
+          canvas={props.selectedCanvas}
           physicalSize={size}
           open={showDimensionsDialog}
           onOpenChange={onShowDimensionsDialog}

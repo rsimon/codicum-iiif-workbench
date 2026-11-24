@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import OpenSeadragon from 'openseadragon';
 import type { CozyImageResource } from 'cozy-iiif';
-import { MeasurementTool } from '@/dialogs/physical-dimensions';
+import { MeasurementTool } from '@/app/measurement-tool';
 import { useSourceNavigation } from '../use-source-navigation';
 import { SourcePreviewControls } from './source-preview-controls';
 import { SourcePreviewToolbar } from './source-preview-toolbar';

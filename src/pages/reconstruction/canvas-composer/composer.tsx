@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import OpenSeadragon, { TiledImage } from 'openseadragon';
 import { useShallow } from 'zustand/react/shallow';
+import { MeasurementTool, useMeasurement } from '@/app/measurement-tool';
 import { ViewerSvgOverlay } from '@/components/viewer-svg-overlay';
-import { MeasurementTool, useMeasurement } from '@/dialogs/physical-dimensions';
 import { cn } from '@/shadcn/utils';
 import { useAppStore } from '@/store/app-store';
 import { getCanvasImageKey } from '../reconstruction-utils';

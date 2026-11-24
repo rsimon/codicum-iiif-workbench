@@ -1,7 +1,7 @@
 import { IconPencil, IconPlus } from '@tabler/icons-react';
 import type { CozyCanvas, CozyManifest } from 'cozy-iiif';
+import { getPPI } from '@/app/measurement-tool';
 import { MetadataSection } from '@/components/metadata-section';
-import { getPPI } from '@/dialogs/physical-dimensions';
 import { Button } from '@/shadcn/button';
 import { ScrollArea } from '@/shadcn/scroll-area';
 import { useAppStore } from '@/store/app-store';

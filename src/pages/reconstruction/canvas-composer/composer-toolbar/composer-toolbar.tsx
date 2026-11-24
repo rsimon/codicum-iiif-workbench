@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { useMeasurement } from '@/app/measurement-tool';
 import { ToolbarButton } from '@/components/toolbar-button';
 import { ToolbarToggle } from '@/components/toolbar-toggle';
-import { useMeasurement } from '@/dialogs/physical-dimensions';
 import { Separator } from '@/shadcn/separator';
 import { useAppStore } from '@/store/app-store';
 import { redo, undo, useReconstructionHistory } from '../../reconstruction-history';
