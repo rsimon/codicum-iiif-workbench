@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Panel, Separator } from 'react-resizable-panels';
-import { AnimatedPanel, AnimatedPanelGroup } from '@/components/animated-panel';
 import { MeasurementProvider } from '@/app/measurement-tool';
+import { AnimatedPanel, AnimatedPanelGroup } from '@/components/animated-panel';
 import { CanvasComposer } from './canvas-composer';
 import { ReconstructionTree } from './reconstruction-tree/tree';
 import { ReconstructionSidebar } from './reconstruction-sidebar';
