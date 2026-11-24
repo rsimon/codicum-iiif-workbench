@@ -88,9 +88,7 @@ export const SourcePreviewToolbar = (props: SourcePreviewToolbarProps) => {
         <Separator orientation="vertical" />
 
         <PhysicalDimensionsDialog
-          canvasLabel={props.selectedCanvas.getLabel()}
-          canvasWidth={props.selectedCanvas.width}
-          canvasHeight={props.selectedCanvas.height}
+          canvas={props.selectedCanvas}
           physicalSize={size}
           open={showDimensionsDialog}
           onOpenChange={onShowDimensionsDialog}

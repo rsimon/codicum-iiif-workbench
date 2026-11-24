@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type ReactElement } from 'react';
 import { IconForms, IconRulerMeasure } from '@tabler/icons-react';
+import type { CozyCanvas } from 'cozy-iiif';
 import { Input } from '@/shadcn/input';
 import { Button } from '@/shadcn/button';
 import { parseNumber } from '@/store/app-store-utils';
@@ -26,11 +27,7 @@ interface PhysicalDimensionsDialogProps {
 
   open: boolean;
 
-  canvasLabel: string;
-
-  canvasWidth: number;
-
-  canvasHeight: number;
+  canvas: CozyCanvas;
   
   physicalSize?: PhysicalSize;
 
@@ -58,7 +55,7 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
   const width = parseNumber(widthStr);
   const height = parseNumber(heightStr);
 
-  const aspectRatio = props.canvasWidth / props.canvasHeight;
+  const aspectRatio = props.canvas.width / props.canvas.height;
 
   const isValid = width !== undefined && height !== undefined && unit.trim();
 
@@ -117,8 +114,8 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
     if (dist !== undefined && tapeMeasureState.phase !== 'idle') {
       const physicalPerPixel = dist / measuredDistance;
 
-      const physicalWidth = round(props.canvasWidth * physicalPerPixel);
-      const physicalHeight = round(props.canvasHeight * physicalPerPixel);
+      const physicalWidth = round(props.canvas.width * physicalPerPixel);
+      const physicalHeight = round(props.canvas.height * physicalPerPixel);
 
       setWidthStr(physicalWidth.toString());
       setHeightStr(physicalHeight.toString());
@@ -148,7 +145,7 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
       <FloatingPanelContent 
         title={(
           <span>
-            <span>Physical dimensions</span> <span className="text-muted-foreground">[{props.canvasLabel}]</span>
+            <span>Physical dimensions</span> <span className="text-muted-foreground">[{props.canvas.getLabel()}]</span>
           </span>
         )}
         align="center"
@@ -160,7 +157,7 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
 
             <FieldContent>
               <p className="text-muted-foreground text-sm tabular-nums">
-                {props.canvasWidth.toLocaleString()} × {props.canvasHeight.toLocaleString()} px
+                {props.canvas.width.toLocaleString()} × {props.canvas.height.toLocaleString()} px
               </p>
             </FieldContent>
           </Field>
