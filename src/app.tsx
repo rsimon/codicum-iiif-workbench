@@ -1,8 +1,8 @@
 import { Route, Router, Redirect } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
 import { AppHeader } from '@/app/app-header';
-import { Splash } from '@/app/dialogs/splash';
 import { ConfirmDialogProvider } from '@/app/dialogs/confirm';
+import { Splash } from '@/app/dialogs/splash';
 import { TooltipProvider } from '@/shadcn/tooltip';
 import { Sources } from '@/pages/sources';
 import { Reconstruction } from '@/pages/reconstruction';
