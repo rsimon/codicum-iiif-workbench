@@ -54,9 +54,6 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
 
   const measuredDistance = tapeMeasureState.phase !== 'idle' ? tapeMeasureState.distancePx : 0;
 
-  // const { canvasesWithSize } = useBulkSizing(props.canvas);
-  // const othersWithSameSize = canvasesWithSize.length - 1;
-
   useEffect(() => {
     setMode('FORM_INPUT');
     setEnableTapeMeasure(false);
