@@ -8,7 +8,7 @@ import { Button } from '@/shadcn/button';
 import { ScrollArea } from '@/shadcn/scroll-area';
 import { TooltipProvider } from '@/shadcn/tooltip';
 import { cn } from '@/shadcn/utils';
-import { PairedImportDialogs } from '@/dialogs/paired-import';
+import { PairedImportDialogs } from '@/app/dialogs/paired-import';
 import { useAppStore } from '@/store/app-store';
 import { useSourcesStore } from '../sources-store';
 import { EmptySourceTree } from './empty-source-tree';

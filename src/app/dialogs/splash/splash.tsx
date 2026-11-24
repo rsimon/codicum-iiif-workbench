@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { IconUpload } from '@tabler/icons-react';
-import { useConfirm } from '@/dialogs/confirm';
-import { PairedImportDialogs } from '@/dialogs/paired-import';
+import { useConfirm } from '../confirm';
+import { PairedImportDialogs } from '../paired-import';
 import { Button } from '@/shadcn/button';
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from '@/shadcn/dialog';
 import { Checkbox } from '@/shadcn/checkbox';

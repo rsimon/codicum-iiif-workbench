@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from 'react';
 import { IconPlus } from '@tabler/icons-react';
-import { getPPI } from '@/dialogs/physical-dimensions';
+import { getPPI } from '@/app/measurement-tool';
 import { Field, FieldGroup, FieldLabel } from '@/shadcn/field';
 import { Input } from '@/shadcn/input';
 import { parseNumber } from '@/store/app-store-utils';

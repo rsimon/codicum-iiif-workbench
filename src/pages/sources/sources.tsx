@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Panel, Separator } from 'react-resizable-panels';
 import { AnimatedPanel, AnimatedPanelGroup } from '@/components/animated-panel';
-import { MeasurementProvider } from '@/dialogs/physical-dimensions';
+import { MeasurementProvider } from '@/app/measurement-tool';
 import { SourceMetadata } from './source-metadata';
 import { SourcePreview } from './source-preview';
 import { SourceTree } from './source-tree';
