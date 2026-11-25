@@ -4,6 +4,7 @@ import { Field, FieldContent, FieldLabel } from '@/shadcn/field';
 import { parseNumber } from '@/store/app-store-utils';
 import type { PhysicalSize } from '@/types';
 import { useMeasurement } from '../../measurement-tool';
+import type { BulkConflictStrategy } from './bulk-settings';
 import { FormManualInput } from './form-manual-input';
 import { FormMeasureFromImage } from './form-measure-from-image';
 import { 
@@ -53,6 +54,9 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
   const { setEnableTapeMeasure, tapeMeasureState } = useMeasurement();
 
   const measuredDistance = tapeMeasureState.phase !== 'idle' ? tapeMeasureState.distancePx : 0;
+
+  const [applyBulk, setApplyBulk] = useState<number | null>(null);
+  const [bulkStrategy, setBulkStrategy] = useState<BulkConflictStrategy>('keep');
 
   useEffect(() => {
     setMode('FORM_INPUT');
@@ -154,23 +158,33 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
 
           {mode === 'FORM_INPUT' ? (
             <FormManualInput 
+              canvas={props.canvas}
               widthStr={widthStr}
               heightStr={heightStr}
               unit={unit}
               isValid={Boolean(isValid)}
+              applyBulk={applyBulk}
+              bulkConflictStrategy={bulkStrategy}
               onWidthChanged={onWidthChanged}
               onHeightChanged={onHeightChanged}
               onUnitChanged={setUnit}
+              onApplyBulkChanged={setApplyBulk}
+              onBulkConflictStrategyChanged={setBulkStrategy}
               onToggleForm={() => setMode('MEASURE')}
               onApplyScale={onApplyScale} />
           ) : (
             <FormMeasureFromImage 
+              canvas={props.canvas}
               measuredDistance={measuredDistance}
               distStr={distStr} 
               unit={unit} 
               isValid={Boolean(isValid)} 
+              applyBulk={applyBulk}
+              bulkConflictStrategy={bulkStrategy}
               onDistanceChanged={onDistanceChanged} 
               onUnitChanged={setUnit} 
+              onApplyBulkChanged={setApplyBulk}
+              onBulkConflictStrategyChanged={setBulkStrategy}
               onToggleForm={() => setMode('FORM_INPUT')} 
               onApplyScale={onApplyScale} />
           )}

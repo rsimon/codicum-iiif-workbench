@@ -10,11 +10,11 @@ interface BulkSettingsProps {
 
   canvas: CozyCanvas;
 
-  applyBulk: boolean;
+  applyBulk: number | null;
 
   conflictStrategy: BulkConflictStrategy;
 
-  onChangeApplyBulk(apply: boolean): void;
+  onChangeApplyBulk(apply: number | null): void;
 
   onChangeConflictStrategy(conflict: BulkConflictStrategy): void;
 
@@ -26,22 +26,30 @@ export const BulkSettings = (props: BulkSettingsProps) => {
   const matchingCount = matchingCanvases.length;
   const withSizeCount = matchingCount - matchingWithoutSize.length;
 
+  const onCheckedChange = (checked: boolean) => {
+    if (checked)
+      props.onChangeApplyBulk(matchingCount);
+    else
+      props.onChangeApplyBulk(null);
+  }
+
   return matchingCount > 0 ? (
-    <FieldGroup>
-      <Field>
+    <FieldGroup className="p-2.5 border rounded-md shadow-xs">
+      <Field orientation="horizontal">
         <Checkbox
           id="bulk-apply"
-          checked={true}
-          onCheckedChange={() => {}} />
+          checked={Boolean(props.applyBulk)}
+          onCheckedChange={onCheckedChange} />
 
         <FieldContent>
           <FieldLabel htmlFor="bulk-apply">
             Also apply to {matchingCount} other {matchingCount === 1 ? 'canvas' : 'canvases'}
           </FieldLabel>
 
-          <FieldDescription>
-            These canvases have the same pixel size (1.041 × 1.634 px).
-            Select to apply the same physical size to each of them.
+          <FieldDescription className="text-xs">
+            {matchingCount === 1 ? 'The canvas has' : 'The canvases have'} the same pixel 
+            size ({props.canvas.width.toLocaleString()} × {props.canvas.height.toLocaleString()} px)
+            Select to apply the same physical size to {matchingCount === 1 ? 'it.' : 'each of them.'}
           </FieldDescription>
         </FieldContent>
       </Field>

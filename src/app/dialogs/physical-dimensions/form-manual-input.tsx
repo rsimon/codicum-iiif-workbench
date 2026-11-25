@@ -1,6 +1,8 @@
 import { IconRulerMeasure } from '@tabler/icons-react';
+import type { CozyCanvas } from 'cozy-iiif';
 import { Button } from '@/shadcn/button';
 import { Input } from '@/shadcn/input';
+import { BulkSettings, type BulkConflictStrategy } from './bulk-settings';
 import {
   Field, 
   FieldDescription, 
@@ -12,6 +14,8 @@ import {
 
 interface FormManualInputProps {
 
+  canvas: CozyCanvas;
+
   widthStr: string;
 
   heightStr: string;
@@ -20,11 +24,19 @@ interface FormManualInputProps {
 
   isValid: boolean;
 
+  applyBulk: number | null;
+
+  bulkConflictStrategy: BulkConflictStrategy;
+
   onWidthChanged(width: string): void;
 
   onHeightChanged(height: string): void;
 
   onUnitChanged(unit: string): void;
+
+  onApplyBulkChanged(apply: number | null): void;
+  
+  onBulkConflictStrategyChanged(conflict: BulkConflictStrategy): void;
 
   onToggleForm(): void;
 
@@ -36,54 +48,63 @@ export const FormManualInput = (props: FormManualInputProps) => {
 
   return (
     <div className="space-y-6" key="form_input">
-      <FieldSet className="gap-0.5 items-start">
-        <FieldLegend variant="label">Physical size</FieldLegend>
+      <div className="space-y-3">
+        <FieldSet className="gap-0.5 items-start">
+          <FieldLegend variant="label">Physical size</FieldLegend>
 
-        <FieldDescription className="pt-2 text-xs leading-relaxed">
-          Enter the known physical measurements for the scanned image.
-        </FieldDescription>
+          <FieldDescription className="pt-2 text-xs leading-relaxed">
+            Enter the known physical measurements for the scanned image.
+          </FieldDescription>
 
-        <FieldGroup 
-          className="flex flex-row gap-2 mt-2 items-center">
-          <Field>
-            <FieldLabel htmlFor="width" className="sr-only">
-              Width
-            </FieldLabel>
-            <Input
-              id="width"
-              placeholder="–"
-              className="tabular-nums grow h-8" 
-              value={props.widthStr} 
-              onChange={e => props.onWidthChanged(e.target.value)} />
-          </Field>
-            
-          <span className="text-muted-foreground">×</span>
+          <FieldGroup 
+            className="flex flex-row gap-2 mt-2 items-center">
+            <Field>
+              <FieldLabel htmlFor="width" className="sr-only">
+                Width
+              </FieldLabel>
+              <Input
+                id="width"
+                placeholder="–"
+                className="tabular-nums grow h-8" 
+                value={props.widthStr} 
+                onChange={e => props.onWidthChanged(e.target.value)} />
+            </Field>
+              
+            <span className="text-muted-foreground">×</span>
 
-          <Field className="pr-2">
-            <FieldLabel htmlFor="height" className="sr-only">
-              Height
-            </FieldLabel>
-            <Input
-              id="height"
-              placeholder="–"
-              className="tabular-nums grow h-8" 
-              value={props.heightStr} 
-              onChange={e => props.onHeightChanged(e.target.value)} />
-          </Field>
+            <Field className="pr-2">
+              <FieldLabel htmlFor="height" className="sr-only">
+                Height
+              </FieldLabel>
+              <Input
+                id="height"
+                placeholder="–"
+                className="tabular-nums grow h-8" 
+                value={props.heightStr} 
+                onChange={e => props.onHeightChanged(e.target.value)} />
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="unit" className="sr-only">
-              Unit
-            </FieldLabel>
-            <Input
-              id="unit"
-              placeholder="e.g. mm"
-              className="tabular-nums shrink-0 h-8" 
-              value={props.unit}
-              onChange={e => props.onUnitChanged(e.target.value)} />
-          </Field>
-        </FieldGroup>
-      </FieldSet>
+            <Field>
+              <FieldLabel htmlFor="unit" className="sr-only">
+                Unit
+              </FieldLabel>
+              <Input
+                id="unit"
+                placeholder="e.g. mm"
+                className="tabular-nums shrink-0 h-8" 
+                value={props.unit}
+                onChange={e => props.onUnitChanged(e.target.value)} />
+            </Field>
+          </FieldGroup>
+        </FieldSet>
+
+        <BulkSettings
+          canvas={props.canvas}
+          applyBulk={props.applyBulk}
+          conflictStrategy={props.bulkConflictStrategy}
+          onChangeApplyBulk={props.onApplyBulkChanged}
+          onChangeConflictStrategy={props.onBulkConflictStrategyChanged} />
+      </div>
 
       <div className="flex gap-2 justify-between items-end">
         <Button 
@@ -91,7 +112,11 @@ export const FormManualInput = (props: FormManualInputProps) => {
           onClick={props.onApplyScale}
           size="sm"
           className="bg-black hover:bg-black/80">
-          Apply scale
+          {props.applyBulk ? (
+            <>Apply to {props.applyBulk + 1} canvases</>
+          ) : (
+            <>Apply scale</>
+          )}
         </Button>
 
         <Button

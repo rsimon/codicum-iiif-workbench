@@ -1,6 +1,8 @@
 import { IconForms } from '@tabler/icons-react';
+import type { CozyCanvas } from 'cozy-iiif';
 import { Button } from '@/shadcn/button';
 import { Input } from '@/shadcn/input';
+import { BulkSettings, type BulkConflictStrategy } from './bulk-settings';
 import { 
   Field,
   FieldDescription,
@@ -12,6 +14,8 @@ import {
 
 interface FormMeasureFromImageProps {
 
+  canvas: CozyCanvas;
+    
   measuredDistance: number;
   
   distStr: string;
@@ -20,9 +24,17 @@ interface FormMeasureFromImageProps {
 
   isValid: boolean;
 
+  applyBulk: number | null;
+
+  bulkConflictStrategy: BulkConflictStrategy;
+
   onDistanceChanged(dist: string): void;
 
   onUnitChanged(unit: string): void;
+
+  onApplyBulkChanged(apply: number | null): void;
+  
+  onBulkConflictStrategyChanged(conflict: BulkConflictStrategy): void;
 
   onToggleForm(): void;
 
@@ -34,52 +46,61 @@ export const FormMeasureFromImage = (props: FormMeasureFromImageProps) => {
 
   return (
     <div className="space-y-6" key="measure">
-      <FieldSet className="gap-0.5 items-start space-y-1.5">
-        <FieldLegend variant="label">Measured distance</FieldLegend>
+      <div className="space-y-3">
+        <FieldSet className="gap-0.5 items-start space-y-1.5">
+          <FieldLegend variant="label">Measured distance</FieldLegend>
 
-        <FieldDescription className="text-xs leading-relaxed">
-          Click two points with a known distance apart to calibrate the physical size.
-        </FieldDescription>
+          <FieldDescription className="text-xs leading-relaxed">
+            Click two points with a known distance apart to calibrate the physical size.
+          </FieldDescription>
 
-        <FieldGroup className="flex-row items-center gap-2 mt-2">
-          <Field>
-            <FieldLabel htmlFor="measured-px" className="sr-only">
-              Measured pixels
-            </FieldLabel>
-            <Input
-              readOnly 
-              id="measured-px"
-              className="bg-muted tabular-nums text-muted-foreground text-sm h-8"
-              value={`${props.measuredDistance.toLocaleString()} px`} />
-          </Field>
+          <FieldGroup className="flex-row items-center gap-2 mt-2">
+            <Field>
+              <FieldLabel htmlFor="measured-px" className="sr-only">
+                Measured pixels
+              </FieldLabel>
+              <Input
+                readOnly 
+                id="measured-px"
+                className="bg-muted tabular-nums text-muted-foreground text-sm h-8"
+                value={`${props.measuredDistance.toLocaleString()} px`} />
+            </Field>
 
-          <span className="text-muted-foreground">=</span>
+            <span className="text-muted-foreground">=</span>
 
-          <Field className="pr-2">
-            <FieldLabel htmlFor="measured-value" className="sr-only">
-              Value
-            </FieldLabel>
-            <Input
-              id="measured-value"
-              placeholder="–"
-              className="grow tabular-nums h-8" 
-              value={props.distStr}
-              onChange={e => props.onDistanceChanged(e.target.value)} />
-          </Field>
+            <Field className="pr-2">
+              <FieldLabel htmlFor="measured-value" className="sr-only">
+                Value
+              </FieldLabel>
+              <Input
+                id="measured-value"
+                placeholder="–"
+                className="grow tabular-nums h-8" 
+                value={props.distStr}
+                onChange={e => props.onDistanceChanged(e.target.value)} />
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="unit" className="sr-only">
-              Unit
-            </FieldLabel>
-            <Input
-              id="unit"
-              placeholder="Unit"
-              className="tabular-nums shrink-0 h-8" 
-              value={props.unit}
-              onChange={e => props.onUnitChanged(e.target.value)} />
-          </Field>
-        </FieldGroup>
-      </FieldSet>
+            <Field>
+              <FieldLabel htmlFor="unit" className="sr-only">
+                Unit
+              </FieldLabel>
+              <Input
+                id="unit"
+                placeholder="Unit"
+                className="tabular-nums shrink-0 h-8" 
+                value={props.unit}
+                onChange={e => props.onUnitChanged(e.target.value)} />
+            </Field>
+          </FieldGroup>
+        </FieldSet>
+
+        <BulkSettings
+          canvas={props.canvas}
+          applyBulk={props.applyBulk}
+          conflictStrategy={props.bulkConflictStrategy}
+          onChangeApplyBulk={props.onApplyBulkChanged}
+          onChangeConflictStrategy={props.onBulkConflictStrategyChanged} />
+      </div>
 
       <div className="flex gap-2 justify-between items-end">
         <Button 
@@ -87,7 +108,11 @@ export const FormMeasureFromImage = (props: FormMeasureFromImageProps) => {
           onClick={props.onApplyScale}
           size="sm"
           className="bg-black hover:bg-black/80">
-          Apply scale
+          {props.applyBulk ? (
+            <>Apply to {props.applyBulk + 1} canvases</>
+          ) : (
+            <>Apply scale</>
+          )}
         </Button>
 
         <Button
