@@ -27,7 +27,7 @@ export const BulkSettingsField = () => {
   const withSizeCount = otherMatchingWithSize.length;
 
   return otherMatchingCanvases.length > 0 ? (
-    <FieldGroup className="p-2.5 border rounded-md shadow-xs gap-2.5">
+    <FieldGroup className="p-2.5 border rounded-md gap-2.5">
       <Field orientation="horizontal">
         <Checkbox
           id="bulk-apply"

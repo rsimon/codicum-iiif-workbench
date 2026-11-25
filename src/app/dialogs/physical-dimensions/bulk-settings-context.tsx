@@ -22,6 +22,8 @@ interface BulkSettingsContextValue {
 
   otherMatchingWithSize: CozyCanvas[];
 
+  canvasesToResize: CozyCanvas[];
+
 }
 
 const BulkSettingsContext = createContext<BulkSettingsContextValue | undefined>(undefined);
@@ -50,6 +52,12 @@ export const BulkSettingsProvider = ({ canvas, children }: { canvas: CozyCanvas,
     return otherMatchingCanvases.filter(c => sizes.has(c.id));
   }, [otherMatchingCanvases, sizes]);
 
+  const canvasesToResize = useMemo(() => (
+    bulkStrategy === 'replace' 
+      ? allMatchingCanvases
+      : allMatchingCanvases.filter(c => c.id === canvas.id || !sizes.has(c.id))
+  ), [canvas.id, bulkStrategy, allMatchingCanvases, sizes]);
+
   return (
     <BulkSettingsContext.Provider value={{
       canvas,
@@ -59,7 +67,8 @@ export const BulkSettingsProvider = ({ canvas, children }: { canvas: CozyCanvas,
       setBulkStrategy, 
       allMatchingCanvases, 
       otherMatchingCanvases, 
-      otherMatchingWithSize
+      otherMatchingWithSize,
+      canvasesToResize
     }}>
       {children}
     </BulkSettingsContext.Provider>

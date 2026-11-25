@@ -83,7 +83,7 @@ const PhysicalDimensionsDialogContent = (props: PhysicalDimensionsDialogContentP
 
   const [distStr, setDistStr] = useState('');
 
-  const [unit, setUnit] = useState('');
+  const [unit, setUnit] = useState(props.physicalSize?.unit || '');
 
   const width = parseNumber(widthStr);
   const height = parseNumber(heightStr);
@@ -96,7 +96,7 @@ const PhysicalDimensionsDialogContent = (props: PhysicalDimensionsDialogContentP
 
   const measuredDistance = tapeMeasureState.phase !== 'idle' ? tapeMeasureState.distancePx : 0;
 
-  const { applyBulk, allMatchingCanvases } = useBulkSettings();
+  const { applyBulk, canvasesToResize } = useBulkSettings();
 
   useEffect(() => {
     setEnableTapeMeasure(false);
@@ -155,7 +155,7 @@ const PhysicalDimensionsDialogContent = (props: PhysicalDimensionsDialogContentP
       width, 
       height, 
       unit: unit.trim()
-    }, applyBulk ? allMatchingCanvases : undefined);
+    }, applyBulk ? canvasesToResize : undefined);
 
     setEnableTapeMeasure(false);
 
