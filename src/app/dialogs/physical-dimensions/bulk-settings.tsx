@@ -34,7 +34,7 @@ export const BulkSettings = (props: BulkSettingsProps) => {
   }
 
   return matchingCount > 0 ? (
-    <FieldGroup className="p-2.5 border rounded-md shadow-xs">
+    <FieldGroup className="p-2.5 border rounded-md shadow-xs gap-2.5">
       <Field orientation="horizontal">
         <Checkbox
           id="bulk-apply"
@@ -58,24 +58,35 @@ export const BulkSettings = (props: BulkSettingsProps) => {
         <>
           <FieldSeparator />
 
-          <FieldSet>
-            <FieldLegend variant="label">
+          <FieldSet className="space-y-2.5">
+            <FieldLegend 
+              variant="label" 
+              className="data-[variant=label]:text-xs text-muted-foreground font-normal px-0.5">
               {withSizeCount} already {withSizeCount === 1 ? 'has' : 'have'} a physical size
             </FieldLegend>
 
             <RadioGroup 
               value={props.conflictStrategy} 
-              onValueChange={props.onChangeConflictStrategy}>
+              onValueChange={props.onChangeConflictStrategy}
+              className="gap-1.5">
               <Field orientation="horizontal">
-                <RadioGroupItem value="keep" id="conflict-keep" />
-                <FieldLabel htmlFor="conflict-keep" className="font-normal">
+                <RadioGroupItem 
+                  value="keep" 
+                  id="conflict-keep" 
+                  className="mb-px" />
+
+                <FieldLabel htmlFor="conflict-keep" className="font-normal text-xs">
                   Keep existing sizes
                 </FieldLabel>
               </Field>
 
               <Field orientation="horizontal">
-                <RadioGroupItem value="replace" id="conflict-replace" />
-                <FieldLabel htmlFor="conflict-replace" className="font-normal">
+                <RadioGroupItem 
+                  value="replace" 
+                  id="conflict-replace" 
+                  className="mb-px" />
+
+                <FieldLabel htmlFor="conflict-replace" className="font-normal text-xs">
                   Replace existing sizes
                 </FieldLabel>
               </Field>
