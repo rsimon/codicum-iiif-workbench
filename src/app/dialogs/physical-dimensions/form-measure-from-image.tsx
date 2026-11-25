@@ -97,7 +97,7 @@ export const FormMeasureFromImage = (props: FormMeasureFromImageProps) => {
           size="sm"
           className="bg-black hover:bg-black/80">
           {applyBulk ? (
-            <>Apply to {canvasesToResize.length} canvases</>
+            <>Apply to {canvasesToResize.length} canvas{canvasesToResize.length === 1 ? '' : 'es'}</>
           ) : (
             <>Apply scale</>
           )}
