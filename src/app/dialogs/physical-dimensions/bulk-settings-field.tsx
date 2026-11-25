@@ -31,6 +31,7 @@ export const BulkSettingsField = () => {
       <Field orientation="horizontal">
         <Checkbox
           id="bulk-apply"
+          className="data-checked:bg-foreground data-checked:border-foreground"
           checked={applyBulk}
           onCheckedChange={setApplyBulk} />
 
@@ -40,8 +41,8 @@ export const BulkSettingsField = () => {
           </FieldLabel>
 
           <FieldDescription className="text-xs">
-            {matchingCount === 1 ? 'The canvas has' : 'The canvases have'} the same pixel 
-            size ({canvas.width.toLocaleString()} × {canvas.height.toLocaleString()} px)
+            {matchingCount === 1 ? 'This canvas has' : 'These canvases have'} the same pixel 
+            size ({canvas.width.toLocaleString()} × {canvas.height.toLocaleString()} px).
             Select to apply the same physical size to {matchingCount === 1 ? 'it.' : 'each of them.'}
           </FieldDescription>
         </FieldContent>
@@ -58,7 +59,7 @@ export const BulkSettingsField = () => {
               {withSizeCount} already {withSizeCount === 1 ? 'has' : 'have'} a physical size
             </FieldLegend>
 
-            <RadioGroup 
+            <RadioGroup
               value={bulkStrategy} 
               onValueChange={setBulkStrategy}
               className="gap-1.5">
@@ -66,7 +67,7 @@ export const BulkSettingsField = () => {
                 <RadioGroupItem 
                   value="keep" 
                   id="conflict-keep" 
-                  className="mb-px" />
+                  className="mb-px data-checked:border-foreground data-checked:bg-foreground" />
 
                 <FieldLabel htmlFor="conflict-keep" className="font-normal text-xs">
                   Keep existing sizes
@@ -77,7 +78,7 @@ export const BulkSettingsField = () => {
                 <RadioGroupItem 
                   value="replace" 
                   id="conflict-replace" 
-                  className="mb-px" />
+                  className="mb-px data-checked:border-foreground data-checked:bg-foreground" />
 
                 <FieldLabel htmlFor="conflict-replace" className="font-normal text-xs">
                   Replace existing sizes
