@@ -33,7 +33,7 @@ export const BulkSettingsField = () => {
         onCheckedChange={setApplyBulk} 
         aria-describedby="bulk-apply-hint" />
 
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-0.5">
         <FieldLabel htmlFor="bulk-apply" className="font-normal">
           Also apply to {matchingCount} other {matchingCount === 1 ? 'canvas' : 'canvases'}
         </FieldLabel>
