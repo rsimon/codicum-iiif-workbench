@@ -4,7 +4,7 @@ import { Field, FieldContent, FieldLabel } from '@/shadcn/field';
 import { parseNumber } from '@/store/app-store-utils';
 import type { PhysicalSize } from '@/types';
 import { useMeasurement } from '../../measurement-tool';
-import type { BulkConflictStrategy } from './bulk-settings';
+import { BulkSettingsProvider, useBulkSettings } from './bulk-settings-context';
 import { FormManualInput } from './form-manual-input';
 import { FormMeasureFromImage } from './form-measure-from-image';
 import { 
@@ -25,7 +25,7 @@ interface PhysicalDimensionsDialogProps {
 
   onOpenChange(open: boolean): void;
 
-  onSizeChanged(size?: PhysicalSize): void;
+  onSizeChanged(size?: PhysicalSize, canvases?: CozyCanvas[]): void;
   
 }
 
@@ -55,8 +55,7 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
 
   const measuredDistance = tapeMeasureState.phase !== 'idle' ? tapeMeasureState.distancePx : 0;
 
-  const [applyBulk, setApplyBulk] = useState<number | null>(null);
-  const [bulkStrategy, setBulkStrategy] = useState<BulkConflictStrategy>('keep');
+  const { applyBulk, allMatchingCanvases } = useBulkSettings();
 
   useEffect(() => {
     setMode('FORM_INPUT');
@@ -120,10 +119,10 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
     if (!isValid) return;
 
     props.onSizeChanged({
-      width,
-      height,
+      width, 
+      height, 
       unit: unit.trim()
-    });
+    }, applyBulk ? allMatchingCanvases : undefined);
 
     setEnableTapeMeasure(false);
 
@@ -145,50 +144,42 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
         align="center"
         sideOffset={38}
         className="w-sm">
-        <div className="p-4 space-y-4">
-          <Field className="gap-2">
-            <FieldLabel className="text-sm">Image size</FieldLabel>
+        <BulkSettingsProvider canvas={props.canvas}>
+          <div className="p-4 space-y-4">
+            <Field className="gap-2">
+              <FieldLabel className="text-sm">Image size</FieldLabel>
 
-            <FieldContent>
-              <p className="text-muted-foreground text-sm tabular-nums">
-                {props.canvas.width.toLocaleString()} × {props.canvas.height.toLocaleString()} px
-              </p>
-            </FieldContent>
-          </Field>
+              <FieldContent>
+                <p className="text-muted-foreground text-sm tabular-nums">
+                  {props.canvas.width.toLocaleString()} × {props.canvas.height.toLocaleString()} px
+                </p>
+              </FieldContent>
+            </Field>
 
-          {mode === 'FORM_INPUT' ? (
-            <FormManualInput 
-              canvas={props.canvas}
-              widthStr={widthStr}
-              heightStr={heightStr}
-              unit={unit}
-              isValid={Boolean(isValid)}
-              applyBulk={applyBulk}
-              bulkConflictStrategy={bulkStrategy}
-              onWidthChanged={onWidthChanged}
-              onHeightChanged={onHeightChanged}
-              onUnitChanged={setUnit}
-              onApplyBulkChanged={setApplyBulk}
-              onBulkConflictStrategyChanged={setBulkStrategy}
-              onToggleForm={() => setMode('MEASURE')}
-              onApplyScale={onApplyScale} />
-          ) : (
-            <FormMeasureFromImage 
-              canvas={props.canvas}
-              measuredDistance={measuredDistance}
-              distStr={distStr} 
-              unit={unit} 
-              isValid={Boolean(isValid)} 
-              applyBulk={applyBulk}
-              bulkConflictStrategy={bulkStrategy}
-              onDistanceChanged={onDistanceChanged} 
-              onUnitChanged={setUnit} 
-              onApplyBulkChanged={setApplyBulk}
-              onBulkConflictStrategyChanged={setBulkStrategy}
-              onToggleForm={() => setMode('FORM_INPUT')} 
-              onApplyScale={onApplyScale} />
-          )}
-        </div> 
+            {mode === 'FORM_INPUT' ? (
+              <FormManualInput 
+                widthStr={widthStr}
+                heightStr={heightStr}
+                unit={unit}
+                isValid={Boolean(isValid)}
+                onWidthChanged={onWidthChanged}
+                onHeightChanged={onHeightChanged}
+                onUnitChanged={setUnit}
+                onToggleForm={() => setMode('MEASURE')}
+                onApplyScale={onApplyScale} />
+            ) : (
+              <FormMeasureFromImage 
+                measuredDistance={measuredDistance}
+                distStr={distStr} 
+                unit={unit} 
+                isValid={Boolean(isValid)} 
+                onDistanceChanged={onDistanceChanged} 
+                onUnitChanged={setUnit}
+                onToggleForm={() => setMode('FORM_INPUT')} 
+                onApplyScale={onApplyScale} />
+            )}
+          </div> 
+        </BulkSettingsProvider>
       </FloatingPanelContent>
     </FloatingPanel>
   )

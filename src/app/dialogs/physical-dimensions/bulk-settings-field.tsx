@@ -1,45 +1,38 @@
-import type { CozyCanvas } from 'cozy-iiif';
-import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSeparator, FieldSet} from '@/shadcn/field';
-import { useBulkSettings } from './use-bulk-settings';
 import { Checkbox } from '@/shadcn/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/shadcn/radio-group';
+import { useBulkSettings } from './bulk-settings-context';
+import { 
+  Field, 
+  FieldContent, 
+  FieldDescription, 
+  FieldGroup, 
+  FieldLabel, 
+  FieldLegend, 
+  FieldSeparator, 
+  FieldSet
+} from '@/shadcn/field';
 
-export type BulkConflictStrategy = 'keep' | 'replace';
+export const BulkSettingsField = () => {
+  const { 
+    canvas,
+    applyBulk, 
+    setApplyBulk, 
+    bulkStrategy,
+    setBulkStrategy,
+    otherMatchingCanvases, 
+    otherMatchingWithSize 
+  } = useBulkSettings();
 
-interface BulkSettingsProps {
+  const matchingCount = otherMatchingCanvases.length;
+  const withSizeCount = otherMatchingWithSize.length;
 
-  canvas: CozyCanvas;
-
-  applyBulk: number | null;
-
-  conflictStrategy: BulkConflictStrategy;
-
-  onChangeApplyBulk(apply: number | null): void;
-
-  onChangeConflictStrategy(conflict: BulkConflictStrategy): void;
-
-}
-
-export const BulkSettings = (props: BulkSettingsProps) => {
-  const {matchingCanvases, matchingWithoutSize } = useBulkSettings(props.canvas);
-
-  const matchingCount = matchingCanvases.length;
-  const withSizeCount = matchingCount - matchingWithoutSize.length;
-
-  const onCheckedChange = (checked: boolean) => {
-    if (checked)
-      props.onChangeApplyBulk(matchingCount);
-    else
-      props.onChangeApplyBulk(null);
-  }
-
-  return matchingCount > 0 ? (
+  return otherMatchingCanvases.length > 0 ? (
     <FieldGroup className="p-2.5 border rounded-md shadow-xs gap-2.5">
       <Field orientation="horizontal">
         <Checkbox
           id="bulk-apply"
-          checked={Boolean(props.applyBulk)}
-          onCheckedChange={onCheckedChange} />
+          checked={applyBulk}
+          onCheckedChange={setApplyBulk} />
 
         <FieldContent>
           <FieldLabel htmlFor="bulk-apply">
@@ -48,13 +41,13 @@ export const BulkSettings = (props: BulkSettingsProps) => {
 
           <FieldDescription className="text-xs">
             {matchingCount === 1 ? 'The canvas has' : 'The canvases have'} the same pixel 
-            size ({props.canvas.width.toLocaleString()} × {props.canvas.height.toLocaleString()} px)
+            size ({canvas.width.toLocaleString()} × {canvas.height.toLocaleString()} px)
             Select to apply the same physical size to {matchingCount === 1 ? 'it.' : 'each of them.'}
           </FieldDescription>
         </FieldContent>
       </Field>
 
-      {props.applyBulk && withSizeCount > 0 && (
+      {applyBulk && withSizeCount > 0 && (
         <>
           <FieldSeparator />
 
@@ -66,8 +59,8 @@ export const BulkSettings = (props: BulkSettingsProps) => {
             </FieldLegend>
 
             <RadioGroup 
-              value={props.conflictStrategy} 
-              onValueChange={props.onChangeConflictStrategy}
+              value={bulkStrategy} 
+              onValueChange={setBulkStrategy}
               className="gap-1.5">
               <Field orientation="horizontal">
                 <RadioGroupItem 

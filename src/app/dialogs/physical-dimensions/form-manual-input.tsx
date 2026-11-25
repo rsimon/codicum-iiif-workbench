@@ -1,8 +1,8 @@
 import { IconRulerMeasure } from '@tabler/icons-react';
-import type { CozyCanvas } from 'cozy-iiif';
 import { Button } from '@/shadcn/button';
 import { Input } from '@/shadcn/input';
-import { BulkSettings, type BulkConflictStrategy } from './bulk-settings';
+import { useBulkSettings } from './bulk-settings-context';
+import { BulkSettingsField } from './bulk-settings-field';
 import {
   Field, 
   FieldDescription, 
@@ -14,8 +14,6 @@ import {
 
 interface FormManualInputProps {
 
-  canvas: CozyCanvas;
-
   widthStr: string;
 
   heightStr: string;
@@ -24,19 +22,11 @@ interface FormManualInputProps {
 
   isValid: boolean;
 
-  applyBulk: number | null;
-
-  bulkConflictStrategy: BulkConflictStrategy;
-
   onWidthChanged(width: string): void;
 
   onHeightChanged(height: string): void;
 
   onUnitChanged(unit: string): void;
-
-  onApplyBulkChanged(apply: number | null): void;
-  
-  onBulkConflictStrategyChanged(conflict: BulkConflictStrategy): void;
 
   onToggleForm(): void;
 
@@ -45,6 +35,7 @@ interface FormManualInputProps {
 }
 
 export const FormManualInput = (props: FormManualInputProps) => {
+  const { applyBulk, allMatchingCanvases } = useBulkSettings();
 
   return (
     <div className="space-y-6" key="form_input">
@@ -98,12 +89,7 @@ export const FormManualInput = (props: FormManualInputProps) => {
           </FieldGroup>
         </FieldSet>
 
-        <BulkSettings
-          canvas={props.canvas}
-          applyBulk={props.applyBulk}
-          conflictStrategy={props.bulkConflictStrategy}
-          onChangeApplyBulk={props.onApplyBulkChanged}
-          onChangeConflictStrategy={props.onBulkConflictStrategyChanged} />
+        <BulkSettingsField />
       </div>
 
       <div className="flex gap-2 justify-between items-end">
@@ -112,8 +98,8 @@ export const FormManualInput = (props: FormManualInputProps) => {
           onClick={props.onApplyScale}
           size="sm"
           className="bg-black hover:bg-black/80">
-          {props.applyBulk ? (
-            <>Apply to {props.applyBulk + 1} canvases</>
+          {applyBulk ? (
+            <>Apply to {allMatchingCanvases.length} canvases</>
           ) : (
             <>Apply scale</>
           )}
