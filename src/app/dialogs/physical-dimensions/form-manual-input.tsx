@@ -41,7 +41,7 @@ export const FormManualInput = (props: FormManualInputProps) => {
     <div className="space-y-6" key="form_input">
       <div className="space-y-3">
         <FieldSet className="gap-0.5 items-start">
-          <FieldLegend variant="label" className="font-normal">
+          <FieldLegend variant="label">
             Physical size
           </FieldLegend>
 

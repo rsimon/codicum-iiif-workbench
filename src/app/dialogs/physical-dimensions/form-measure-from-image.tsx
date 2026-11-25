@@ -39,7 +39,7 @@ export const FormMeasureFromImage = (props: FormMeasureFromImageProps) => {
     <div className="space-y-6" key="measure">
       <div className="space-y-3">
         <FieldSet className="gap-0.5 items-start space-y-1.5">
-          <FieldLegend variant="label" className="font-normal">
+          <FieldLegend variant="label">
             Measured distance
           </FieldLegend>
 
