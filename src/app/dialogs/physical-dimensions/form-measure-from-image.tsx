@@ -33,13 +33,15 @@ interface FormMeasureFromImageProps {
 }
 
 export const FormMeasureFromImage = (props: FormMeasureFromImageProps) => {
-  const { applyBulk, allMatchingCanvases } = useBulkSettings();
+  const { applyBulk, canvasesToResize } = useBulkSettings();
 
   return (
     <div className="space-y-6" key="measure">
       <div className="space-y-3">
         <FieldSet className="gap-0.5 items-start space-y-1.5">
-          <FieldLegend variant="label">Measured distance</FieldLegend>
+          <FieldLegend variant="label" className="font-normal">
+            Measured distance
+          </FieldLegend>
 
           <FieldDescription className="text-xs leading-relaxed">
             Click two points with a known distance apart to calibrate the physical size.
@@ -95,7 +97,7 @@ export const FormMeasureFromImage = (props: FormMeasureFromImageProps) => {
           size="sm"
           className="bg-black hover:bg-black/80">
           {applyBulk ? (
-            <>Apply to {allMatchingCanvases.length} canvases</>
+            <>Apply to {canvasesToResize.length} canvases</>
           ) : (
             <>Apply scale</>
           )}

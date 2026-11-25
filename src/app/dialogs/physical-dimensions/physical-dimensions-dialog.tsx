@@ -163,9 +163,9 @@ const PhysicalDimensionsDialogContent = (props: PhysicalDimensionsDialogContentP
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-6">
       <Field className="gap-2">
-        <FieldLabel className="text-sm">Image size</FieldLabel>
+        <FieldLabel className="text-sm font-normal">Image size</FieldLabel>
 
         <FieldContent>
           <p className="text-muted-foreground text-sm tabular-nums">

@@ -35,13 +35,15 @@ interface FormManualInputProps {
 }
 
 export const FormManualInput = (props: FormManualInputProps) => {
-  const { applyBulk, allMatchingCanvases } = useBulkSettings();
+  const { applyBulk, canvasesToResize } = useBulkSettings();
 
   return (
     <div className="space-y-6" key="form_input">
       <div className="space-y-3">
         <FieldSet className="gap-0.5 items-start">
-          <FieldLegend variant="label">Physical size</FieldLegend>
+          <FieldLegend variant="label" className="font-normal">
+            Physical size
+          </FieldLegend>
 
           <FieldDescription className="pt-2 text-xs leading-relaxed">
             Enter the known physical measurements for the scanned image.
@@ -99,7 +101,7 @@ export const FormManualInput = (props: FormManualInputProps) => {
           size="sm"
           className="bg-black hover:bg-black/80">
           {applyBulk ? (
-            <>Apply to {allMatchingCanvases.length} canvases</>
+            <>Apply to {canvasesToResize.length} canvases</>
           ) : (
             <>Apply scale</>
           )}
