@@ -106,6 +106,15 @@ export const ImportSourceDialog = (props: ImportSourceDialogProps) => {
 
       if (abort.signal.aborted) return;
 
+      if (result.type === 'error' && result.code === 'INVALID_URL')
+        throw new Error('Not a valid URL');
+
+      if (result.type === 'error' && result.code === 'INVALID_MANIFEST')
+        throw new Error('Could not parse the manifest');
+
+      if (result.type === 'error')
+        throw new Error('Could not fetch - connection error or invalid content');
+
       if (result.type !== 'manifest' && result.type !== 'collection')
         throw new Error('Not a valid IIIF presentation or collection manifest');
 
