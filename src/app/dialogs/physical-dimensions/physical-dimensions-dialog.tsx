@@ -148,6 +148,8 @@ const PhysicalDimensionsDialogContent = (props: PhysicalDimensionsDialogContentP
     }
   }
 
+  const onClearPhysicalSize = () => props.onSizeChanged(undefined);
+
   const onApplyScale = () => {
     if (!isValid) return;
 
@@ -180,11 +182,13 @@ const PhysicalDimensionsDialogContent = (props: PhysicalDimensionsDialogContentP
           heightStr={heightStr}
           unit={unit}
           isValid={Boolean(isValid)}
+          hasPhysicalSize={Boolean(props.physicalSize)}
           onWidthChanged={onWidthChanged}
           onHeightChanged={onHeightChanged}
           onUnitChanged={setUnit}
           onToggleForm={() => setMode('MEASURE')}
-          onApplyScale={onApplyScale} />
+          onApplyScale={onApplyScale} 
+          onClearPhysicalSize={onClearPhysicalSize} />
       ) : (
         <FormMeasureFromImage 
           measuredDistance={measuredDistance}

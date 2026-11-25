@@ -1,6 +1,7 @@
-import { IconRulerMeasure } from '@tabler/icons-react';
+import { IconRulerMeasure, IconTrash } from '@tabler/icons-react';
 import { Button } from '@/shadcn/button';
 import { Input } from '@/shadcn/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shadcn/tooltip';
 import { useBulkSettings } from './bulk-settings-context';
 import { BulkSettingsField } from './bulk-settings-field';
 import {
@@ -22,6 +23,8 @@ interface FormManualInputProps {
 
   isValid: boolean;
 
+  hasPhysicalSize: boolean;
+
   onWidthChanged(width: string): void;
 
   onHeightChanged(height: string): void;
@@ -32,6 +35,8 @@ interface FormManualInputProps {
 
   onApplyScale(): void;
 
+  onClearPhysicalSize(): void;
+
 }
 
 export const FormManualInput = (props: FormManualInputProps) => {
@@ -41,9 +46,31 @@ export const FormManualInput = (props: FormManualInputProps) => {
     <div className="space-y-6" key="form_input">
       <div className="space-y-3">
         <FieldSet className="gap-0.5 items-start">
-          <FieldLegend variant="label">
-            Physical size
-          </FieldLegend>
+          <div className="flex gap-1.5 items-center">
+            <FieldLegend variant="label">
+              Physical size
+            </FieldLegend>
+
+            {props.hasPhysicalSize && (
+              <Tooltip>
+                <TooltipTrigger render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Clear physical size"
+                    className="size-6 text-muted-foreground hover:text-foreground"
+                    onClick={props.onClearPhysicalSize}>
+                    <IconTrash />
+                  </Button>
+                } />
+                
+                <TooltipContent className="z-99999">
+                  Clear physical size
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
 
           <FieldDescription className="pt-2 text-xs leading-relaxed">
             Enter the known physical measurements for the scanned image.
