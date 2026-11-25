@@ -5,19 +5,19 @@ import type { PhysicalSize, ReconstructionCanvas, SourceManifest } from '@/types
 import {
   appendEmptyCanvas,
   buildReconstructionSourceIndex,
-  insertCanvasesAtIndex,
   mergeInto,
   moveCanvas,
+  moveCanvasesToIndex,
   parseCanvas,
   parseManifest,
   removeCanvasFromReconstruction,
   removeSourceCanvasFromReconstruction,
-  resizeReconstructionCanvas,
-  setReconstructionCanvasPhysicalSize
+  setReconstructionCanvasPixelSize,
+  setReconstructionCanvasPhysicalSize,
+  setSourceCanvasesPhysicalSize
 } from './app-store-utils';
 
 interface AppStore {
-
   baseURI: string;
 
   sources: SourceManifest[];
@@ -39,9 +39,9 @@ interface AppStore {
   // Actions: reconstruction
   appendEmptyCanvas: (width?: number, height?: number) => void;
   duplicateCanvas: (canvasId: string) => void;
-  insertCanvasesAtIndex: (canvasIds: string[], index: number) => void;
   mergeCanvases: (toMerge: ReconstructionCanvas[]) => void;
   moveCanvas: (canvasId: string, direction: MoveDirection) => void;
+  moveCanvasesToIndex: (canvasIds: string[], index: number) => void;
   removeCanvasFromReconstruction: (canvasId: string) => void;
   removeCanvasesFromReconstruction: (canvasIds: string[]) => void;
   renameCanvas: (canvasId: string, label: string) => void;
@@ -49,11 +49,11 @@ interface AppStore {
   updateReconstruction: (updated: ReconstructionCanvas[]) => void;
 
   // Actions: combined
-  setSourcePhysicalSize: (sourceId: string, size?: PhysicalSize) => void;
+  setSourcePhysicalSize: (sourceCanvasId: string, size?: PhysicalSize) => void;
+  setSourcesPhysicalSize: (sourceCanvasIds: string[], size?: PhysicalSize) => void;
   setReconstructionPhysicalSize: (canvasId: string, size?: PhysicalSize) => void;
   resetAll: () => void;
   loadProject: (sources: SourceManifest[], reconstruction: ReconstructionCanvas[]) => void;
-
 }
 
 export type MoveDirection = 'up' | 'down' | 'top' | 'bottom';
@@ -191,12 +191,12 @@ export const useAppStore = create<AppStore>()(
         reconstruction: mergeInto(toMerge, reconstruction, baseURI)
       })),
 
-      insertCanvasesAtIndex: (canvasIds, index) => set(({ reconstruction }) => ({
-        reconstruction: insertCanvasesAtIndex(reconstruction, canvasIds, index)
-      })),
-
       moveCanvas: (canvasId, direction) => set(({ reconstruction }) => ({
         reconstruction: moveCanvas(reconstruction, canvasId, direction)
+      })),
+
+      moveCanvasesToIndex: (canvasIds, index) => set(({ reconstruction }) => ({
+        reconstruction: moveCanvasesToIndex(reconstruction, canvasIds, index)
       })),
 
       removeCanvasFromReconstruction: canvasId => set(({ reconstruction }) => ({
@@ -214,40 +214,20 @@ export const useAppStore = create<AppStore>()(
       })),
       
       resizeCanvas: (canvasId, width, height) => set(({ reconstruction }) => ({
-        reconstruction: reconstruction.map(r => r.id === canvasId ? resizeReconstructionCanvas(r, width, height) : r)
+        reconstruction: reconstruction.map(r => r.id === canvasId ? setReconstructionCanvasPixelSize(r, width, height) : r)
       })),
 
       updateReconstruction: reconstruction => set({ reconstruction }),
+      
+      setSourcePhysicalSize: (sourceCanvasId, size) => set(({ reconstruction, sizes }) => 
+        setSourceCanvasesPhysicalSize(reconstruction, sizes, [sourceCanvasId], size)
+      ),
 
-      setSourcePhysicalSize: (sourceCanvasId, size) => set(({ reconstruction, sizes }) => {
-        // Update 'sizes' map
-        const updatedSizes = new Map(sizes);
-        if (size)
-          updatedSizes.set(sourceCanvasId, size);
-        else
-          updatedSizes.delete(sourceCanvasId);
-
-        // Traverse reconstruction and update, in case it's already added
-        const updatedReconstruction = reconstruction.map(r => {
-          if (r.type === 'original') {
-            return r.source.canvas.id === sourceCanvasId ? {
-              ...r, 
-              physicalSize: size
-            } : r;
-          } else {
-            const isAffected = r.sources.some(s => s.canvas.id === sourceCanvasId);
-            return isAffected ? {
-              ...r,
-              sources: r.sources.map(source => source.canvas.id === sourceCanvasId ? {
-                ...source,
-                physicalSize: size
-              } : source)
-            } : r;
-          }
-        });
-
-        return { sizes: updatedSizes, reconstruction: updatedReconstruction };
-      }),
+      setSourcesPhysicalSize: (sourceCanvasIds, size) => set(({ reconstruction, sizes }) =>
+        sourceCanvasIds.length === 0
+          ? {}
+          : setSourceCanvasesPhysicalSize(reconstruction, sizes, sourceCanvasIds, size)
+      ),
 
       setReconstructionPhysicalSize: (canvasId, size) => set(({ reconstruction }) => ({
         reconstruction: reconstruction.map(r => r.id === canvasId ? setReconstructionCanvasPhysicalSize(r, size) : r)

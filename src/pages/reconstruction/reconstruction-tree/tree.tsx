@@ -22,7 +22,7 @@ import { EmptyReconstructionTree } from './empty-reconstruction-tree';
 export const ReconstructionTree = () => {
   const canvases = useAppStore(state => state.reconstruction);
   const onChange = useAppStore(state => state.updateReconstruction);
-  const insertCanvasesAtIndex = useAppStore(state => state.insertCanvasesAtIndex);
+  const moveCanvasesToIndex = useAppStore(state => state.moveCanvasesToIndex);
   const mergeCanvases = useAppStore(state => state.mergeCanvases);
 
   const selection = useReconstructionStore(state => state.selection) ?? [];
@@ -137,7 +137,7 @@ export const ReconstructionTree = () => {
             if (payload.kind === 'root') {
               if (payload.canvasIds.length > 1) {
                 const insertionIndex = targetIndex + (type === 'reorder-below' ? 1 : 0);
-                withHistoryViewTransition(() => insertCanvasesAtIndex(payload.canvasIds, insertionIndex));
+                withHistoryViewTransition(() => moveCanvasesToIndex(payload.canvasIds, insertionIndex));
               } else {
                 const startIndex = canvases.findIndex(canvas => canvas.id === payload.canvasIds[0]);
                 if (startIndex === -1) return;
@@ -200,7 +200,7 @@ export const ReconstructionTree = () => {
         onDrop: () => setFallback(null)
       })
     );
-  }, [viewportEl, canvases, onChange, insertCanvasesAtIndex, mergeCanvases, extractChild, mergeInto, reorderRoot]);
+  }, [viewportEl, canvases, onChange, moveCanvasesToIndex, mergeCanvases, extractChild, mergeInto, reorderRoot]);
 
   return (
     <div className="flex flex-col h-full bg-neutral-50">
