@@ -46,7 +46,7 @@ export const FormManualInput = (props: FormManualInputProps) => {
     <div className="space-y-6" key="form_input">
       <div className="space-y-3">
         <FieldSet className="gap-0.5 items-start">
-          <div className="flex gap-1.5 items-center">
+          <div className="relative">
             <FieldLegend variant="label">
               Physical size
             </FieldLegend>
@@ -59,7 +59,7 @@ export const FormManualInput = (props: FormManualInputProps) => {
                     variant="ghost"
                     size="icon-sm"
                     aria-label="Clear physical size"
-                    className="size-6 text-muted-foreground hover:text-foreground"
+                    className="absolute -top-0.5 -right-6.5 size-5.5 text-muted-foreground hover:text-foreground"
                     onClick={props.onClearPhysicalSize}>
                     <IconTrash />
                   </Button>
