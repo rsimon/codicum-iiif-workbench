@@ -8,8 +8,8 @@ import { ViewerPaginationControl } from '@/components/viewer-pagination-control'
 import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { useAppStore } from '@/store/app-store';
-import { useSourcesStore } from '../sources-store';
 import type { PhysicalSize } from '@/types';
+import { useSourcesStore } from '../sources-store';
 
 interface SourcePreviewToolbarProps {
 
