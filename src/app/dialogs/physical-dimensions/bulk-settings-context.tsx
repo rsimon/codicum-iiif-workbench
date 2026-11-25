@@ -35,7 +35,9 @@ export const BulkSettingsProvider = ({ canvas, children }: { canvas: CozyCanvas,
    
   // All canvases with the given size, incl. this canvas
   const allMatchingCanvases = useMemo(() => (
-    sources.flatMap(s => s.manifest.canvases)
+    sources
+      .flatMap(s => s.manifest.canvases)
+      .filter(c => c.width === canvas.width && c.height === canvas.height)
   ), [sources, canvas.width, canvas.height, canvas.id]);
 
   // Just the other matching canvases, without this one
@@ -66,6 +68,6 @@ export const BulkSettingsProvider = ({ canvas, children }: { canvas: CozyCanvas,
 
 export const useBulkSettings = () => {
   const ctx = useContext(BulkSettingsContext);
-  if (!ctx) throw new Error('useMeasurement must be used within a MeasurementProvider');
+  if (!ctx) throw new Error('useBulkSettings must be used within a BulkSettingsProvider');
   return ctx;
 }

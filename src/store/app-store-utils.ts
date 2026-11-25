@@ -3,6 +3,18 @@ import { reorder } from '@atlaskit/pragmatic-drag-and-drop/reorder';
 import type { PhysicalSize, ReconstructionCanvas, SourceCanvas } from '@/types';
 import type { MoveDirection } from './app-store';
 
+
+/**                           **/
+/** GENERAL PARSING HELPERS   **/
+/**                           **/
+
+// Parse a number string with '.' and ',' allowed as comma
+export const parseNumber = (s: string): number | undefined => {
+  const n = Number.parseFloat(s.replace(',', '.'));
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+// Parse raw IIIF canvas JSON into a CozyCanvas
 export const parseCanvas = (source: unknown): CozyCanvas => {
   const parsed = Cozy.parse(source);
 
@@ -14,6 +26,7 @@ export const parseCanvas = (source: unknown): CozyCanvas => {
   return parsed.resource;
 }
 
+// Parse raw IIIF manifest JSON into a CozyManifest
 export const parseManifest = (source: unknown): CozyManifest => {
   const parsed = Cozy.parse(source);
 
@@ -25,6 +38,7 @@ export const parseManifest = (source: unknown): CozyManifest => {
   return parsed.resource;
 }
 
+// Serialize a canvas + (optional) region to a W3C Media Fragment string
 export const toFragmentTarget = (canvas: CozyCanvas, bounds?: { x: number; y: number; w: number; h: number }) => {
   if (!bounds) return canvas.id;
   const x = Math.round(bounds.x);
@@ -35,6 +49,245 @@ export const toFragmentTarget = (canvas: CozyCanvas, bounds?: { x: number; y: nu
   return isFullSize ? canvas.id : `${canvas.id}#xywh=${x},${y},${w},${h}`;
 }
 
+
+/**                                  **/
+/** SOURCE CANVAS-RELATED HELPERS    **/
+/**                                  **/
+
+// Set physical size on a list of source canvases
+export const setSourceCanvasesPhysicalSize = (
+  reconstruction: ReconstructionCanvas[],
+  sizes: Map<string, PhysicalSize>,
+  sourceCanvasIds: string[],
+  size?: PhysicalSize,
+): {
+  reconstruction: ReconstructionCanvas[],
+  sizes: Map<string, PhysicalSize>
+} => {
+  const ids = new Set(sourceCanvasIds);
+
+  const updatedSizes = new Map(sizes);
+  ids.forEach(id => {
+    if (size)
+      updatedSizes.set(id, size);
+    else
+      updatedSizes.delete(id);
+  });
+
+  const updatedReconstruction = reconstruction.map(r => {
+    if (r.type === 'original') {
+      return ids.has(r.source.canvas.id) ? {
+        ...r,
+        physicalSize: size,
+        source: { ...r.source, physicalSize: size }
+      } : r;
+    } else {
+      const isAffected = r.sources.some(s => ids.has(s.canvas.id));
+      return isAffected ? {
+        ...r,
+        sources: r.sources.map(source => ids.has(source.canvas.id) ? {
+          ...source,
+          physicalSize: size
+        } : source)
+      } : r;
+    }
+  });
+
+  return { sizes: updatedSizes, reconstruction: updatedReconstruction };
+}
+
+// Build a Map of canvasIds in reconstruction, by manifest ID
+export const buildReconstructionSourceIndex = (
+  reconstruction: ReconstructionCanvas[]
+): Map<string, Set<string>> => reconstruction
+  .reduce<Map<string, Set<string>>>((map, r) => {
+    const sources = r.type === 'original' ? [r.source] : r.sources;
+    
+    sources.forEach(s => {
+      const set = map.get(s.sourceManifestId) || new Set();
+      set.add(s.canvas.id);
+      map.set(s.sourceManifestId, set);
+    });
+
+    return map;
+  }, new Map());
+
+
+/**                                         **/
+/** RECONSTRUCTION CANVAS-RELATED HELPERS   **/
+/**                                         **/
+
+// Computes a user-friendly 'empty' label for a new canvas
+export const getEmptyCanvasLabel = (reconstruction: ReconstructionCanvas[]) => {
+  const regex = /^New Composite( \((\d+)\))?$/;
+
+  const numbers = reconstruction
+    .map(rc => rc.label.match(regex))
+    .filter(Boolean)
+    .map(match => (match![2] ? parseInt(match![2]) : 0));
+
+  if (numbers.length === 0) return 'New Composite';
+
+  const max = Math.max(...numbers);
+  return max === 0 ? 'New Composite (1)' : `New Composite (${max + 1})`;
+}
+
+// Append an empty canvas at the end of the reconstruction
+export const appendEmptyCanvas = (
+  reconstruction: ReconstructionCanvas[], 
+  baseURI: string,
+  fallbackWidth = 1000, 
+  fallbackHeight = 1000
+): ReconstructionCanvas[] => {
+  const { width, height, physicalSize } = reconstruction.length > 0
+    ? reconstruction[reconstruction.length - 1]
+    : { width: fallbackWidth, height: fallbackHeight };
+
+  return [
+    ...reconstruction,
+    {
+      type: 'composite',
+      id: `${baseURI}/canvas/${crypto.randomUUID()}`,
+      label: getEmptyCanvasLabel(reconstruction),
+      sources: [],
+      width, 
+      height,
+      physicalSize
+    }
+  ]
+}
+
+// Resizses reconstruction canvas in px space, keeping physical size in sync 
+export const setReconstructionCanvasPixelSize = (
+  canvas: ReconstructionCanvas, 
+  width: number, 
+  height: number
+): ReconstructionCanvas => {
+  const round = (n: number) => Math.round(1000 * n) / 1000;
+
+  const updated = { ...canvas, width, height };
+  const { physicalSize: phys } = canvas;
+
+  if (phys && canvas.width > 0 && canvas.height > 0) {
+    updated.physicalSize = {
+      ...phys,
+      width: round(phys.width * width / canvas.width),
+      height: round(phys.height * height / canvas.height)
+    };
+  }
+  return updated;
+}
+
+// Resizes reconstronstruction canvas in pyhsical space, keeping px size in sync
+export const setReconstructionCanvasPhysicalSize = (
+  canvas: ReconstructionCanvas, 
+  size?: PhysicalSize
+): ReconstructionCanvas => {
+  if (!size) {
+    const { physicalSize, ...rest } = canvas;
+    return rest;
+  }
+
+  const phys = canvas.physicalSize;
+  const updated = { ...canvas, physicalSize: size };
+
+  if (!phys || phys.unit !== size.unit || phys.width <= 0 || phys.height <= 0)
+    return updated;
+
+  updated.width = Math.round(canvas.width * size.width / phys.width);
+  updated.height = Math.round(canvas.height * size.height / phys.height);
+  return updated;
+}
+
+// Removes a reconstruction canvas from the reconstruction
+export const removeCanvasFromReconstruction = (reconstruction: ReconstructionCanvas[], toRemove: string | string[]) => {
+  const canvasIds = Array.isArray(toRemove) ? new Set(toRemove) : new Set([toRemove]);
+  return reconstruction
+    // Remove canvas at root level
+    .filter(r => !canvasIds.has(r.id)) 
+    // Remove canvas from composites
+    .map(r => {
+      if (r.type === 'original' || r.sources.every(r => !canvasIds.has(r.canvas.id))) {
+        return r;
+      } else {
+        return {
+          ...r,
+          sources: r.sources.filter(s => !canvasIds.has(s.canvas.id))
+        }
+      }
+    });
+}
+
+// Removes a source canvas from the reconstruction, also removing the affected 
+// reconstruction canvas if its empty afterwards
+export const removeSourceCanvasFromReconstruction = (
+  reconstruction: ReconstructionCanvas[],
+  toRemove: string | string[]
+): ReconstructionCanvas[] => {
+  const toRemoveIds = Array.isArray(toRemove) ? new Set(toRemove) : new Set([toRemove]);
+
+  return reconstruction
+    .filter(r => r.type !== 'original' || !toRemoveIds.has(r.source.canvas.id))
+    .map(r => {
+      if (r.type === 'original') return r;
+
+      const isAffected = r.sources.some(s => toRemoveIds.has(s.canvas.id));
+      return isAffected ? {
+        ...r,
+        sources: r.sources.filter(s => !toRemoveIds.has(s.canvas.id))
+      } : r
+    });
+}
+
+// Move index position of a reconstruction canvas
+export const moveCanvas = (
+  reconstruction: ReconstructionCanvas[],
+  canvasId: string,
+  direction: MoveDirection
+): ReconstructionCanvas[] => {
+  const startIndex = reconstruction.findIndex(r => r.id === canvasId);
+  if (startIndex === -1) return reconstruction;
+
+  const finishIndex =
+    direction === 'top' ? 0 :
+    direction === 'bottom' ? reconstruction.length - 1 :
+    direction === 'up' ? startIndex - 1 :
+    startIndex + 1;
+
+  if (finishIndex === startIndex || finishIndex < 0 || finishIndex >= reconstruction.length)
+    return reconstruction;
+
+  return reorder({ list: reconstruction, startIndex, finishIndex });
+}
+
+// Move canvases to a specific index position
+export const moveCanvasesToIndex = (
+  reconstruction: ReconstructionCanvas[],
+  canvasIds: string[],
+  index: number
+): ReconstructionCanvas[] => {
+  const ids = new Set(canvasIds);
+  const canvases = canvasIds
+    .map(id => reconstruction.find(canvas => canvas.id === id)!).filter(Boolean);
+
+  const targetIndex = Math.max(0, Math.min(index, reconstruction.length));
+
+  const removedBeforeIndex = reconstruction
+    .slice(0, targetIndex)
+    .filter(canvas => ids.has(canvas.id))
+    .length;
+
+  const remaining = reconstruction.filter(canvas => !ids.has(canvas.id));
+  const insertionIndex = targetIndex - removedBeforeIndex;
+
+  return [
+    ...remaining.slice(0, insertionIndex),
+    ...canvases,
+    ...remaining.slice(insertionIndex)
+  ];
+}
+
+// Helper for `mergeInto`: rescale images to the new target canvas
 const rescaleSourceCanvas = (source: SourceCanvas, factor: number): SourceCanvas => {
   const targetsByBody = new Map<object, Bounds>();
 
@@ -72,188 +325,7 @@ const rescaleSourceCanvas = (source: SourceCanvas, factor: number): SourceCanvas
   };
 }
 
-export const parseNumber = (s: string): number | undefined => {
-  const n = Number.parseFloat(s.replace(',', '.'));
-  return Number.isFinite(n) && n > 0 ? n : undefined;
-}
-
-export const getEmptyCanvasLabel = (reconstruction: ReconstructionCanvas[]) => {
-  const regex = /^New Composite( \((\d+)\))?$/;
-
-  const numbers = reconstruction
-    .map(rc => rc.label.match(regex))
-    .filter(Boolean)
-    .map(match => (match![2] ? parseInt(match![2]) : 0));
-
-  if (numbers.length === 0) return 'New Composite';
-
-  const max = Math.max(...numbers);
-  return max === 0 ? 'New Composite (1)' : `New Composite (${max + 1})`;
-}
-
-// Removes a **reconstruction** canvas
-export const removeCanvasFromReconstruction = (reconstruction: ReconstructionCanvas[], toRemove: string | string[]) => {
-  const canvasIds = Array.isArray(toRemove) ? new Set(toRemove) : new Set([toRemove]);
-  return reconstruction
-    // Remove canvas at root level
-    .filter(r => !canvasIds.has(r.id)) 
-    // Remove canvas from composites
-    .map(r => {
-      if (r.type === 'original' || r.sources.every(r => !canvasIds.has(r.canvas.id))) {
-        return r;
-      } else {
-        return {
-          ...r,
-          sources: r.sources.filter(s => !canvasIds.has(s.canvas.id))
-        }
-      }
-    });
-}
-
-// Map: canvasIds in reconstruction, by manifest ID
-export const buildReconstructionSourceIndex = (
-  reconstruction: ReconstructionCanvas[]
-): Map<string, Set<string>> => reconstruction
-  .reduce<Map<string, Set<string>>>((map, r) => {
-    const sources = r.type === 'original' ? [r.source] : r.sources;
-    
-    sources.forEach(s => {
-      const set = map.get(s.sourceManifestId) || new Set();
-      set.add(s.canvas.id);
-      map.set(s.sourceManifestId, set);
-    });
-
-    return map;
-  }, new Map());
-
-// Removes a **source** canvas (also removing the corresponding reconstruction canvas
-// in case it contains only this source canvas
-export const removeSourceCanvasFromReconstruction = (
-  reconstruction: ReconstructionCanvas[],
-  toRemove: string | string[]
-): ReconstructionCanvas[] => {
-  const toRemoveIds = Array.isArray(toRemove) ? new Set(toRemove) : new Set([toRemove]);
-
-  return reconstruction
-    .filter(r => r.type !== 'original' || !toRemoveIds.has(r.source.canvas.id))
-    .map(r => {
-      if (r.type === 'original') return r;
-
-      const isAffected = r.sources.some(s => toRemoveIds.has(s.canvas.id));
-      return isAffected ? {
-        ...r,
-        sources: r.sources.filter(s => !toRemoveIds.has(s.canvas.id))
-      } : r
-    });
-}
-
-export const appendEmptyCanvas = (
-  reconstruction: ReconstructionCanvas[], 
-  baseURI: string,
-  fallbackWidth = 1000, 
-  fallbackHeight = 1000
-): ReconstructionCanvas[] => {
-  const { width, height, physicalSize } = reconstruction.length > 0
-    ? reconstruction[reconstruction.length - 1]
-    : { width: fallbackWidth, height: fallbackHeight };
-
-  return [
-    ...reconstruction,
-    {
-      type: 'composite',
-      id: `${baseURI}/canvas/${crypto.randomUUID()}`,
-      label: getEmptyCanvasLabel(reconstruction),
-      sources: [],
-      width, 
-      height,
-      physicalSize
-    }
-  ]
-}
-
-export const resizeReconstructionCanvas = (
-  canvas: ReconstructionCanvas, width: number, height: number
-): ReconstructionCanvas => {
-  const round = (n: number) => Math.round(1000 * n) / 1000;
-
-  const updated = { ...canvas, width, height };
-  const { physicalSize: phys } = canvas;
-
-  if (phys && canvas.width > 0 && canvas.height > 0) {
-    updated.physicalSize = {
-      ...phys,
-      width: round(phys.width * width / canvas.width),
-      height: round(phys.height * height / canvas.height)
-    };
-  }
-  return updated;
-}
-
-export const setReconstructionCanvasPhysicalSize = (
-  canvas: ReconstructionCanvas, size?: PhysicalSize
-): ReconstructionCanvas => {
-  if (!size) {
-    const { physicalSize, ...rest } = canvas;
-    return rest;
-  }
-
-  const phys = canvas.physicalSize;
-  const updated = { ...canvas, physicalSize: size };
-
-  if (!phys || phys.unit !== size.unit || phys.width <= 0 || phys.height <= 0)
-    return updated;
-
-  updated.width = Math.round(canvas.width * size.width / phys.width);
-  updated.height = Math.round(canvas.height * size.height / phys.height);
-  return updated;
-}
-
-export const moveCanvas = (
-  reconstruction: ReconstructionCanvas[],
-  canvasId: string,
-  direction: MoveDirection
-): ReconstructionCanvas[] => {
-  const startIndex = reconstruction.findIndex(r => r.id === canvasId);
-  if (startIndex === -1) return reconstruction;
-
-  const finishIndex =
-    direction === 'top' ? 0 :
-    direction === 'bottom' ? reconstruction.length - 1 :
-    direction === 'up' ? startIndex - 1 :
-    startIndex + 1;
-
-  if (finishIndex === startIndex || finishIndex < 0 || finishIndex >= reconstruction.length)
-    return reconstruction;
-
-  return reorder({ list: reconstruction, startIndex, finishIndex });
-}
-
-export const insertCanvasesAtIndex = (
-  reconstruction: ReconstructionCanvas[],
-  canvasIds: string[],
-  index: number
-): ReconstructionCanvas[] => {
-  const ids = new Set(canvasIds);
-  const canvases = canvasIds
-    .map(id => reconstruction.find(canvas => canvas.id === id)!).filter(Boolean);
-
-  const targetIndex = Math.max(0, Math.min(index, reconstruction.length));
-
-  const removedBeforeIndex = reconstruction
-    .slice(0, targetIndex)
-    .filter(canvas => ids.has(canvas.id))
-    .length;
-
-  const remaining = reconstruction.filter(canvas => !ids.has(canvas.id));
-  const insertionIndex = targetIndex - removedBeforeIndex;
-
-  return [
-    ...remaining.slice(0, insertionIndex),
-    ...canvases,
-    ...remaining.slice(insertionIndex)
-  ];
-}
-
+// Merge a list of reconstruction canvases, combining all source canvases
 export const mergeInto = (
   toMerge: ReconstructionCanvas[], 
   current: ReconstructionCanvas[],

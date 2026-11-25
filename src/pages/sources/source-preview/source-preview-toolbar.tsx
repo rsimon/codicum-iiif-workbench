@@ -9,6 +9,7 @@ import { Button } from '@/shadcn/button';
 import { Separator } from '@/shadcn/separator';
 import { useAppStore } from '@/store/app-store';
 import { useSourcesStore } from '../sources-store';
+import type { PhysicalSize } from '@/types';
 
 interface SourcePreviewToolbarProps {
 
@@ -33,6 +34,7 @@ export const SourcePreviewToolbar = (props: SourcePreviewToolbarProps) => {
 
   const size = useAppStore(state => state.sizes.get(props.selectedCanvas.id));
   const setSize = useAppStore(state => state.setSourcePhysicalSize);
+  const setSizes = useAppStore(state => state.setSourcesPhysicalSize);
 
   const addToReconstruction = useAppStore(state => state.addSourceCanvasToReconstruction);
   const removeFromReconstruction = useAppStore(state => state.removeSourceCanvasFromReconstruction);
@@ -74,6 +76,13 @@ export const SourcePreviewToolbar = (props: SourcePreviewToolbarProps) => {
     }
   }, [isTapeMeasurePressed]);
 
+  const onSetPhysicalSize = (size: PhysicalSize, batch?: CozyCanvas[]) => {
+    if (batch)
+      setSizes(batch.map(c => c.id), size);
+    else
+      setSize(props.selectedCanvas.id, size);
+  }
+
   return (
     <div className="absolute px-4 bottom-8 w-full flex justify-center z-50 pointer-events-none">
       <div className="bg-white flex items-center gap-1 min-w-20 rounded-full p-1.5 pointer-events-auto
@@ -93,7 +102,7 @@ export const SourcePreviewToolbar = (props: SourcePreviewToolbarProps) => {
           physicalSize={size}
           open={showDimensionsDialog}
           onOpenChange={onShowDimensionsDialog}
-          onSizeChanged={size => setSize(props.selectedCanvas.id, size)}>
+          onSizeChanged={onSetPhysicalSize}>
           {size ? (
             <Button
               variant="ghost"

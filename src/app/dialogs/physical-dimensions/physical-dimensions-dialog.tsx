@@ -35,6 +35,47 @@ type PhysicalDimensionsDialogMode = 'FORM_INPUT' | 'MEASURE';
 const round = (num: number) => Math.round(1000 * num) / 1000;
 
 export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) => {
+
+  const { children, open, onOpenChange, ...contentProps } = props;
+
+  return (
+    <FloatingPanel 
+      open={open} 
+      onOpenChange={onOpenChange}>
+      <FloatingPanelTrigger render={children} />
+
+      <FloatingPanelContent 
+        title={(
+          <span>
+            <span>Physical dimensions</span> <span className="text-muted-foreground">[{props.canvas.getLabel()}]</span>
+          </span>
+        )}
+        align="center"
+        sideOffset={38}
+        className="w-sm">
+        <BulkSettingsProvider canvas={props.canvas}>
+          <PhysicalDimensionsDialogContent 
+            {...contentProps} 
+            onClose={() => props.onOpenChange(false)} />
+        </BulkSettingsProvider>
+      </FloatingPanelContent>
+    </FloatingPanel>
+  )
+}
+
+interface PhysicalDimensionsDialogContentProps {
+
+  canvas: CozyCanvas;
+
+  physicalSize?: PhysicalSize;
+
+  onSizeChanged(size?: PhysicalSize, canvases?: CozyCanvas[]): void;
+
+  onClose(): void;
+
+}
+
+const PhysicalDimensionsDialogContent = (props: PhysicalDimensionsDialogContentProps) => {
   const [mode, setMode] = useState<PhysicalDimensionsDialogMode>('FORM_INPUT');
 
   const [widthStr, setWidthStr] = useState('');
@@ -58,19 +99,8 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
   const { applyBulk, allMatchingCanvases } = useBulkSettings();
 
   useEffect(() => {
-    setMode('FORM_INPUT');
     setEnableTapeMeasure(false);
-
-    if (!props.open || !props.physicalSize) {
-      setWidthStr('');
-      setHeightStr('');
-      setDistStr('');
-    } else {
-      setWidthStr(props.physicalSize.width.toString());
-      setHeightStr(props.physicalSize.height.toString());
-      setUnit(props.physicalSize.unit);
-    }
-  }, [props.open, props.physicalSize]);
+  }, []);
 
   useEffect(() => {
     setEnableTapeMeasure(mode === 'MEASURE');
@@ -112,6 +142,9 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
 
       setWidthStr(physicalWidth.toString());
       setHeightStr(physicalHeight.toString());
+    } else {
+      setWidthStr('');
+      setHeightStr('');
     }
   }
 
@@ -126,62 +159,44 @@ export const PhysicalDimensionsDialog = (props: PhysicalDimensionsDialogProps) =
 
     setEnableTapeMeasure(false);
 
-    props.onOpenChange(false);
+    props.onClose();
   }
 
   return (
-    <FloatingPanel 
-      open={props.open} 
-      onOpenChange={props.onOpenChange}>
-      <FloatingPanelTrigger render={props.children} />
+    <div className="p-4 space-y-4">
+      <Field className="gap-2">
+        <FieldLabel className="text-sm">Image size</FieldLabel>
 
-      <FloatingPanelContent 
-        title={(
-          <span>
-            <span>Physical dimensions</span> <span className="text-muted-foreground">[{props.canvas.getLabel()}]</span>
-          </span>
-        )}
-        align="center"
-        sideOffset={38}
-        className="w-sm">
-        <BulkSettingsProvider canvas={props.canvas}>
-          <div className="p-4 space-y-4">
-            <Field className="gap-2">
-              <FieldLabel className="text-sm">Image size</FieldLabel>
+        <FieldContent>
+          <p className="text-muted-foreground text-sm tabular-nums">
+            {props.canvas.width.toLocaleString()} × {props.canvas.height.toLocaleString()} px
+          </p>
+        </FieldContent>
+      </Field>
 
-              <FieldContent>
-                <p className="text-muted-foreground text-sm tabular-nums">
-                  {props.canvas.width.toLocaleString()} × {props.canvas.height.toLocaleString()} px
-                </p>
-              </FieldContent>
-            </Field>
-
-            {mode === 'FORM_INPUT' ? (
-              <FormManualInput 
-                widthStr={widthStr}
-                heightStr={heightStr}
-                unit={unit}
-                isValid={Boolean(isValid)}
-                onWidthChanged={onWidthChanged}
-                onHeightChanged={onHeightChanged}
-                onUnitChanged={setUnit}
-                onToggleForm={() => setMode('MEASURE')}
-                onApplyScale={onApplyScale} />
-            ) : (
-              <FormMeasureFromImage 
-                measuredDistance={measuredDistance}
-                distStr={distStr} 
-                unit={unit} 
-                isValid={Boolean(isValid)} 
-                onDistanceChanged={onDistanceChanged} 
-                onUnitChanged={setUnit}
-                onToggleForm={() => setMode('FORM_INPUT')} 
-                onApplyScale={onApplyScale} />
-            )}
-          </div> 
-        </BulkSettingsProvider>
-      </FloatingPanelContent>
-    </FloatingPanel>
+      {mode === 'FORM_INPUT' ? (
+        <FormManualInput 
+          widthStr={widthStr}
+          heightStr={heightStr}
+          unit={unit}
+          isValid={Boolean(isValid)}
+          onWidthChanged={onWidthChanged}
+          onHeightChanged={onHeightChanged}
+          onUnitChanged={setUnit}
+          onToggleForm={() => setMode('MEASURE')}
+          onApplyScale={onApplyScale} />
+      ) : (
+        <FormMeasureFromImage 
+          measuredDistance={measuredDistance}
+          distStr={distStr} 
+          unit={unit} 
+          isValid={Boolean(isValid)} 
+          onDistanceChanged={onDistanceChanged} 
+          onUnitChanged={setUnit}
+          onToggleForm={() => setMode('FORM_INPUT')} 
+          onApplyScale={onApplyScale} />
+      )}
+    </div>
   )
  
 }
